@@ -1,5 +1,6 @@
 #include <QtWidgets/QApplication>
 #include <QtGui/QSurfaceFormat>
+#include <QtWidgets/QDesktopWidget>
 
 #include "mainwindow.h"
 

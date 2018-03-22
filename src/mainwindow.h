@@ -12,6 +12,7 @@ class MainWindow : public QMainWindow
 
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
   private:
     ImageWidget * m_imageWidget;

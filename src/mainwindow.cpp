@@ -36,3 +36,17 @@ void MainWindow::dropEvent(QDropEvent *e)
         m_imageWidget->initializeTexture(fileName.toStdString());
     }
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+  switch (event->key()) {
+      case Qt::Key_Escape:
+        close();
+        break;
+      case Qt::Key_Backspace:
+        m_imageWidget->clearTexture();
+        break;
+      default:
+        QMainWindow::keyPressEvent(event);
+  }
+}

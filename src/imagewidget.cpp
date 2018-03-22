@@ -163,6 +163,12 @@ void ImageWidget::initializeTexture(const std::string &filename)
     qInfo() << "Texture Initialization done !\n";
 }
 
+void ImageWidget::clearTexture()
+{
+    makeCurrent();
+    m_texture.destroy();
+}
+
 void ImageWidget::resizeGL(int w, int h)
 {
     const qreal retinaScale = devicePixelRatio();

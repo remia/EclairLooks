@@ -43,4 +43,6 @@ LogWidget::LogWidget(QWidget *parent)
 {
     thisInstance = this;
     qInstallMessageHandler(LogHandler);
+
+    setReadOnly(true);
 }

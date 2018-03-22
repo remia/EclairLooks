@@ -7,6 +7,7 @@
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLTexture>
 #include <QtWidgets/QOpenGLWidget>
 
 
@@ -21,6 +22,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 
     virtual QSize minimumSizeHint() const override;
 
+    void initializeTexture();
     void printOpenGLInfo();
     void checkOpenGLError(const std::string &stmt, const std::string &file,
                           int line);
@@ -28,12 +30,16 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
   private:
     GLuint m_posAttr;
     GLuint m_colAttr;
+    GLuint m_texCoordAttr;
     GLuint m_matrixUniform;
+    GLuint m_textureUniform;
 
     QOpenGLShaderProgram *m_program;
     QOpenGLVertexArrayObject *m_vao;
     QOpenGLBuffer m_vertices;
     QOpenGLBuffer m_colors;
+    QOpenGLBuffer m_texCoords;
+    QOpenGLTexture m_texture;
 
     QTime m_frameTime;
     int m_frameCount;

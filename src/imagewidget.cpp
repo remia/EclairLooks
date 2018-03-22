@@ -7,6 +7,8 @@
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
 
+#include <OpenImageIO/imageio.h>
+
 
 #define GL_CHECK(stmt) \
     stmt; \
@@ -17,25 +19,31 @@ static const char *vertexShaderSource =
     "#version 410\n"
     "in vec2 posAttr;\n"
     "in vec3 colAttr;\n"
+    "in vec2 texCoordAttr;\n"
     "uniform mat4 matrix;\n"
     "out vec4 col;\n"
+    "out vec2 texCoord;\n"
     "void main() {\n"
     "   col = vec4(colAttr, 1.0f);\n"
+    "   texCoord = texCoordAttr;\n"
     "   gl_Position = matrix * vec4(posAttr, 0.0f, 1.0f);\n"
     "}\n";
 
 static const char *fragmentShaderSource =
     "#version 410\n"
     "in vec4 col;\n"
+    "in vec2 texCoord;\n"
+    "uniform sampler2D imgTex;\n"
     "out vec4 fragcolor;\n"
     "void main() {\n"
     "   fragcolor = col;\n"
+    "   fragcolor = texture(imgTex, texCoord);\n"
     "}\n";
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_frameCount(0), m_frame(0)
-{
-    m_frameTime.start();
+    : QOpenGLWidget(parent), m_program(0), m_vao(0),
+      m_texture(QOpenGLTexture::Target2D), m_frameCount(0), m_frame(0) {
+  m_frameTime.start();
 }
 
 void ImageWidget::initializeGL()
@@ -48,16 +56,22 @@ void ImageWidget::initializeGL()
     m_program->link();
     m_posAttr = m_program->attributeLocation("posAttr");
     m_colAttr = m_program->attributeLocation("colAttr");
+    m_texCoordAttr = m_program->attributeLocation("texCoordAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
+    m_textureUniform = m_program->uniformLocation("imgTex");
 
     m_vao = new QOpenGLVertexArrayObject(this);
     GL_CHECK(m_vao->create());
     GL_CHECK(m_vao->bind());
 
     GLfloat vertices[] = {
-        0.0f, 0.707f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f};
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+    };
 
     GL_CHECK(m_vertices.create());
     GL_CHECK(m_vertices.bind());
@@ -68,7 +82,11 @@ void ImageWidget::initializeGL()
     GLfloat colors[] = {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f};
+        0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f
+    };
 
     GL_CHECK(m_colors.create());
     GL_CHECK(m_colors.bind());
@@ -76,10 +94,56 @@ void ImageWidget::initializeGL()
     GL_CHECK(glEnableVertexAttribArray(m_colAttr));
     GL_CHECK(glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0));
 
+    GLfloat texCoords[] = {
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+    };
+
+    GL_CHECK(m_texCoords.create());
+    GL_CHECK(m_texCoords.bind());
+    GL_CHECK(m_texCoords.allocate(texCoords, sizeof(texCoords)));
+    GL_CHECK(glEnableVertexAttribArray(m_texCoordAttr));
+    GL_CHECK(glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0));
+
     GL_CHECK(m_vao->release());
 
+    initializeTexture();
+
     printOpenGLInfo();
-    qInfo() << "Initialization done !\n";
+
+    qInfo() << "OpenGL Initialization done !\n";
+}
+
+void ImageWidget::initializeTexture()
+{
+    // Experiment in progres...
+    using namespace OIIO;
+    std::string filename = "/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif";
+    ImageInput *in = ImageInput::open(filename);
+    if (! in)
+       return;
+    const ImageSpec &spec = in->spec();
+    int xres = spec.width;
+    int yres = spec.height;
+    int channels = spec.nchannels;
+    std::cerr << xres << "X" << yres << "~" << channels << "\n";
+    std::vector<unsigned char> pixels(xres*yres*channels);
+    in->read_image(TypeDesc::HALF, pixels.data());
+    in->close();
+    ImageInput::destroy(in);
+
+    m_texture.setSize(xres, yres);
+    m_texture.setFormat(QOpenGLTexture::RGB16F);
+    m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture.allocateStorage();
+    m_texture.setData(QOpenGLTexture::RGB, QOpenGLTexture::Float16, pixels.data());
+
+    qInfo() << "Texture Initialization done !\n";
 }
 
 void ImageWidget::resizeGL(int w, int h)
@@ -94,17 +158,18 @@ void ImageWidget::paintGL()
 
     m_vao->bind();
     m_program->bind();
+    m_texture.bind();
 
     QMatrix4x4 matrix;
-    matrix.perspective(60.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-    matrix.translate(0, 0, -2);
-    matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 1, 0);
-    matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 0, 1);
+    matrix.ortho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+    // matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 1, 0);
+    // matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 0, 1);
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
+    m_texture.release();
     m_program->release();
     m_vao->release();
 

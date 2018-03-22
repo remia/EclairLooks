@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <QtCore/qmath.h>
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>

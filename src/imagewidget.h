@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QtCore/QTime>
-#include <QtCore/qmath.h>
 
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLShaderProgram>
@@ -24,8 +23,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 
     void initializeTexture();
     void printOpenGLInfo();
-    void checkOpenGLError(const std::string &stmt, const std::string &file,
-                          int line);
+    void checkOpenGLError(const std::string &stmt, const std::string &file, int line);
 
   private:
     GLuint m_posAttr;

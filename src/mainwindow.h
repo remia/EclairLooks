@@ -1,13 +1,18 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include <QtWidgets/QDesktopWidget>
-#include <QtWidgets/QDockWidget>
 
+
+class ImageWidget;
 
 class MainWindow : public QMainWindow
 {
   public:
     MainWindow(QWidget *parent = nullptr);
 
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+
+  private:
+    ImageWidget * m_imageWidget;
 };

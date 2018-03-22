@@ -21,7 +21,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 
     virtual QSize minimumSizeHint() const override;
 
-    void initializeTexture();
+    void initializeTexture(const std::string &path);
     void printOpenGLInfo();
     void checkOpenGLError(const std::string &stmt, const std::string &file, int line);
 
@@ -31,6 +31,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     GLuint m_texCoordAttr;
     GLuint m_matrixUniform;
     GLuint m_textureUniform;
+    GLuint m_textureCompleteUniform;
 
     QOpenGLShaderProgram *m_program;
     QOpenGLVertexArrayObject *m_vao;

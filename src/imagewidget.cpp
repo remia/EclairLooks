@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include <QtCore/qmath.h>
+#include <QtWidgets/QMainWindow>
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
@@ -35,10 +36,13 @@ static const char *fragmentShaderSource =
     "in vec4 col;\n"
     "in vec2 texCoord;\n"
     "uniform sampler2D imgTex;\n"
+    "uniform bool imgTexComplete;\n"
     "out vec4 fragcolor;\n"
     "void main() {\n"
-    "   fragcolor = col;\n"
-    "   fragcolor = texture(imgTex, texCoord);\n"
+    "   if (imgTexComplete)"
+    "       fragcolor = texture(imgTex, texCoord);\n"
+    "   else\n"
+    "       fragcolor = col;\n"
     "}\n";
 
 ImageWidget::ImageWidget(QWidget *parent)
@@ -60,6 +64,7 @@ void ImageWidget::initializeGL()
     m_texCoordAttr = m_program->attributeLocation("texCoordAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
     m_textureUniform = m_program->uniformLocation("imgTex");
+    m_textureCompleteUniform = m_program->uniformLocation("imgTexComplete");
 
     m_vao = new QOpenGLVertexArrayObject(this);
     GL_CHECK(m_vao->create());
@@ -112,18 +117,17 @@ void ImageWidget::initializeGL()
 
     GL_CHECK(m_vao->release());
 
-    initializeTexture();
-
     printOpenGLInfo();
 
     qInfo() << "OpenGL Initialization done !\n";
 }
 
-void ImageWidget::initializeTexture()
+void ImageWidget::initializeTexture(const std::string &filename)
 {
+    makeCurrent();
+
     // Experiment in progres...
     using namespace OIIO;
-    std::string filename = "/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif";
     ImageInput *in = ImageInput::open(filename);
     if (! in)
        return;
@@ -131,19 +135,31 @@ void ImageWidget::initializeTexture()
     int xres = spec.width;
     int yres = spec.height;
     int channels = spec.nchannels;
-    std::cerr << xres << "X" << yres << "~" << channels << "\n";
-    std::vector<unsigned char> pixels(xres*yres*channels);
+    std::vector<unsigned char> pixels(xres*yres*channels*2);
     in->read_image(TypeDesc::HALF, pixels.data());
     in->close();
     ImageInput::destroy(in);
 
+    QOpenGLTexture::TextureFormat textureFormat;
+    QOpenGLTexture::PixelFormat pixelFormat;
+    if (channels == 3) {
+        textureFormat = QOpenGLTexture::RGB16F;
+        pixelFormat = QOpenGLTexture::RGB;
+    }
+    if (channels == 4) {
+        textureFormat = QOpenGLTexture::RGBA16F;
+        pixelFormat = QOpenGLTexture::RGBA;
+    }
+
+    m_texture.destroy();
     m_texture.setSize(xres, yres);
-    m_texture.setFormat(QOpenGLTexture::RGB16F);
-    m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture.setFormat(textureFormat);
+    m_texture.setMinificationFilter(QOpenGLTexture::Linear);
     m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
     m_texture.allocateStorage();
-    m_texture.setData(QOpenGLTexture::RGB, QOpenGLTexture::Float16, pixels.data());
+    m_texture.setData(pixelFormat, QOpenGLTexture::Float16, pixels.data());
 
+    qInfo() << "Texture - " << xres << "X" << yres << "~" << channels << "\n";
     qInfo() << "Texture Initialization done !\n";
 }
 
@@ -157,20 +173,29 @@ void ImageWidget::paintGL()
 {
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
+    bool texComplete = m_texture.isStorageAllocated();
+
     m_vao->bind();
     m_program->bind();
-    m_texture.bind();
+    if (texComplete)
+        m_texture.bind();
 
     QMatrix4x4 matrix;
     matrix.ortho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
-    // matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 1, 0);
-    // matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 0, 1);
+    if (!texComplete) {
+        matrix.scale(0.5);
+        matrix.translate(-0.5, -0.5);
+        matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 0, 1);
+        matrix.translate(0.5, 0.5);
+    }
 
     m_program->setUniformValue(m_matrixUniform, matrix);
+    m_program->setUniformValue(m_textureCompleteUniform, texComplete);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    m_texture.release();
+    if (texComplete && m_texture.isBound())
+        m_texture.release();
     m_program->release();
     m_vao->release();
 
@@ -181,7 +206,9 @@ void ImageWidget::paintGL()
       double fps = m_frameCount / ((double) m_frameTime.elapsed() / 1000.0);
       m_frameTime.restart();
       m_frameCount = 0;
-      qInfo() << "FPS : " << fps << "\n";
+
+      QMainWindow * window = (QMainWindow *) parent();
+      window->setWindowTitle(QString("%1 fps").arg(fps));
     }
 
     update();

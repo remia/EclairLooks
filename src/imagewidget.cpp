@@ -181,13 +181,9 @@ void ImageWidget::paintGL()
         m_texture.bind();
 
     QMatrix4x4 matrix;
+    if (!texComplete)
+        matrix.scale(sin(m_frame / window()->windowHandle()->screen()->refreshRate()));
     matrix.ortho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
-    if (!texComplete) {
-        matrix.scale(0.5);
-        matrix.translate(-0.5, -0.5);
-        matrix.rotate(100.0f * m_frame / window()->windowHandle()->screen()->refreshRate(), 0, 0, 1);
-        matrix.translate(0.5, 0.5);
-    }
 
     m_program->setUniformValue(m_matrixUniform, matrix);
     m_program->setUniformValue(m_textureCompleteUniform, texComplete);

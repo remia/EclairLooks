@@ -135,6 +135,27 @@ void ImageWidget::initializeTexture(const std::string &filename)
     int xres = spec.width;
     int yres = spec.height;
     int channels = spec.nchannels;
+
+    for (const ParamValue& p : spec.extra_attribs) {
+        QDebug info = qInfo();
+        info << p.name().c_str() << "\t";
+
+        if (p.type() == TypeString)
+            info << *(const char **)p.data();
+        else if (p.type() == TypeFloat)
+            info << *(const float *)p.data();
+        else if (p.type() == TypeInt)
+            info << *(const int *)p.data();
+        else if (p.type() == TypeDesc::UINT)
+            info << *(const unsigned int *)p.data();
+        else if (p.type() == TypeMatrix) {
+            const float *f = (const float *)p.data();
+            info <<
+                 f[0] << f[1] << f[2] << f[3] << f[4] << f[5] << f[6] << f[7] <<
+                 f[8] << f[9] << f[10] << f[11] << f[12] << f[13] << f[14] << f[15];
+        }
+    }
+
     std::vector<unsigned char> pixels(xres*yres*channels*2);
     in->read_image(TypeDesc::HALF, pixels.data());
     in->close();

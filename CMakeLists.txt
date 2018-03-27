@@ -30,6 +30,8 @@ find_package(OpenColorIO)
 set(SOURCES src/main.cpp src/mainwindow.cpp src/imagewidget.cpp src/logwidget.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${OCIO_INCLUDES})
 target_link_libraries(${PROJECT_NAME} ${OIIO_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${OCIO_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

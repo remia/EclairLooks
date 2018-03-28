@@ -41,14 +41,14 @@ Image Image::FromFile(const std::string &filepath)
         return Image();
 
     const ImageSpec &spec = in->spec();
-    TypeDesc pixel_type = TypeDesc::HALF;
-    uint8_t pixel_depth = 2;
+    TypeDesc pixel_type = TypeDesc::FLOAT;
+    uint8_t pixel_depth = 4;
 
     Image res;
     res.m_width = spec.width;
     res.m_height = spec.height;
     res.m_channels = spec.nchannels;
-    res.m_type = PixelType::Half;
+    res.m_type = PixelType::Float;
 
     if (res.m_channels == 3)
         res.m_format = PixelFormat::RGB;

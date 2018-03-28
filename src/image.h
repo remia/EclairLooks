@@ -29,7 +29,11 @@ class Image
     uint8_t channels() const { return m_channels; }
     PixelType type() const { return m_type; }
     PixelFormat format() const { return m_format; }
+
     uint8_t const *pixels() const { return m_pixels.data(); }
+    uint8_t *pixels() { return m_pixels.data(); }
+
+    float *pixels_asfloat() { return reinterpret_cast<float *>(m_pixels.data()); }
 
   public:
     static Image FromFile(const std::string &filepath);

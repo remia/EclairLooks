@@ -32,7 +32,10 @@ set(SOURCES
     src/mainwindow.cpp
     src/imagewidget.cpp
     src/logwidget.cpp
-    src/image.cpp)
+    src/image.cpp
+    src/transform_ocio.cpp
+    src/transformationlistwidget.cpp
+    src/imagepipeline.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})

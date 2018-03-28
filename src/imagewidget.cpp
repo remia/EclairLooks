@@ -1,4 +1,5 @@
 #include "imagewidget.h"
+#include "image.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -8,8 +9,6 @@
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
-
-#include <OpenImageIO/imageio.h>
 
 
 #define GL_CHECK(stmt) \
@@ -126,61 +125,34 @@ void ImageWidget::initializeTexture(const std::string &filename)
 {
     makeCurrent();
 
-    // Experiment in progres...
-    using namespace OIIO;
-    ImageInput *in = ImageInput::open(filename);
-    if (! in)
-       return;
-    const ImageSpec &spec = in->spec();
-    int xres = spec.width;
-    int yres = spec.height;
-    int channels = spec.nchannels;
-
-    for (const ParamValue& p : spec.extra_attribs) {
-        QDebug info = qInfo();
-        info << p.name().c_str() << "\t";
-
-        if (p.type() == TypeString)
-            info << *(const char **)p.data();
-        else if (p.type() == TypeFloat)
-            info << *(const float *)p.data();
-        else if (p.type() == TypeInt)
-            info << *(const int *)p.data();
-        else if (p.type() == TypeDesc::UINT)
-            info << *(const unsigned int *)p.data();
-        else if (p.type() == TypeMatrix) {
-            const float *f = (const float *)p.data();
-            info <<
-                 f[0] << f[1] << f[2] << f[3] << f[4] << f[5] << f[6] << f[7] <<
-                 f[8] << f[9] << f[10] << f[11] << f[12] << f[13] << f[14] << f[15];
-        }
+    Image img = Image::FromFile(filename);
+    if (!img) {
+        qInfo() << "Could not load image !\n";
+        return;
+    }
+    else if (img.type() != PixelType::Half) {
+        qInfo() << "Image pixel type not supported (must be half) !\n";
+        return;
     }
 
-    std::vector<unsigned char> pixels(xres*yres*channels*2);
-    in->read_image(TypeDesc::HALF, pixels.data());
-    in->close();
-    ImageInput::destroy(in);
+    QOpenGLTexture::PixelType pixelType = QOpenGLTexture::Float16;
+    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGB16F;
+    QOpenGLTexture::PixelFormat pixelFormat = QOpenGLTexture::RGB;
 
-    QOpenGLTexture::TextureFormat textureFormat;
-    QOpenGLTexture::PixelFormat pixelFormat;
-    if (channels == 3) {
-        textureFormat = QOpenGLTexture::RGB16F;
-        pixelFormat = QOpenGLTexture::RGB;
-    }
-    if (channels == 4) {
+    if (img.format() == PixelFormat::RGBA) {
         textureFormat = QOpenGLTexture::RGBA16F;
         pixelFormat = QOpenGLTexture::RGBA;
     }
 
     m_texture.destroy();
-    m_texture.setSize(xres, yres);
+    m_texture.setSize(img.width(), img.height());
     m_texture.setFormat(textureFormat);
     m_texture.setMinificationFilter(QOpenGLTexture::Linear);
     m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
     m_texture.allocateStorage();
-    m_texture.setData(pixelFormat, QOpenGLTexture::Float16, pixels.data());
+    m_texture.setData(pixelFormat, pixelType, img.pixels());
 
-    qInfo() << "Texture - " << xres << "X" << yres << "~" << channels << "\n";
+    qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
 }
 

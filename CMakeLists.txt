@@ -27,7 +27,12 @@ find_package(Qt5Widgets)
 find_package(OpenImageIO)
 find_package(OpenColorIO)
 
-set(SOURCES src/main.cpp src/mainwindow.cpp src/imagewidget.cpp src/logwidget.cpp)
+set(SOURCES
+    src/main.cpp
+    src/mainwindow.cpp
+    src/imagewidget.cpp
+    src/logwidget.cpp
+    src/image.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})

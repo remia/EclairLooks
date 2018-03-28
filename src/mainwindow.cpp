@@ -1,40 +1,29 @@
 #include "mainwindow.h"
 #include "imagewidget.h"
 #include "logwidget.h"
+#include "transformationlistwidget.h"
 
-#include <QtCore/QMimeData>
 #include <QtWidgets/QDockWidget>
 
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    m_imageWidget = new ImageWidget(this);
+    m_imageWidget = new ImageWidget();
+    m_logWidget = new LogWidget();
+    m_transformationsWidget = new TransformationListWidget();
 
-    setAcceptDrops(true);
     setWindowTitle("Eclair Look");
     setCentralWidget(m_imageWidget);
 
-    QDockWidget *logDockWidget = new QDockWidget("Log");
-    logDockWidget->setWidget(new LogWidget());
-    addDockWidget(Qt::BottomDockWidgetArea, logDockWidget);
-}
+    QDockWidget *dw = nullptr;
+    dw = new QDockWidget("Log");
+    dw->setWidget(m_logWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, dw);
 
-void MainWindow::dragEnterEvent(QDragEnterEvent *e)
-{
-    if (e->mimeData()->hasUrls()) {
-        e->acceptProposedAction();
-    }
-}
-
-void MainWindow::dropEvent(QDropEvent *e)
-{
-    foreach (const QUrl &url, e->mimeData()->urls()) {
-        QString fileName = url.toLocalFile();
-        qDebug() << "Dropped file:" << fileName << "\n";
-
-        m_imageWidget->initializeTexture(fileName.toStdString());
-    }
+    dw = new QDockWidget("Transformations");
+    dw->setWidget(m_transformationsWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, dw);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -44,7 +33,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         close();
         break;
       case Qt::Key_Backspace:
-        m_imageWidget->clearTexture();
+        m_imageWidget->clearImage();
         break;
       default:
         QMainWindow::keyPressEvent(event);

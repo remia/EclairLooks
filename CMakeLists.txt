@@ -13,7 +13,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-set(CMAKE_PREFIX_PATH /usr/local/Qt-5.7.0/5.7/clang_64/lib/cmake)
+set(CMAKE_PREFIX_PATH /usr/local/Cellar/qt/5.10.1/lib/cmake)
 set(CMAKE_CXX_FLAGS "-fcolor-diagnostics -Wall -Werror -Wfatal-errors -g -fno-omit-frame-pointer -fsanitize=address")
 
 #set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")

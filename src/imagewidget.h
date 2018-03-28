@@ -10,19 +10,23 @@
 #include <QtWidgets/QOpenGLWidget>
 
 
+class Image;
+
 class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
   public:
     ImageWidget(QWidget *parent = nullptr);
 
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+    virtual QSize minimumSizeHint() const override;
+
     virtual void initializeGL() override;
     virtual void resizeGL(int w, int h) override;
     virtual void paintGL() override;
 
-    virtual QSize minimumSizeHint() const override;
-
-    void initializeTexture(const std::string &path);
-    void clearTexture();
+    void setImage(const Image &img);
+    void clearImage();
 
     void printOpenGLInfo();
     void checkOpenGLError(const std::string &stmt, const std::string &file, int line);

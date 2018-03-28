@@ -1,11 +1,14 @@
 #include "imagewidget.h"
 #include "image.h"
+#include "mainwindow.h"
 
 #include <iostream>
 #include <cstdlib>
 
 #include <QtCore/qmath.h>
+#include <QtCore/QMimeData>
 #include <QtWidgets/QMainWindow>
+#include <QtGui/QDragEnterEvent>
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
@@ -45,9 +48,45 @@ static const char *fragmentShaderSource =
     "}\n";
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0),
-      m_texture(QOpenGLTexture::Target2D), m_frameCount(0), m_frame(0) {
-  m_frameTime.start();
+    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_texture(QOpenGLTexture::Target2D), m_frameCount(0),
+      m_frame(0)
+{
+    m_frameTime.start();
+    setAcceptDrops(true);
+}
+
+void ImageWidget::dragEnterEvent(QDragEnterEvent *e)
+{
+    if (e->mimeData()->hasUrls()) {
+        e->acceptProposedAction();
+    }
+}
+
+void ImageWidget::dropEvent(QDropEvent *e)
+{
+    foreach (const QUrl &url, e->mimeData()->urls()) {
+        QString fileName = url.toLocalFile();
+        qDebug() << "Dropped file:" << fileName << "\n";
+
+        Image img = Image::FromFile(fileName.toStdString());
+        if (!img) {
+            qWarning() << "Could not load image !\n";
+            return;
+        }
+        else if (img.type() != PixelType::Float) {
+            qWarning() << "Image pixel type not supported (must be half) !\n";
+            return;
+        }
+
+        MainWindow * mw = (MainWindow *) parent();
+        mw->pipeline().SetInput(img);
+        setImage(mw->pipeline().GetOutput());
+    }
+}
+
+QSize ImageWidget::minimumSizeHint() const
+{
+    return QSize(1024, 728);
 }
 
 void ImageWidget::initializeGL()
@@ -121,47 +160,6 @@ void ImageWidget::initializeGL()
     qInfo() << "OpenGL Initialization done !\n";
 }
 
-void ImageWidget::initializeTexture(const std::string &filename)
-{
-    makeCurrent();
-
-    Image img = Image::FromFile(filename);
-    if (!img) {
-        qInfo() << "Could not load image !\n";
-        return;
-    }
-    else if (img.type() != PixelType::Half) {
-        qInfo() << "Image pixel type not supported (must be half) !\n";
-        return;
-    }
-
-    QOpenGLTexture::PixelType pixelType = QOpenGLTexture::Float16;
-    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGB16F;
-    QOpenGLTexture::PixelFormat pixelFormat = QOpenGLTexture::RGB;
-
-    if (img.format() == PixelFormat::RGBA) {
-        textureFormat = QOpenGLTexture::RGBA16F;
-        pixelFormat = QOpenGLTexture::RGBA;
-    }
-
-    m_texture.destroy();
-    m_texture.setSize(img.width(), img.height());
-    m_texture.setFormat(textureFormat);
-    m_texture.setMinificationFilter(QOpenGLTexture::Linear);
-    m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
-    m_texture.allocateStorage();
-    m_texture.setData(pixelFormat, pixelType, img.pixels());
-
-    qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
-    qInfo() << "Texture Initialization done !\n";
-}
-
-void ImageWidget::clearTexture()
-{
-    makeCurrent();
-    m_texture.destroy();
-}
-
 void ImageWidget::resizeGL(int w, int h)
 {
     const qreal retinaScale = devicePixelRatio();
@@ -209,9 +207,45 @@ void ImageWidget::paintGL()
     update();
 }
 
-QSize ImageWidget::minimumSizeHint() const
+void ImageWidget::setImage(const Image &img)
 {
-    return QSize(1024, 728);
+    makeCurrent();
+
+    if (!img) {
+        qWarning() << "Could not load image !\n";
+        return;
+    }
+    else if (img.type() != PixelType::Float) {
+        qWarning() << "Image pixel type not supported (must be half) !\n";
+        return;
+    }
+
+    QOpenGLTexture::PixelType pixelType = QOpenGLTexture::Float32;
+    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGB32F;
+    QOpenGLTexture::PixelFormat pixelFormat = QOpenGLTexture::RGB;
+
+    if (img.format() == PixelFormat::RGBA) {
+        textureFormat = QOpenGLTexture::RGBA32F;
+        pixelFormat = QOpenGLTexture::RGBA;
+    }
+
+    m_texture.destroy();
+    m_texture.setSize(img.width(), img.height());
+    m_texture.setFormat(textureFormat);
+    m_texture.setMinificationFilter(QOpenGLTexture::Linear);
+    m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture.allocateStorage();
+    m_texture.setData(pixelFormat, pixelType, img.pixels());
+
+    qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
+    qInfo() << "Texture Initialization done !\n";
+}
+
+void ImageWidget::clearImage()
+{
+    makeCurrent();
+
+    m_texture.destroy();
 }
 
 void ImageWidget::printOpenGLInfo()

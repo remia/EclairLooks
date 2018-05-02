@@ -8,15 +8,16 @@
 #include <QtCore/qmath.h>
 #include <QtCore/QMimeData>
 #include <QtWidgets/QMainWindow>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
 
 
-#define GL_CHECK(stmt) \
-    stmt; \
-    ImageWidget::checkOpenGLError(#stmt, __FILE__, __LINE__); \
+#define GL_CHECK(stmt)                                                                                       \
+    stmt;                                                                                                    \
+    ImageWidget::checkOpenGLError(#stmt, __FILE__, __LINE__);
 
 
 static const char *vertexShaderSource =
@@ -49,10 +50,41 @@ static const char *fragmentShaderSource =
 
 ImageWidget::ImageWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_program(0), m_vao(0), m_texture(QOpenGLTexture::Target2D), m_frameCount(0),
-      m_frame(0)
+      m_frame(0), m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f),
+      m_moveDelta(0.f, 0.f)
 {
     m_frameTime.start();
     setAcceptDrops(true);
+    setFocusPolicy(Qt::ClickFocus);
+}
+
+void ImageWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (QGuiApplication::keyboardModifiers() == Qt::AltModifier){
+        m_imagePosition = widgetToWorld(event->localPos());
+    }
+    else {
+        setMouseTracking(true);
+        m_clickPosition = widgetToNorm(event->localPos());
+    }
+}
+
+void ImageWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
+}
+
+void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    setMouseTracking(false);
+    m_imagePosition += m_moveDelta;
+    m_moveDelta = QPointF(0.f, 0.f);
+}
+
+void ImageWidget::wheelEvent(QWheelEvent *event)
+{
+    m_imageScale += event->delta() / 120.0f;
+    m_imageScale = std::clamp(m_imageScale, 0.1f, 25.f);
 }
 
 void ImageWidget::dragEnterEvent(QDragEnterEvent *e)
@@ -84,6 +116,17 @@ void ImageWidget::dropEvent(QDropEvent *e)
     }
 }
 
+void ImageWidget::keyPressEvent(QKeyEvent *event)
+{
+  switch (event->key()) {
+      case Qt::Key_Backspace:
+        resetViewer();
+        break;
+      default:
+        QWidget::keyPressEvent(event);
+  }
+}
+
 QSize ImageWidget::minimumSizeHint() const
 {
     return QSize(1024, 728);
@@ -109,12 +152,12 @@ void ImageWidget::initializeGL()
     GL_CHECK(m_vao->bind());
 
     GLfloat vertices[] = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
+        -1.0f, -1.0f,
+        -1.0f,  1.0f,
+         1.0f, -1.0f,
+        -1.0f,  1.0f,
+         1.0f,  1.0f,
+         1.0f, -1.0f,
     };
 
     GL_CHECK(m_vertices.create());
@@ -177,12 +220,20 @@ void ImageWidget::paintGL()
     if (texComplete)
         m_texture.bind();
 
-    QMatrix4x4 matrix;
-    if (!texComplete)
-        matrix.scale(sin(m_frame / window()->windowHandle()->screen()->refreshRate()));
-    matrix.ortho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+    QMatrix4x4 projection;
+    projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 
-    m_program->setUniformValue(m_matrixUniform, matrix);
+    QMatrix4x4 view;
+    view.scale(m_imageScale, m_imageScale);
+    view.translate(
+        m_imagePosition.x() + m_moveDelta.x(),
+        m_imagePosition.y() + m_moveDelta.y());
+
+    QMatrix4x4 model;
+
+    QMatrix4x4 mvp = projection * view * model;
+
+    m_program->setUniformValue(m_matrixUniform, mvp);
     m_program->setUniformValue(m_textureCompleteUniform, texComplete);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -232,10 +283,12 @@ void ImageWidget::setImage(const Image &img)
     m_texture.destroy();
     m_texture.setSize(img.width(), img.height());
     m_texture.setFormat(textureFormat);
-    m_texture.setMinificationFilter(QOpenGLTexture::Linear);
-    m_texture.setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture.setMagnificationFilter(QOpenGLTexture::Nearest);
     m_texture.allocateStorage();
     m_texture.setData(pixelFormat, pixelType, img.pixels());
+
+    resetViewer();
 
     qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
@@ -246,6 +299,12 @@ void ImageWidget::clearImage()
     makeCurrent();
 
     m_texture.destroy();
+}
+
+void ImageWidget::resetViewer()
+{
+    m_imageScale = 1.f;
+    m_imagePosition = QPointF(0.f, 0.f);
 }
 
 void ImageWidget::printOpenGLInfo()
@@ -272,4 +331,14 @@ void ImageWidget::checkOpenGLError(const std::string &stmt,
         << " at " << QString::fromStdString(file) << ":" << line
         << " for " << QString::fromStdString(stmt) << "\n";
   }
+}
+
+QPointF ImageWidget::widgetToNorm(const QPointF & pos) const
+{
+    return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
+}
+
+QPointF ImageWidget::widgetToWorld(const QPointF & pos) const
+{
+    return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }

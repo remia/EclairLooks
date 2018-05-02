@@ -17,8 +17,14 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
   public:
     ImageWidget(QWidget *parent = nullptr);
 
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+
     virtual QSize minimumSizeHint() const override;
 
     virtual void initializeGL() override;
@@ -27,9 +33,14 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 
     void setImage(const Image &img);
     void clearImage();
+    void resetViewer();
 
+  private:
     void printOpenGLInfo();
     void checkOpenGLError(const std::string &stmt, const std::string &file, int line);
+
+    QPointF widgetToNorm(const QPointF & pos) const;
+    QPointF widgetToWorld(const QPointF & pos) const;
 
   private:
     GLuint m_posAttr;
@@ -49,4 +60,10 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     QTime m_frameTime;
     int m_frameCount;
     int m_frame;
+
+    QPointF m_imagePosition;
+    float m_imageScale;
+
+    QPointF m_clickPosition;
+    QPointF m_moveDelta;
 };

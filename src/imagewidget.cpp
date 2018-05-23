@@ -21,7 +21,7 @@
 
 
 static const char *vertexShaderSource =
-    "#version 410\n"
+    "#version 410 core\n"
     "in vec2 posAttr;\n"
     "in vec3 colAttr;\n"
     "in vec2 texCoordAttr;\n"
@@ -35,7 +35,7 @@ static const char *vertexShaderSource =
     "}\n";
 
 static const char *fragmentShaderSource =
-    "#version 410\n"
+    "#version 410 core\n"
     "in vec4 col;\n"
     "in vec2 texCoord;\n"
     "uniform sampler2D imgTex;\n"

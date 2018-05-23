@@ -272,21 +272,56 @@ void ImageWidget::setImage(const Image &img)
     }
 
     QOpenGLTexture::PixelType pixelType = QOpenGLTexture::Float32;
-    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGB32F;
-    QOpenGLTexture::PixelFormat pixelFormat = QOpenGLTexture::RGB;
+    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA32F;
+    QOpenGLTexture::PixelFormat pixelFormat;
+    QOpenGLTexture::SwizzleValue swizzleRGBA[4] = {QOpenGLTexture::RedValue, QOpenGLTexture::GreenValue,
+                                                   QOpenGLTexture::BlueValue, QOpenGLTexture::AlphaValue};
 
-    if (img.format() == PixelFormat::RGBA) {
-        textureFormat = QOpenGLTexture::RGBA32F;
-        pixelFormat = QOpenGLTexture::RGBA;
+    switch (img.format())
+    {
+        case PixelFormat::GRAY: {
+            swizzleRGBA[0] = swizzleRGBA[1] = swizzleRGBA[2] = QOpenGLTexture::RedValue;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
+        }
+        case PixelFormat::RGB: {
+            pixelFormat = QOpenGLTexture::RGB;
+            break;
+        }
+        case PixelFormat::RGBA: {
+            pixelFormat = QOpenGLTexture::RGBA;
+            break;
+        }
+        default: {
+            qInfo() << "Image pixel format not supported !\n";
+            return;
+        }
     }
 
     m_texture.destroy();
     m_texture.setSize(img.width(), img.height());
     m_texture.setFormat(textureFormat);
+    m_texture.setSwizzleMask(swizzleRGBA[0], swizzleRGBA[1], swizzleRGBA[2], swizzleRGBA[3]);
     m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
     m_texture.setMagnificationFilter(QOpenGLTexture::Nearest);
     m_texture.allocateStorage();
     m_texture.setData(pixelFormat, pixelType, img.pixels());
+
+    // Because swizzle mask are disabled on Qt macOS (do not know why.)
+    // http://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/opengl/qopengltexture.cpp?h=dev#n4009
+    switch (img.format())
+    {
+        case PixelFormat::GRAY: {
+            m_texture.bind();
+            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            m_texture.release();
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 
     resetViewer();
 

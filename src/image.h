@@ -15,6 +15,7 @@ enum class PixelType
 
 enum class PixelFormat
 {
+    GRAY,
     RGB,
     RGBA
 };

@@ -50,6 +50,8 @@ Image Image::FromFile(const std::string &filepath)
     res.m_channels = spec.nchannels;
     res.m_type = PixelType::Float;
 
+    if (res.m_channels == 1)
+        res.m_format = PixelFormat::GRAY;
     if (res.m_channels == 3)
         res.m_format = PixelFormat::RGB;
     else if (res.m_channels == 4)

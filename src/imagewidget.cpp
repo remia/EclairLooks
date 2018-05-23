@@ -228,19 +228,34 @@ void ImageWidget::paintGL()
     if (texComplete)
         m_texture.bind();
 
-    QMatrix4x4 projection;
-    projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
+    // 1. Model
+    QMatrix4x4 model;
 
+    // 2. View
     QMatrix4x4 view;
+
+    // Aspect ratio adaptation
+    QSize dstSize = this->size();
+    QSize srcSize = QSize(m_texture.width(), m_texture.height());
+    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
+    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
+
+    if (dstRatio > srcRatio)
+        view.scale((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
+    else
+        view.scale(1.0, (dstSize.width() / srcRatio) / dstSize.height());
+
+    // Viewer settings
     view.scale(m_imageScale, m_imageScale);
     view.translate(
         m_imagePosition.x() + m_moveDelta.x(),
         m_imagePosition.y() + m_moveDelta.y());
 
-    QMatrix4x4 model;
+    // 3. Projection
+    QMatrix4x4 projection;
+    projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 
     QMatrix4x4 mvp = projection * view * model;
-
     m_program->setUniformValue(m_matrixUniform, mvp);
     m_program->setUniformValue(m_textureCompleteUniform, texComplete);
 

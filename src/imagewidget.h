@@ -25,7 +25,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    virtual QSize minimumSizeHint() const override;
+    virtual QSize sizeHint() const override;
 
     virtual void initializeGL() override;
     virtual void resizeGL(int w, int h) override;

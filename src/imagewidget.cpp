@@ -127,7 +127,7 @@ void ImageWidget::keyPressEvent(QKeyEvent *event)
   }
 }
 
-QSize ImageWidget::minimumSizeHint() const
+QSize ImageWidget::sizeHint() const
 {
     return QSize(1024, 728);
 }

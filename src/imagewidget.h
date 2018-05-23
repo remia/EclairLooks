@@ -57,10 +57,6 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     QOpenGLBuffer m_texCoords;
     QOpenGLTexture m_texture;
 
-    QTime m_frameTime;
-    int m_frameCount;
-    int m_frame;
-
     QPointF m_imagePosition;
     float m_imageScale;
 

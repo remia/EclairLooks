@@ -49,11 +49,9 @@ static const char *fragmentShaderSource =
     "}\n";
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_texture(QOpenGLTexture::Target2D), m_frameCount(0),
-      m_frame(0), m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f),
-      m_moveDelta(0.f, 0.f)
+    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_texture(QOpenGLTexture::Target2D),
+      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f), m_moveDelta(0.f, 0.f)
 {
-    m_frameTime.start();
     setAcceptDrops(true);
     setFocusPolicy(Qt::ClickFocus);
 }
@@ -67,11 +65,15 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
         setMouseTracking(true);
         m_clickPosition = widgetToNorm(event->localPos());
     }
+
+    update();
 }
 
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
+
+    update();
 }
 
 void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -79,12 +81,16 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
     setMouseTracking(false);
     m_imagePosition += m_moveDelta;
     m_moveDelta = QPointF(0.f, 0.f);
+
+    update();
 }
 
 void ImageWidget::wheelEvent(QWheelEvent *event)
 {
     m_imageScale += event->delta() / 120.0f;
     m_imageScale = std::clamp(m_imageScale, 0.1f, 25.f);
+
+    update();
 }
 
 void ImageWidget::dragEnterEvent(QDragEnterEvent *e)
@@ -114,6 +120,8 @@ void ImageWidget::dropEvent(QDropEvent *e)
         mw->pipeline().SetInput(img);
         setImage(mw->pipeline().GetOutput());
     }
+
+    update();
 }
 
 void ImageWidget::keyPressEvent(QKeyEvent *event)
@@ -242,20 +250,6 @@ void ImageWidget::paintGL()
         m_texture.release();
     m_program->release();
     m_vao->release();
-
-    ++m_frame;
-    ++m_frameCount;
-
-    if (m_frameTime.elapsed() >= 1000) {
-      double fps = m_frameCount / ((double) m_frameTime.elapsed() / 1000.0);
-      m_frameTime.restart();
-      m_frameCount = 0;
-
-      QMainWindow * window = (QMainWindow *) parent();
-      window->setWindowTitle(QString("%1 fps").arg(fps));
-    }
-
-    update();
 }
 
 void ImageWidget::setImage(const Image &img)
@@ -325,6 +319,8 @@ void ImageWidget::setImage(const Image &img)
 
     resetViewer();
 
+    update();
+
     qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
 }
@@ -334,12 +330,16 @@ void ImageWidget::clearImage()
     makeCurrent();
 
     m_texture.destroy();
+
+    update();
 }
 
 void ImageWidget::resetViewer()
 {
     m_imageScale = 1.f;
     m_imagePosition = QPointF(0.f, 0.f);
+
+    update();
 }
 
 void ImageWidget::printOpenGLInfo()

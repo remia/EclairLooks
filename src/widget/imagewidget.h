@@ -45,6 +45,8 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     QPointF widgetToNorm(const QPointF & pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;
 
+    void createTexture(QOpenGLTexture &tex, const Image &img);
+
     bool guessPixelsParameters(
             const Image &img,
             QOpenGLTexture::PixelType & pt,
@@ -56,19 +58,24 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     GLuint m_colAttr;
     GLuint m_texCoordAttr;
     GLuint m_matrixUniform;
-    GLuint m_textureUniform;
+    GLuint m_textureUniformIn;
+    GLuint m_textureUniformOut;
     GLuint m_textureCompleteUniform;
+    GLuint m_sliderPosUniform;
 
     QOpenGLShaderProgram *m_program;
     QOpenGLVertexArrayObject *m_vao;
     QOpenGLBuffer m_vertices;
     QOpenGLBuffer m_colors;
     QOpenGLBuffer m_texCoords;
-    QOpenGLTexture m_texture;
+    QOpenGLTexture m_textureIn;
+    QOpenGLTexture m_textureOut;
 
     QPointF m_imagePosition;
     float m_imageScale;
 
     QPointF m_clickPosition;
     QPointF m_moveDelta;
+
+    float m_sliderPosition;
 };

@@ -37,19 +37,26 @@ static const char *fragmentShaderSource =
     "#version 410 core\n"
     "in vec4 col;\n"
     "in vec2 texCoord;\n"
-    "uniform sampler2D imgTex;\n"
+    "uniform sampler2D imgTexIn;\n"
+    "uniform sampler2D imgTexOut;\n"
     "uniform bool imgTexComplete;\n"
-    "out vec4 fragcolor;\n"
+    "uniform float sliderPosition;\n"
+    "out vec4 fragColor;\n"
     "void main() {\n"
-    "   if (imgTexComplete)"
-    "       fragcolor = texture(imgTex, texCoord);\n"
+    "   if (!imgTexComplete)"
+    "       fragColor = col;\n"
+    "   else if (texCoord.x > sliderPosition)\n"
+    "       fragColor = texture(imgTexOut, texCoord);\n"
     "   else\n"
-    "       fragcolor = col;\n"
+    "       fragColor = texture(imgTexIn, texCoord);\n"
+    "\n"
+    "   if (texCoord.x > sliderPosition - 0.001f && texCoord.x < sliderPosition + 0.001f)\n"
+    "       fragColor = vec4(0.7, 0.7, 0.7, 1.0);\n"
     "}\n";
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_texture(QOpenGLTexture::Target2D),
-      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f), m_moveDelta(0.f, 0.f)
+    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_textureIn(QOpenGLTexture::Target2D), m_textureOut(QOpenGLTexture::Target2D),
+      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f), m_moveDelta(0.f, 0.f), m_sliderPosition(0.5f)
 {
     setAcceptDrops(true);
     setFocusPolicy(Qt::ClickFocus);
@@ -57,8 +64,12 @@ ImageWidget::ImageWidget(QWidget *parent)
 
 void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (QGuiApplication::keyboardModifiers() == Qt::AltModifier){
+    if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
         m_imagePosition = widgetToWorld(event->localPos());
+    }
+    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+        setMouseTracking(true);
+        m_sliderPosition = widgetToNorm(event->localPos()).x();
     }
     else {
         setMouseTracking(true);
@@ -70,7 +81,15 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
+    if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+        m_sliderPosition = widgetToNorm(event->localPos()).x();
+    }
+    else if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
+        return;
+    }
+    else {
+        m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
+    }
 
     update();
 }
@@ -140,8 +159,10 @@ void ImageWidget::initializeGL()
     m_colAttr = m_program->attributeLocation("colAttr");
     m_texCoordAttr = m_program->attributeLocation("texCoordAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
-    m_textureUniform = m_program->uniformLocation("imgTex");
+    m_textureUniformIn = m_program->uniformLocation("imgTexIn");
+    m_textureUniformOut = m_program->uniformLocation("imgTexOut");
     m_textureCompleteUniform = m_program->uniformLocation("imgTexComplete");
+    m_sliderPosUniform = m_program->uniformLocation("sliderPosition");
 
     m_vao = new QOpenGLVertexArrayObject(this);
     GL_CHECK(m_vao->create());
@@ -209,12 +230,16 @@ void ImageWidget::paintGL()
 {
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-    bool texComplete = m_texture.isStorageAllocated();
+    bool texComplete = m_textureIn.isStorageAllocated();
 
     m_vao->bind();
     m_program->bind();
-    if (texComplete)
-        m_texture.bind();
+    if (texComplete) {
+        GL_CHECK(glActiveTexture(GL_TEXTURE0));
+        m_textureIn.bind();
+        GL_CHECK(glActiveTexture(GL_TEXTURE1));
+        m_textureOut.bind();
+    }
 
     // 1. Model
     QMatrix4x4 model;
@@ -224,7 +249,7 @@ void ImageWidget::paintGL()
 
     // Aspect ratio adaptation
     QSize dstSize = this->size();
-    QSize srcSize = QSize(m_texture.width(), m_texture.height());
+    QSize srcSize = QSize(m_textureIn.width(), m_textureIn.height());
     float srcRatio = 1.0f * srcSize.width() / srcSize.height();
     float dstRatio = 1.0f * dstSize.width() / dstSize.height();
 
@@ -246,11 +271,17 @@ void ImageWidget::paintGL()
     QMatrix4x4 mvp = projection * view * model;
     m_program->setUniformValue(m_matrixUniform, mvp);
     m_program->setUniformValue(m_textureCompleteUniform, texComplete);
+    m_program->setUniformValue(m_sliderPosUniform, m_sliderPosition);
+
+    GL_CHECK(m_program->setUniformValue(m_textureUniformIn, 0));
+    GL_CHECK(m_program->setUniformValue(m_textureUniformOut, 1));
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    if (texComplete && m_texture.isBound())
-        m_texture.release();
+    if (texComplete && m_textureIn.isBound()) {
+        m_textureIn.release();
+        m_textureOut.release();
+    }
     m_program->release();
     m_vao->release();
 }
@@ -259,37 +290,8 @@ void ImageWidget::setImage(const Image &img)
 {
     makeCurrent();
 
-    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA32F;
-    QOpenGLTexture::PixelType pixelType;
-    QOpenGLTexture::PixelFormat pixelFormat;
-    std::array<QOpenGLTexture::SwizzleValue, 4> sw;
-    if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
-        return;
-
-    m_texture.destroy();
-    m_texture.setSize(img.width(), img.height());
-    m_texture.setFormat(textureFormat);
-    m_texture.setSwizzleMask(sw[0], sw[1], sw[2], sw[3]);
-    m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
-    m_texture.setMagnificationFilter(QOpenGLTexture::Nearest);
-    m_texture.allocateStorage();
-    m_texture.setData(pixelFormat, pixelType, img.pixels());
-
-    // Because swizzle mask are disabled on Qt macOS (do not know why.)
-    // http://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/opengl/qopengltexture.cpp?h=dev#n4009
-    switch (img.format())
-    {
-        case PixelFormat::GRAY: {
-            m_texture.bind();
-            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-            m_texture.release();
-            break;
-        }
-        default: {
-            break;
-        }
-    }
+    createTexture(m_textureIn, img);
+    createTexture(m_textureOut, img);
 
     resetViewer();
 
@@ -309,7 +311,7 @@ void ImageWidget::updateImage(const Image &img)
     if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
         return;
 
-    m_texture.setData(pixelFormat, pixelType, img.pixels());
+    m_textureOut.setData(pixelFormat, pixelType, img.pixels());
 
     update();
 }
@@ -318,7 +320,8 @@ void ImageWidget::clearImage()
 {
     makeCurrent();
 
-    m_texture.destroy();
+    m_textureIn.destroy();
+    m_textureOut.destroy();
 
     update();
 }
@@ -365,6 +368,41 @@ QPointF ImageWidget::widgetToNorm(const QPointF & pos) const
 QPointF ImageWidget::widgetToWorld(const QPointF & pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
+}
+
+void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)
+{
+    QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA32F;
+    QOpenGLTexture::PixelType pixelType;
+    QOpenGLTexture::PixelFormat pixelFormat;
+    std::array<QOpenGLTexture::SwizzleValue, 4> sw;
+    if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
+        return;
+
+    tex.destroy();
+    tex.setSize(img.width(), img.height());
+    tex.setFormat(textureFormat);
+    tex.setSwizzleMask(sw[0], sw[1], sw[2], sw[3]);
+    tex.setMinificationFilter(QOpenGLTexture::Linear);
+    tex.setMagnificationFilter(QOpenGLTexture::Linear);
+    tex.allocateStorage();
+    tex.setData(pixelFormat, pixelType, img.pixels());
+
+    // Because swizzle mask are disabled on Qt macOS (do not know why.)
+    // http://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/opengl/qopengltexture.cpp?h=dev#n4009
+    switch (img.format())
+    {
+        case PixelFormat::GRAY: {
+            tex.bind();
+            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            tex.release();
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
 
 bool ImageWidget::guessPixelsParameters(const Image &img, QOpenGLTexture::PixelType &pt,

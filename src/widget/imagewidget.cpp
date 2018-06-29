@@ -1,8 +1,7 @@
 #include "imagewidget.h"
-#include "image.h"
-#include "mainwindow.h"
+#include "../image.h"
+#include "../mainwindow.h"
 
-#include <iostream>
 #include <cstdlib>
 
 #include <QtCore/qmath.h>
@@ -107,18 +106,7 @@ void ImageWidget::dropEvent(QDropEvent *e)
         qDebug() << "Dropped file:" << fileName << "\n";
 
         Image img = Image::FromFile(fileName.toStdString());
-        if (!img) {
-            qWarning() << "Could not load image !\n";
-            return;
-        }
-        else if (img.type() != PixelType::Float) {
-            qWarning() << "Image pixel type not supported (must be half) !\n";
-            return;
-        }
-
-        MainWindow * mw = (MainWindow *) parent();
-        mw->pipeline().SetInput(img);
-        setImage(mw->pipeline().GetOutput());
+        setImage(img);
     }
 
     update();
@@ -271,46 +259,17 @@ void ImageWidget::setImage(const Image &img)
 {
     makeCurrent();
 
-    if (!img) {
-        qWarning() << "Could not load image !\n";
-        return;
-    }
-    else if (img.type() != PixelType::Float) {
-        qWarning() << "Image pixel type not supported (must be half) !\n";
-        return;
-    }
-
-    QOpenGLTexture::PixelType pixelType = QOpenGLTexture::Float32;
     QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA32F;
+    QOpenGLTexture::PixelType pixelType;
     QOpenGLTexture::PixelFormat pixelFormat;
-    QOpenGLTexture::SwizzleValue swizzleRGBA[4] = {QOpenGLTexture::RedValue, QOpenGLTexture::GreenValue,
-                                                   QOpenGLTexture::BlueValue, QOpenGLTexture::AlphaValue};
-
-    switch (img.format())
-    {
-        case PixelFormat::GRAY: {
-            swizzleRGBA[0] = swizzleRGBA[1] = swizzleRGBA[2] = QOpenGLTexture::RedValue;
-            pixelFormat = QOpenGLTexture::Red;
-            break;
-        }
-        case PixelFormat::RGB: {
-            pixelFormat = QOpenGLTexture::RGB;
-            break;
-        }
-        case PixelFormat::RGBA: {
-            pixelFormat = QOpenGLTexture::RGBA;
-            break;
-        }
-        default: {
-            qInfo() << "Image pixel format not supported !\n";
-            return;
-        }
-    }
+    std::array<QOpenGLTexture::SwizzleValue, 4> sw;
+    if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
+        return;
 
     m_texture.destroy();
     m_texture.setSize(img.width(), img.height());
     m_texture.setFormat(textureFormat);
-    m_texture.setSwizzleMask(swizzleRGBA[0], swizzleRGBA[1], swizzleRGBA[2], swizzleRGBA[3]);
+    m_texture.setSwizzleMask(sw[0], sw[1], sw[2], sw[3]);
     m_texture.setMinificationFilter(QOpenGLTexture::Nearest);
     m_texture.setMagnificationFilter(QOpenGLTexture::Nearest);
     m_texture.allocateStorage();
@@ -334,10 +293,25 @@ void ImageWidget::setImage(const Image &img)
 
     resetViewer();
 
-    update();
-
     qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
+
+    MainWindow * mw = (MainWindow *) parent();
+    mw->pipeline().SetInput(img);
+    mw->pipeline().Compute();
+}
+
+void ImageWidget::updateImage(const Image &img)
+{
+    QOpenGLTexture::PixelType pixelType;
+    QOpenGLTexture::PixelFormat pixelFormat;
+    std::array<QOpenGLTexture::SwizzleValue, 4> sw;
+    if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
+        return;
+
+    m_texture.setData(pixelFormat, pixelType, img.pixels());
+
+    update();
 }
 
 void ImageWidget::clearImage()
@@ -391,4 +365,44 @@ QPointF ImageWidget::widgetToNorm(const QPointF & pos) const
 QPointF ImageWidget::widgetToWorld(const QPointF & pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
+}
+
+bool ImageWidget::guessPixelsParameters(const Image &img, QOpenGLTexture::PixelType &pt,
+                                        QOpenGLTexture::PixelFormat &pf,
+                                        std::array<QOpenGLTexture::SwizzleValue, 4> &sw)
+{
+    if (!img) {
+        qWarning() << "Could not load image !\n";
+        return false;
+    }
+    else if (img.type() != PixelType::Float) {
+        qWarning() << "Image pixel type not supported (must be Float) !\n";
+        return false;
+    }
+
+    pt = QOpenGLTexture::Float32;
+    sw = {{QOpenGLTexture::RedValue, QOpenGLTexture::GreenValue, QOpenGLTexture::BlueValue,
+          QOpenGLTexture::AlphaValue}};
+
+    switch (img.format()) {
+        case PixelFormat::GRAY: {
+            sw[0] = sw[1] = sw[2] = QOpenGLTexture::RedValue;
+            pf                    = QOpenGLTexture::Red;
+            break;
+        }
+        case PixelFormat::RGB: {
+            pf = QOpenGLTexture::RGB;
+            break;
+        }
+        case PixelFormat::RGBA: {
+            pf = QOpenGLTexture::RGBA;
+            break;
+        }
+        default: {
+            qInfo() << "Image pixel format not supported !\n";
+            return false;
+        }
+    }
+
+    return true;
 }

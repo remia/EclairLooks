@@ -3,6 +3,7 @@
 #include <QtWidgets/QDesktopWidget>
 
 #include "mainwindow.h"
+#include "widget/imagewidget.h" // Debug
 
 int main(int argc, char **argv)
 {
@@ -25,6 +26,10 @@ int main(int argc, char **argv)
     int x = (screenGeometry.width() - mainWindow.width()) / 2;
     int y = (screenGeometry.height() - mainWindow.height()) / 2;
     mainWindow.move(x, y);
+
+    // Debug
+    Image img = Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif");
+    mainWindow.viewer()->setImage(img);
 
     return app.exec();
 }

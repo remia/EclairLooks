@@ -1,29 +1,43 @@
 #pragma once
 
 #include "image.h"
-#include "imagetransformation.h"
+#include "operator/imageoperator.h"
 
+#include <vector>
 #include <memory>
+#include <functional>
 
-
-template<class T>
-using UPtr = std::unique_ptr<T>;
 
 class ImagePipeline
 {
+    template<class T>
+    using UPtr = std::unique_ptr<T>;
+
+    using CallbackT = std::function<void(const Image &img)>;
+
 public:
     ImagePipeline();
 
 public:
-    void SetInput(Image & img);
+    void SetInput(const Image & img);
     Image & GetOutput();
 
-    void AddTransformation(UPtr<ImageTransformation> transform);
+    template <typename T>
+    T * AddTransformation()
+    {
+        m_transformations.emplace_back(new T());
+        m_transformations.back()->InitParameters();
+        m_transformations.back()->SetPipeline(this);
+        return static_cast<T*>(m_transformations.back().get());
+    }
+
+    void Compute();
+
+    void RegisterCallback(const CallbackT func);
 
 private:
     Image m_inputImg;
     Image m_outputImg;
-    std::vector<UPtr<ImageTransformation>> m_transformations;
-
-    bool m_needCompute;
+    std::vector<UPtr<ImageOperator>> m_transformations;
+    std::vector<CallbackT> m_callbacks;
 };

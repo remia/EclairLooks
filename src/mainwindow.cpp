@@ -1,7 +1,7 @@
 #include "mainwindow.h"
-#include "imagewidget.h"
-#include "logwidget.h"
-#include "transformationlistwidget.h"
+#include "widget/imagewidget.h"
+#include "widget/logwidget.h"
+#include "widget/transformationlistwidget.h"
 
 #include <QtWidgets/QDockWidget>
 
@@ -24,6 +24,9 @@ MainWindow::MainWindow(QWidget *parent)
     dw = new QDockWidget("Transformations");
     dw->setWidget(m_transformationsWidget);
     addDockWidget(Qt::LeftDockWidgetArea, dw);
+
+    using std::placeholders::_1;
+    m_pipeline.RegisterCallback(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <QtCore/QTime>
 
 #include <QtGui/QOpenGLFunctions>
@@ -32,6 +34,7 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     virtual void paintGL() override;
 
     void setImage(const Image &img);
+    void updateImage(const Image &img);
     void clearImage();
     void resetViewer();
 
@@ -41,6 +44,12 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 
     QPointF widgetToNorm(const QPointF & pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;
+
+    bool guessPixelsParameters(
+            const Image &img,
+            QOpenGLTexture::PixelType & pt,
+            QOpenGLTexture::PixelFormat &pf,
+            std::array<QOpenGLTexture::SwizzleValue, 4> &sw);
 
   private:
     GLuint m_posAttr;

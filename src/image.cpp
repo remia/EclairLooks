@@ -154,6 +154,18 @@ Image & Image::operator *(float v)
     return *this;
 }
 
+Image Image::operator *(float v) const
+{
+    Image res = *this;
+    float * a = res.pixels_asfloat();
+
+    for (uint64_t i = 0; i < count() * channels(); ++i) {
+        a[i] = a[i] * v;
+    }
+
+    return res;
+}
+
 Image & Image::operator /(const Image & rhs)
 {
     float * a = pixels_asfloat();

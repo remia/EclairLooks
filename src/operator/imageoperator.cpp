@@ -30,7 +30,7 @@ void ImageOperator::Apply(Image & img)
     float isolate_cts = std::any_cast<float>(GetParameter("Isolate Contrast")->value);
     float isolate_color = std::any_cast<float>(GetParameter("Isolate Color")->value);
 
-    Image img_orig = img;
+    const Image img_orig = img;
 
     if (isolate_cts != 0.0f || isolate_color != 0.0f) {
 
@@ -74,12 +74,17 @@ void ImageOperator::Apply(Image & img)
     else {
         OpApply(img);
     }
+
+    float opacity = std::any_cast<float>(GetParameter("Opacity")->value);
+    float a = opacity / 100.0f;
+    img = img_orig * (1.0f - a) + img * a;
 }
 
 void ImageOperator::InitParameters()
 {
     m_params = {
         { ImageOperatorParameter::Type::CheckBox, "Enabled", true },
+        { ImageOperatorParameter::Type::Slider, "Opacity", 100.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
         { ImageOperatorParameter::Type::Slider, "Isolate Contrast", 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
         { ImageOperatorParameter::Type::Slider, "Isolate Color", 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
     };

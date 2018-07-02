@@ -119,6 +119,11 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             slider->setMaximum(params[1]);
             slider->setSingleStep(params[2]);
 
+            if (p.value.has_value()) {
+                auto value = std::any_cast<float>(p.value);
+                slider->setValue(value);
+            }
+
             QObject::connect(
                 slider, QOverload<int>::of(&QSlider::valueChanged),
                 [&, p](int value) {

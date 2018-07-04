@@ -6,4 +6,5 @@ class LogWidget : public QPlainTextEdit
 {
   public:
     LogWidget(QWidget *parent = nullptr);
+    ~LogWidget();
 };

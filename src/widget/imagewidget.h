@@ -38,9 +38,6 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     void clearImage();
     void resetViewer();
 
-  private:
-    void printOpenGLInfo();
-    void checkOpenGLError(const std::string &stmt, const std::string &file, int line);
 
     QPointF widgetToNorm(const QPointF & pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;

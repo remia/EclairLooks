@@ -1,6 +1,7 @@
 #include "imagewidget.h"
 #include "../image.h"
 #include "../mainwindow.h"
+#include "../utils/gl.h"
 
 #include <cstdlib>
 
@@ -12,11 +13,6 @@
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
-
-
-#define GL_CHECK(stmt)                                                                                       \
-    stmt;                                                                                                    \
-    ImageWidget::checkOpenGLError(#stmt, __FILE__, __LINE__);
 
 
 static const char *vertexShaderSource =
@@ -332,32 +328,6 @@ void ImageWidget::resetViewer()
     m_imagePosition = QPointF(0.f, 0.f);
 
     update();
-}
-
-void ImageWidget::printOpenGLInfo()
-{
-    auto gl_vendor = QString(reinterpret_cast<char const *>(glGetString(GL_VENDOR)));
-    auto gl_renderer = QString(reinterpret_cast<char const *>(glGetString(GL_RENDERER)));
-    auto gl_version = QString(reinterpret_cast<char const *>(glGetString(GL_VERSION)));
-    auto gl_glsl_version = QString(reinterpret_cast<char const *>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-
-    qInfo()
-        << "OpenGL Context :\n"
-        << "\tVendor : " << gl_vendor << "\n"
-        << "\tRenderer : " << gl_renderer << "\n"
-        << "\tVersion : " << gl_version << "\n"
-        << "\tGLSL Version : " << gl_glsl_version << "\n";
-}
-
-void ImageWidget::checkOpenGLError(const std::string &stmt,
-                                  const std::string &file, int line) {
-  GLenum err;
-  while ((err = glGetError()) != GL_NO_ERROR) {
-    qCritical()
-        << "OpenGL error " << err
-        << " at " << QString::fromStdString(file) << ":" << line
-        << " for " << QString::fromStdString(stmt) << "\n";
-  }
 }
 
 QPointF ImageWidget::widgetToNorm(const QPointF & pos) const

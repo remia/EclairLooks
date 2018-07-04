@@ -36,9 +36,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
       case Qt::Key_Escape:
         close();
         break;
-      case Qt::Key_Backspace:
-        m_imageWidget->clearImage();
-        break;
       default:
         QMainWindow::keyPressEvent(event);
   }

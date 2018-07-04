@@ -4,10 +4,10 @@
 
 #include "imagepipeline.h"
 
-
 class ImageWidget;
 class LogWidget;
 class TransformationListWidget;
+class WaveformWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -21,9 +21,10 @@ class MainWindow : public QMainWindow
     void keyPressEvent(QKeyEvent *event) override;
 
   private:
-    ImageWidget * m_imageWidget;
-    LogWidget * m_logWidget;
-    TransformationListWidget * m_transformationsWidget;
+    LogWidget *m_logWidget;
+    ImageWidget *m_imageWidget;
+    TransformationListWidget *m_transformationsWidget;
+    WaveformWidget *m_waveformWidget;
 
     ImagePipeline m_pipeline;
 };

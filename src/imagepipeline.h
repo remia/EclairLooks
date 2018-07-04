@@ -33,11 +33,13 @@ public:
 
     void Compute();
 
-    void RegisterCallback(const CallbackT func);
+    void RegisterResetCallback(const CallbackT func);
+    void RegisterUpdateCallback(const CallbackT func);
 
 private:
     Image m_inputImg;
     Image m_outputImg;
     std::vector<UPtr<ImageOperator>> m_transformations;
-    std::vector<CallbackT> m_callbacks;
+    std::vector<CallbackT> m_resetCallbacks;
+    std::vector<CallbackT> m_updateCallbacks;
 };

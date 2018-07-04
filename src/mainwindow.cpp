@@ -9,8 +9,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    m_imageWidget = new ImageWidget();
     m_logWidget = new LogWidget();
+    m_imageWidget = new ImageWidget();
     m_transformationsWidget = new TransformationListWidget();
 
     setWindowTitle("Eclair Look");
@@ -26,7 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     addDockWidget(Qt::LeftDockWidgetArea, dw);
 
     using std::placeholders::_1;
-    m_pipeline.RegisterCallback(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
+    m_pipeline.RegisterResetCallback(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
+    m_pipeline.RegisterUpdateCallback(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

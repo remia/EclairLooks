@@ -14,10 +14,10 @@ class MainWindow : public QMainWindow
   public:
     MainWindow(QWidget *parent = nullptr);
 
-    ImagePipeline & pipeline() { return m_pipeline; }
-    ImageWidget * viewer() { return m_imageWidget; }
+    ImagePipeline &pipeline() { return m_pipeline; }
+    ImageWidget *viewer() { return m_imageWidget; }
 
-public:
+  public:
     void keyPressEvent(QKeyEvent *event) override;
 
   private:

@@ -121,7 +121,8 @@ void ImageWidget::dropEvent(QDropEvent *e)
         qDebug() << "Dropped file:" << fileName << "\n";
 
         Image img = Image::FromFile(fileName.toStdString());
-        setImage(img);
+        MainWindow * mw = (MainWindow *) parent();
+        mw->pipeline().SetInput(img);
     }
 
     update();
@@ -293,10 +294,6 @@ void ImageWidget::setImage(const Image &img)
 
     qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
-
-    MainWindow * mw = (MainWindow *) parent();
-    mw->pipeline().SetInput(img);
-    mw->pipeline().Compute();
 }
 
 void ImageWidget::updateImage(const Image &img)
@@ -310,6 +307,9 @@ void ImageWidget::updateImage(const Image &img)
     m_textureOut.setData(pixelFormat, pixelType, img.pixels());
 
     update();
+
+    for (auto & f : m_callbacks)
+        f(m_textureOut);
 }
 
 void ImageWidget::clearImage()
@@ -413,4 +413,9 @@ bool ImageWidget::guessPixelsParameters(const Image &img, QOpenGLTexture::PixelT
     }
 
     return true;
+}
+
+void ImageWidget::RegisterCallback(const CallbackT func)
+{
+    m_callbacks.push_back(func);
 }

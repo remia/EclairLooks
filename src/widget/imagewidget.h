@@ -11,11 +11,15 @@
 #include <QtGui/QOpenGLTexture>
 #include <QtWidgets/QOpenGLWidget>
 
+#include <functional>
+
 
 class Image;
 
 class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
+    using CallbackT = std::function<void(QOpenGLTexture & tex)>;
+
   public:
     ImageWidget(QWidget *parent = nullptr);
 
@@ -38,7 +42,9 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     void clearImage();
     void resetViewer();
 
+    void RegisterCallback(const CallbackT func);
 
+  private:
     QPointF widgetToNorm(const QPointF & pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;
 
@@ -75,4 +81,6 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     QPointF m_moveDelta;
 
     float m_sliderPosition;
+
+    std::vector<CallbackT> m_callbacks;
 };

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     // Debug
     Image img = Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif");
-    mainWindow.viewer()->setImage(img);
+    mainWindow.pipeline().SetInput(img);
 
     return app.exec();
 }

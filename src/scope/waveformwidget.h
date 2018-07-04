@@ -31,9 +31,15 @@ class WaveformWidget : public QOpenGLWidget, public QOpenGLFunctions
     GLuint m_posAttr;
     GLuint m_textureSrcUniform;
     GLuint m_alphaUniform;
+    GLuint m_legendColorUniform;
+    GLuint m_legendAlphaUniform;
 
     QOpenGLShaderProgram *m_program;
     QOpenGLVertexArrayObject *m_vao;
     QOpenGLBuffer m_vertices;
     QOpenGLTexture * m_textureSrc;
+
+    QOpenGLShaderProgram *m_programLegend;
+    QOpenGLVertexArrayObject *m_vaoLegend;
+    QOpenGLBuffer m_verticesLegend;
 };

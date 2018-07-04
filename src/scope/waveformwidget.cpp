@@ -72,6 +72,18 @@ std::string fragmentShaderSource = R"(
     }
 )";
 
+std::string fragmentShaderSolidSource = R"(
+    #version 410 core
+    out vec4 fragColor;
+
+    uniform vec4 color;
+    uniform float alpha;
+
+    void main() {
+       fragColor = color;
+    }
+)";
+
 WaveformWidget::WaveformWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_alpha(0.1f), m_textureSrc(nullptr)
 {
@@ -100,6 +112,48 @@ void WaveformWidget::keyPressEvent(QKeyEvent *event)
 void WaveformWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+
+    m_programLegend = new QOpenGLShaderProgram(this);
+    m_programLegend->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
+    m_programLegend->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSolidSource.c_str());
+    m_programLegend->link();
+
+    m_posAttr = m_programLegend->attributeLocation("posAttr");
+    m_legendColorUniform = m_programLegend->uniformLocation("color");
+    m_legendAlphaUniform = m_programLegend->uniformLocation("alpha");
+
+    m_vaoLegend = new QOpenGLVertexArrayObject(this);
+    GL_CHECK(m_vaoLegend->create());
+    GL_CHECK(m_vaoLegend->bind());
+
+    // 10 lines with 5 steps each
+    std::vector<GLfloat> vertices;
+
+    uint16_t line_count = 10;
+    uint16_t line_step = 4;
+    for (int i = 0; i < line_count; ++i) {
+        float y = (i / (line_count - 1.f)) * 2.f - 1.f;
+        vertices.push_back(-1.0f); // A.x
+        vertices.push_back(y);     // A.y
+        vertices.push_back(1.0f);  // B.x
+        vertices.push_back(y);     // B.y
+
+        for (int j = 0; j < line_step; ++j) {
+            float y_offset = j / (line_step - 1.f) * (2.f / line_count);
+            vertices.push_back(-1.0f);                // A.x
+            vertices.push_back(y + y_offset);         // A.y
+            vertices.push_back(-1.0f + (1.f / 25.f)); // B.x
+            vertices.push_back(y + y_offset);         // B.y
+        }
+    };
+
+    GL_CHECK(m_verticesLegend.create());
+    GL_CHECK(m_verticesLegend.bind());
+    GL_CHECK(m_verticesLegend.allocate(vertices.data(), vertices.size() * sizeof(GLfloat)));
+    GL_CHECK(glEnableVertexAttribArray(m_posAttr));
+    GL_CHECK(glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, 0));
+
+    GL_CHECK(m_vaoLegend->release());
 }
 
 void WaveformWidget::resizeGL(int w, int h)
@@ -110,14 +164,26 @@ void WaveformWidget::resizeGL(int w, int h)
 
 void WaveformWidget::paintGL()
 {
-    if (!m_textureSrc)
-        return;
-
     GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    // Draw legend
+    m_vaoLegend->bind();
+    m_programLegend->bind();
+
+    GL_CHECK(m_programLegend->setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
+    GL_CHECK(m_programLegend->setUniformValue(m_legendAlphaUniform, 1.f));
+    glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat));
+
+    m_programLegend->release();
+    m_vaoLegend->release();
+
+    // Fill in waveform
+    if (!m_textureSrc)
+        return;
 
     bool texComplete = m_textureSrc->isStorageAllocated();
 
@@ -138,22 +204,18 @@ void WaveformWidget::paintGL()
 
 void WaveformWidget::resetTexture(const Image & img)
 {
-    qInfo() << "Waveform reset signal !";
-
     makeCurrent();
 
     GLint gl_max_vertices, gl_max_invocations;
     glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &gl_max_vertices);
-    qInfo() << "GL_MAX_GEOMETRY_OUTPUT_VERTICES :" << gl_max_vertices;
     glGetIntegerv(GL_MAX_GEOMETRY_SHADER_INVOCATIONS, &gl_max_invocations);
-    qInfo() << "GL_MAX_GEOMETRY_SHADER_INVOCATIONS :" << gl_max_invocations;
 
     int max_vertices = 240;
     assert(max_vertices % 3 == 0);
     assert(max_vertices < gl_max_vertices);
     int invocations = std::ceil(img.height() / (max_vertices / 3.f));
     assert(invocations < gl_max_invocations);
-    qInfo() << "Using" << invocations << " invocations with" << max_vertices << "vertices each !";
+    qInfo() << "Waveform using" << invocations << " invocations with" << max_vertices << "vertices each !\n";
 
     boost::replace_all(geometryShaderSource, "<p_max_vertices>", std::to_string(max_vertices));
     boost::replace_all(geometryShaderSource, "<p_invocations>", std::to_string(invocations));
@@ -190,8 +252,6 @@ void WaveformWidget::resetTexture(const Image & img)
 
 void WaveformWidget::updateTexture(QOpenGLTexture & tex)
 {
-    qInfo() << "Waveform update signal !";
-
     m_textureSrc = &tex;
     update();
 }

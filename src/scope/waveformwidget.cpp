@@ -10,22 +10,25 @@
 #include <QtGui/QKeyEvent>
 
 
-std::string vertexShaderSource = R"(
+static std::string vertexShaderSource = R"(
     #version 410 core
     in vec2 posAttr;
 
+    uniform mat4 matrix;
+
     void main() {
-       gl_Position = vec4(posAttr, 0.0f, 1.0f);
+       gl_Position = matrix * vec4(posAttr, 0.0f, 1.0f);
     }
 )";
 
-std::string geometryShaderSource = R"(
+static std::string geometryShaderSource = R"(
     #version 410 core
     layout (points) in;
     layout (points, max_vertices = <p_max_vertices>) out;
     layout (invocations = <p_invocations>) in;
 
     out vec4 gColor;
+    uniform mat4 gMatrix;
     uniform sampler2D imgTex;
 
     void main() {
@@ -41,18 +44,21 @@ std::string geometryShaderSource = R"(
             // Emit points according to colour
             gl_Position = gl_in[0].gl_Position;
             gl_Position.y = (colour.r * 2.0f) - 1.0f;
+            gl_Position = gMatrix * gl_Position;
             gColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
             EmitVertex();
             EndPrimitive();
 
             gl_Position = gl_in[0].gl_Position;
             gl_Position.y = (colour.g * 2.0f) - 1.0f;
+            gl_Position = gMatrix * gl_Position;
             gColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
             EmitVertex();
             EndPrimitive();
 
             gl_Position = gl_in[0].gl_Position;
             gl_Position.y = (colour.b * 2.0f) - 1.0f;
+            gl_Position = gMatrix * gl_Position;
             gColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
             EmitVertex();
             EndPrimitive();
@@ -60,7 +66,7 @@ std::string geometryShaderSource = R"(
     }
 )";
 
-std::string fragmentShaderSource = R"(
+static std::string fragmentShaderSource = R"(
     #version 410 core
     in vec4 gColor;
     out vec4 fragColor;
@@ -72,12 +78,11 @@ std::string fragmentShaderSource = R"(
     }
 )";
 
-std::string fragmentShaderSolidSource = R"(
+static std::string fragmentShaderSolidSource = R"(
     #version 410 core
     out vec4 fragColor;
 
     uniform vec4 color;
-    uniform float alpha;
 
     void main() {
        fragColor = color;
@@ -85,7 +90,9 @@ std::string fragmentShaderSolidSource = R"(
 )";
 
 WaveformWidget::WaveformWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_alpha(0.1f), m_textureSrc(nullptr)
+    : QOpenGLWidget(parent), m_alpha(0.1f), m_textureSrc(nullptr),
+      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f),
+      m_moveDelta(0.f, 0.f)
 {
     setAcceptDrops(true);
     setFocusPolicy(Qt::ClickFocus);
@@ -109,6 +116,39 @@ void WaveformWidget::keyPressEvent(QKeyEvent *event)
   }
 }
 
+void WaveformWidget::mousePressEvent(QMouseEvent *event)
+{
+    setMouseTracking(true);
+    m_clickPosition = widgetToNorm(event->localPos());
+
+    update();
+}
+
+void WaveformWidget::mouseMoveEvent(QMouseEvent *event)
+{
+
+    m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
+
+    update();
+}
+
+void WaveformWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    setMouseTracking(false);
+    m_imagePosition += m_moveDelta;
+    m_moveDelta = QPointF(0.f, 0.f);
+
+    update();
+}
+
+void WaveformWidget::wheelEvent(QWheelEvent *event)
+{
+    m_imageScale += event->delta() / 120.0f;
+    m_imageScale = std::clamp(m_imageScale, 0.5f, 25.f);
+
+    update();
+}
+
 void WaveformWidget::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -119,6 +159,7 @@ void WaveformWidget::initializeGL()
     m_programLegend->link();
 
     m_posAttr = m_programLegend->attributeLocation("posAttr");
+    m_legendMatrixUniform = m_programLegend->uniformLocation("matrix");
     m_legendColorUniform = m_programLegend->uniformLocation("color");
     m_legendAlphaUniform = m_programLegend->uniformLocation("alpha");
 
@@ -137,6 +178,9 @@ void WaveformWidget::initializeGL()
         vertices.push_back(y);     // A.y
         vertices.push_back(1.0f);  // B.x
         vertices.push_back(y);     // B.y
+
+        if (i == line_count - 1)
+            break;
 
         for (int j = 0; j < line_step; ++j) {
             float y_offset = j / (line_step - 1.f) * (2.f / line_count);
@@ -170,12 +214,24 @@ void WaveformWidget::paintGL()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
+    // Zoom / Pan
+    QMatrix4x4 model;
+    QMatrix4x4 view;
+    view.scale(m_imageScale, m_imageScale);
+    view.translate(
+        m_imagePosition.x() + m_moveDelta.x(),
+        m_imagePosition.y() + m_moveDelta.y());
+    QMatrix4x4 projection;
+    // projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
+
+    QMatrix4x4 mvp = projection * view * model;
+
     // Draw legend
     m_vaoLegend->bind();
     m_programLegend->bind();
 
-    GL_CHECK(m_programLegend->setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
-    GL_CHECK(m_programLegend->setUniformValue(m_legendAlphaUniform, 1.f));
+    m_programLegend->setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f);
+    m_programLegend->setUniformValue(m_legendMatrixUniform, mvp);
     glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat));
 
     m_programLegend->release();
@@ -192,7 +248,9 @@ void WaveformWidget::paintGL()
     if (texComplete)
         m_textureSrc->bind();
 
-    GL_CHECK(m_program->setUniformValue(m_alphaUniform, m_alpha));
+    m_program->setUniformValue(m_alphaUniform, m_alpha);
+    m_program->setUniformValue(m_legendMatrixUniform, QMatrix4x4());
+    m_program->setUniformValue(m_matrixUniform, mvp);
 
     glDrawArrays(GL_POINTS, 0, m_vertices.size() / sizeof(GLfloat));
 
@@ -229,6 +287,7 @@ void WaveformWidget::resetTexture(const Image & img)
     m_posAttr = m_program->attributeLocation("posAttr");
     m_textureSrcUniform = m_program->uniformLocation("imgTex");
     m_alphaUniform = m_program->uniformLocation("alpha");
+    m_matrixUniform = m_program->uniformLocation("gMatrix");
 
     m_vao = new QOpenGLVertexArrayObject(this);
     GL_CHECK(m_vao->create());
@@ -254,4 +313,14 @@ void WaveformWidget::updateTexture(QOpenGLTexture & tex)
 {
     m_textureSrc = &tex;
     update();
+}
+
+QPointF WaveformWidget::widgetToNorm(const QPointF & pos) const
+{
+    return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
+}
+
+QPointF WaveformWidget::widgetToWorld(const QPointF & pos) const
+{
+    return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }

@@ -15,40 +15,46 @@
 #include <QtGui/QScreen>
 
 
-static const char *vertexShaderSource =
-    "#version 410 core\n"
-    "in vec2 posAttr;\n"
-    "in vec3 colAttr;\n"
-    "in vec2 texCoordAttr;\n"
-    "uniform mat4 matrix;\n"
-    "out vec4 col;\n"
-    "out vec2 texCoord;\n"
-    "void main() {\n"
-    "   col = vec4(colAttr, 1.0f);\n"
-    "   texCoord = texCoordAttr;\n"
-    "   gl_Position = matrix * vec4(posAttr, 0.0f, 1.0f);\n"
-    "}\n";
+static std::string vertexShaderSource = R"(
+    #version 410 core
+    in vec2 posAttr;
+    in vec3 colAttr;
+    in vec2 texCoordAttr;
+    out vec4 col;
+    out vec2 texCoord;
 
-static const char *fragmentShaderSource =
-    "#version 410 core\n"
-    "in vec4 col;\n"
-    "in vec2 texCoord;\n"
-    "uniform sampler2D imgTexIn;\n"
-    "uniform sampler2D imgTexOut;\n"
-    "uniform bool imgTexComplete;\n"
-    "uniform float sliderPosition;\n"
-    "out vec4 fragColor;\n"
-    "void main() {\n"
-    "   if (!imgTexComplete)"
-    "       fragColor = col;\n"
-    "   else if (texCoord.x > sliderPosition)\n"
-    "       fragColor = texture(imgTexOut, texCoord);\n"
-    "   else\n"
-    "       fragColor = texture(imgTexIn, texCoord);\n"
-    "\n"
-    "   if (texCoord.x > sliderPosition - 0.001f && texCoord.x < sliderPosition + 0.001f)\n"
-    "       fragColor = vec4(0.7, 0.7, 0.7, 1.0);\n"
-    "}\n";
+    uniform mat4 matrix;
+
+    void main() {
+       col = vec4(colAttr, 1.0f);
+       texCoord = texCoordAttr;
+       gl_Position = matrix * vec4(posAttr, 0.0f, 1.0f);
+    }
+)";
+
+static std::string fragmentShaderSource = R"(
+    #version 410 core
+    in vec4 col;
+    in vec2 texCoord;
+    out vec4 fragColor;
+
+    uniform sampler2D imgTexIn;
+    uniform sampler2D imgTexOut;
+    uniform bool imgTexComplete;
+    uniform float sliderPosition;
+
+    void main() {
+       if (!imgTexComplete)
+           fragColor = col;
+       else if (texCoord.x > sliderPosition)
+           fragColor = texture(imgTexOut, texCoord);
+       else
+           fragColor = texture(imgTexIn, texCoord);
+
+       if (texCoord.x > sliderPosition - 0.001f && texCoord.x < sliderPosition + 0.001f)
+           fragColor = vec4(0.7, 0.7, 0.7, 1.0);
+    }
+)";
 
 ImageWidget::ImageWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_program(0), m_vao(0), m_textureIn(QOpenGLTexture::Target2D), m_textureOut(QOpenGLTexture::Target2D),
@@ -149,8 +155,8 @@ void ImageWidget::initializeGL()
     initializeOpenGLFunctions();
 
     m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
+    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
     m_program->link();
     m_posAttr = m_program->attributeLocation("posAttr");
     m_colAttr = m_program->attributeLocation("colAttr");

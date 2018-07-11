@@ -32,6 +32,7 @@ public:
     }
 
     void Compute();
+    void ExportLUT(const std::string & filename, uint32_t size);
 
     void RegisterResetCallback(const CallbackT func);
     void RegisterUpdateCallback(const CallbackT func);

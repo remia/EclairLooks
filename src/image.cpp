@@ -138,6 +138,40 @@ Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
     return res;
 }
 
+Image Image::Lattice(uint64_t size, uint32_t maxwidth)
+{
+    uint8_t pixel_depth = 4;
+    uint64_t elem_count = size * size * size;
+    uint32_t width = elem_count > maxwidth ? maxwidth : elem_count;
+    uint32_t height = std::ceil(1.f * elem_count / width);
+    qInfo() << "Lattice image for size" << size << ":" << width << "x" << height;
+
+    Image res;
+    res.m_width = width;
+    res.m_height = height;
+    res.m_channels = 3;
+    res.m_type = PixelType::Float;
+    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+
+    uint32_t i = 0;
+    float * pix = reinterpret_cast<float *>(res.m_pixels.data());
+    for (uint32_t b = 0; b < size; ++b) {
+        float bnorm = 1.0f * b / (size - 1);
+        for (uint32_t g = 0; g < size; ++g) {
+            float gnorm = 1.0f * g / (size - 1);
+            for (uint32_t r = 0; r < size; ++r) {
+                float rnorm = 1.0f * r / (size - 1);
+                pix[i * 3] = rnorm;
+                pix[i * 3 + 1] = gnorm;
+                pix[i * 3 + 2] = bnorm;
+                i++;
+            }
+        }
+    }
+
+    return res;
+}
+
 Image::operator bool() const { return (m_width != 0 && m_height != 0); }
 
 Image & Image::operator +(const Image & rhs)

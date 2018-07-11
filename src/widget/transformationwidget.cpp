@@ -3,8 +3,6 @@
 
 #include <QtWidgets/QtWidgets>
 
-#include <iostream>
-
 
 QWidget * TransformationWidget::FromOperator(ImageOperator & op)
 {

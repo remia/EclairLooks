@@ -1,5 +1,4 @@
 #include "logwidget.h"
-#include <iostream>
 
 #include <QtCore/QDateTime>
 

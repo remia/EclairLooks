@@ -3,7 +3,6 @@
 #include <QtWidgets/QDesktopWidget>
 
 #include "mainwindow.h"
-#include "widget/imagewidget.h" // Debug
 
 int main(int argc, char **argv)
 {

@@ -13,12 +13,21 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
-set(CMAKE_CXX_FLAGS "-fcolor-diagnostics -Wall -Werror -Wfatal-errors -g -fno-omit-frame-pointer -fsanitize=address -O3")
+set(CMAKE_CXX_FLAGS "-fcolor-diagnostics -Wall -Werror -Wfatal-errors")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -fno-omit-frame-pointer -fsanitize=address")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 #set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # -----------------------------------------------------------------------------
 # Application

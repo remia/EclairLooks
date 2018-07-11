@@ -6,6 +6,12 @@
 using namespace OIIO;
 
 
+struct BitdepthFormat
+{
+    TypeDesc type;
+    float scale;
+};
+
 void PrintImageMetadata(ImageSpec spec)
 {
     for (const ParamValue &p : spec.extra_attribs) {
@@ -28,8 +34,35 @@ void PrintImageMetadata(ImageSpec spec)
     }
 }
 
-Image::Image() : m_width(0), m_height(0), m_channels(0), m_type(PixelType::Uint8), m_format(PixelFormat::RGB)
+Image::Image()
+    : m_width(0), m_height(0), m_channels(0), m_type(PixelType::Uint8),
+      m_format(PixelFormat::RGB)
 {
+}
+
+void Image::save(const std::string & path, PixelType format) const
+{
+    std::map<PixelType, BitdepthFormat> BitdepthMap;
+    BitdepthMap[PixelType::Uint8] = { TypeDesc::UINT8, 255.0f };
+    BitdepthMap[PixelType::Uint16] = { TypeDesc::UINT16, 65535.0f };
+    BitdepthMap[PixelType::Half] = { TypeDesc::HALF, 1.0f };
+    BitdepthMap[PixelType::Float] = { TypeDesc::FLOAT, 1.0f };
+
+    BitdepthFormat oiio_format = BitdepthMap[format];
+
+    ImageSpec spec;
+    spec.width = m_width;
+    spec.height = m_height;
+    spec.nchannels = m_channels;
+    spec.set_format(oiio_format.type);
+    spec.default_channel_names();
+
+    std::unique_ptr<ImageOutput> out(ImageOutput::create(path));
+    if (!out)
+        return;
+    out->open(path, spec);
+    out->write_image(TypeDesc::FLOAT, m_pixels.data());
+    out->close();
 }
 
 Image Image::FromFile(const std::string &filepath)

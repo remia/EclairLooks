@@ -8,6 +8,7 @@
 enum class PixelType
 {
     Uint8,
+    Uint16,
     Half,
     Float,
     Double
@@ -28,6 +29,7 @@ enum class RampType
     BLUE
 };
 
+
 class Image
 {
   public:
@@ -46,6 +48,8 @@ class Image
 
     float *pixels_asfloat() { return reinterpret_cast<float *>(m_pixels.data()); }
     float const * pixels_asfloat() const { return reinterpret_cast<float const *>(m_pixels.data()); }
+
+    void save(const std::string & path, PixelType format = PixelType::Uint16) const;
 
   public:
     static Image FromFile(const std::string &filepath);

@@ -4,7 +4,7 @@
 #include "widget/transformationlistwidget.h"
 #include "scope/waveformwidget.h"
 
-#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QtWidgets>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -31,6 +31,19 @@ MainWindow::MainWindow(QWidget *parent)
     dw = new QDockWidget("Transformations");
     dw->setWidget(m_transformationsWidget);
     addDockWidget(Qt::LeftDockWidgetArea, dw);
+
+    QAction *action = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
+    QObject::connect(
+        action, &QAction::triggered,
+        [this]() {
+            QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
+            m_pipeline.ExportLUT(fileName.toStdString(), 64);
+        }
+    );
+
+    m_toolBar = new QToolBar();
+    m_toolBar->addAction(action);
+    addToolBar(Qt::TopToolBarArea, m_toolBar);
 
     using std::placeholders::_1;
     m_pipeline.RegisterResetCallback(std::bind(&ImageWidget::setImage, m_imageWidget, _1));

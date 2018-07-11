@@ -4,6 +4,8 @@
 
 #include "imagepipeline.h"
 
+class QToolBar;
+
 class ImageWidget;
 class LogWidget;
 class TransformationListWidget;
@@ -21,6 +23,7 @@ class MainWindow : public QMainWindow
     void keyPressEvent(QKeyEvent *event) override;
 
   private:
+    QToolBar *m_toolBar;
     LogWidget *m_logWidget;
     ImageWidget *m_imageWidget;
     TransformationListWidget *m_transformationsWidget;

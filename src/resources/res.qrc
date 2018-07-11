@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/hexa.png</file>
+    </qresource>
+</RCC>

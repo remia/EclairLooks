@@ -59,7 +59,9 @@ set(SOURCES
     src/scope/waveformwidget.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+qt5_add_resources(RESOURCES src/resources/res.qrc)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${RESOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})

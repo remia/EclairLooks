@@ -75,6 +75,7 @@ static std::string fragmentShaderSource = R"(
 
     void main() {
        fragColor = vec4(gColor.rgb, alpha);
+       fragColor.rgb = pow(fragColor.rgb, vec3(1./2.4));
     }
 )";
 
@@ -86,6 +87,7 @@ static std::string fragmentShaderSolidSource = R"(
 
     void main() {
        fragColor = color;
+       fragColor.rgb = pow(color.rgb, vec3(1./2.4));
     }
 )";
 

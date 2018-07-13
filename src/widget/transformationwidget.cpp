@@ -60,7 +60,8 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
                 }
             );
 
-            op.RegisterCallback([=](const ImageOperatorParameter & new_p) {
+            using OP = ImageOperator;
+            op.Subscribe<OP::UpdateGuiT>(OP::EventT::UpdateGUI, [=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 cb->clear();
@@ -87,7 +88,8 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             layout->addWidget(le);
             layout->addWidget(tb);
 
-            op.RegisterCallback([=](const ImageOperatorParameter & new_p) {
+            using OP = ImageOperator;
+            op.Subscribe<OP::UpdateGuiT>(OP::EventT::UpdateGUI, [=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 le->setText(QString::fromStdString(std::any_cast<std::string>(new_p.value)));

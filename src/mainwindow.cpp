@@ -10,6 +10,10 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    //
+    // GUI Setup
+    //
+
     m_logWidget = new LogWidget();
     m_imageWidget = new ImageWidget();
     m_transformationsWidget = new TransformationListWidget();
@@ -32,25 +36,32 @@ MainWindow::MainWindow(QWidget *parent)
     dw->setWidget(m_transformationsWidget);
     addDockWidget(Qt::LeftDockWidgetArea, dw);
 
-    QAction *action = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
+    QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
+
+    m_toolBar = new QToolBar();
+    m_toolBar->addAction(exportAction);
+    addToolBar(Qt::TopToolBarArea, m_toolBar);
+
+    //
+    // Connections
+    //
+
     QObject::connect(
-        action, &QAction::triggered,
+        exportAction, &QAction::triggered,
         [this]() {
             QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
             m_pipeline.ExportLUT(fileName.toStdString(), 64);
         }
     );
 
-    m_toolBar = new QToolBar();
-    m_toolBar->addAction(action);
-    addToolBar(Qt::TopToolBarArea, m_toolBar);
-
     using std::placeholders::_1;
-    m_pipeline.RegisterResetCallback(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
-    m_pipeline.RegisterUpdateCallback(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
+    using IP = ImagePipeline;
+    m_pipeline.Subscribe<IP::ResetT>(IP::EventT::Reset, std::bind(&ImageWidget::setImage, m_imageWidget, _1));
+    m_pipeline.Subscribe<IP::ResetT>(IP::EventT::Reset, std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
+    m_pipeline.Subscribe<IP::UpdateT>(IP::EventT::Update, std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
-    m_pipeline.RegisterResetCallback(std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
-    m_imageWidget->RegisterCallback(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+    using IW = ImageWidget;
+    m_imageWidget->Subscribe<IW::UpdateT>(IW::EventT::Update, std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

@@ -1,46 +1,44 @@
 #pragma once
 
 #include "image.h"
+#include "utils/event_source.h"
 #include "operator/imageoperator.h"
 
 #include <vector>
-#include <memory>
-#include <functional>
 
 
-class ImagePipeline
+enum class ImagePipelineEvent { Reset, Update };
+
+class ImagePipeline : public EventSource<ImagePipelineEvent>
 {
-    template<class T>
-    using UPtr = std::unique_ptr<T>;
+  public:
+    using EventT  = ImagePipelineEvent;
+    using ResetT  = FuncT<void(const Image &img)>;
+    using UpdateT = FuncT<void(const Image &img)>;
 
-    using CallbackT = std::function<void(const Image &img)>;
-
-public:
+  public:
     ImagePipeline();
 
-public:
-    void SetInput(const Image & img);
-    Image & GetOutput();
+  public:
+    void SetInput(const Image &img);
+    Image &GetOutput();
 
     template <typename T>
-    T * AddTransformation()
+    T *AddTransformation()
     {
+        using OP = ImageOperator;
+
         m_transformations.emplace_back(new T());
         m_transformations.back()->InitParameters();
-        m_transformations.back()->SetPipeline(this);
-        return static_cast<T*>(m_transformations.back().get());
+        m_transformations.back()->Subscribe<OP::UpdateT>(OP::EventT::Update, std::bind(&ImagePipeline::Compute, this));
+        return static_cast<T *>(m_transformations.back().get());
     }
 
     void Compute();
-    void ExportLUT(const std::string & filename, uint32_t size);
+    void ExportLUT(const std::string &filename, uint32_t size);
 
-    void RegisterResetCallback(const CallbackT func);
-    void RegisterUpdateCallback(const CallbackT func);
-
-private:
+  private:
     Image m_inputImg;
     Image m_outputImg;
     std::vector<UPtr<ImageOperator>> m_transformations;
-    std::vector<CallbackT> m_resetCallbacks;
-    std::vector<CallbackT> m_updateCallbacks;
 };

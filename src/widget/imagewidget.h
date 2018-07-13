@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utils/event_source.h"
+
 #include <array>
 
 #include <QtCore/QTime>
@@ -11,14 +13,16 @@
 #include <QtGui/QOpenGLTexture>
 #include <QtWidgets/QOpenGLWidget>
 
-#include <functional>
 
+enum class ImageWidgetEvent { Update };
 
 class Image;
 
-class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
+class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions, public EventSource<ImageWidgetEvent>
 {
-    using CallbackT = std::function<void(QOpenGLTexture & tex)>;
+  public:
+    using EventT  = ImageWidgetEvent;
+    using UpdateT = FuncT<void(QOpenGLTexture &tex)>;
 
   public:
     ImageWidget(QWidget *parent = nullptr);
@@ -41,8 +45,6 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     void updateImage(const Image &img);
     void clearImage();
     void resetViewer();
-
-    void RegisterCallback(const CallbackT func);
 
   private:
     QPointF widgetToNorm(const QPointF & pos) const;
@@ -81,6 +83,4 @@ class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions
     QPointF m_moveDelta;
 
     float m_sliderPosition;
-
-    std::vector<CallbackT> m_callbacks;
 };

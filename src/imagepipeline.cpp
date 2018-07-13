@@ -1,4 +1,5 @@
 #include "imagepipeline.h"
+#include "utils/generic.h"
 
 #include <fstream>
 #include <iomanip>
@@ -8,7 +9,8 @@
 
 ImagePipeline::ImagePipeline()
 {
-
+    RegisterEvent<ResetT>(EventT::Reset);
+    RegisterEvent<UpdateT>(EventT::Update);
 }
 
 void ImagePipeline::SetInput(const Image & img)
@@ -16,8 +18,7 @@ void ImagePipeline::SetInput(const Image & img)
     m_inputImg = img;
     m_outputImg = img;
 
-    for (auto & f : m_resetCallbacks)
-        f(m_inputImg);
+    EmitEvent(EventT::Reset, constant(m_inputImg));
 
     Compute();
 }
@@ -34,8 +35,7 @@ void ImagePipeline::Compute()
         if (!t->IsIdentity())
             t->Apply(m_outputImg);
 
-    for (auto & f : m_updateCallbacks)
-        f(m_outputImg);
+    EmitEvent(EventT::Update, constant(m_outputImg));
 }
 
 void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)
@@ -63,14 +63,4 @@ void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)
                 ofs << std::setprecision(6) << std::fixed << pix[i * 3] << " " << pix[i * 3 + 1] << " " << pix[i * 3 + 2] << "\n";
                 i++;
             }
-}
-
-void ImagePipeline::RegisterResetCallback(const CallbackT func)
-{
-    m_resetCallbacks.push_back(func);
-}
-
-void ImagePipeline::RegisterUpdateCallback(const CallbackT func)
-{
-    m_updateCallbacks.push_back(func);
 }

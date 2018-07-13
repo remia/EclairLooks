@@ -1,22 +1,18 @@
 #include "imageoperator.h"
 #include "../imagepipeline.h"
+#include "../utils/generic.h"
 
 #include "ociomatrix_operator.h"
 #include "ociofiletransform_operator.h"
 
 #include <QtCore/QDebug>
-#include <iostream>
 #include <fstream>
 
 
-template<typename T> const T& constant(T& _) { return const_cast<const T&>(_); }
-template<typename T> T& variable(const T& _) { return const_cast<T&>(_); }
-
-
 ImageOperator::ImageOperator()
-:   m_pipeline(nullptr)
 {
-
+    RegisterEvent<UpdateT>(EventT::Update);
+    RegisterEvent<UpdateGuiT>(EventT::UpdateGUI);
 }
 
 bool ImageOperator::IsIdentity() const
@@ -117,20 +113,15 @@ ImageOperatorParameter const * ImageOperator::GetParameter(const std::string & n
 
 void ImageOperator::SetParameter(const std::string & name, const std::any & value)
 {
-    qInfo() << QString::fromStdString(OpName()) << "-" << QString::fromStdString(name) << "updated by event !";
+    qInfo() << QString::fromStdString(OpName()) << "-" << QString::fromStdString(name) << "updated by gui event !";
 
     auto param = GetParameter(name);
     if (param) {
         param->value = value;
-
-        // NOTE : Base update logic here...
-        // ....
-        // Custom update logic here...
         OpUpdateParamCallback(*param);
     }
 
-    if (Pipeline())
-        Pipeline()->Compute();
+    EmitEvent(EventT::Update);
 }
 
 void ImageOperator::UpdateParameter(const std::string & name, const ImageOperatorParameter & op)
@@ -141,11 +132,6 @@ void ImageOperator::UpdateParameter(const std::string & name, const ImageOperato
     if (param)
         *param = op;
 
-    for (auto &func : m_callbacks)
-        func(*param);
-
-    if (Pipeline())
-        Pipeline()->Compute();
+    EmitEvent(EventT::UpdateGUI, constant(*param));
+    EmitEvent(EventT::Update);
 }
-
-void ImageOperator::RegisterCallback(CallbackT func) { m_callbacks.push_back(func); }

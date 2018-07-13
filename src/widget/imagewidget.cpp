@@ -62,6 +62,8 @@ ImageWidget::ImageWidget(QWidget *parent)
 {
     setAcceptDrops(true);
     setFocusPolicy(Qt::ClickFocus);
+
+    RegisterEvent<UpdateT>(EventT::Update);
 }
 
 void ImageWidget::mousePressEvent(QMouseEvent *event)
@@ -314,8 +316,7 @@ void ImageWidget::updateImage(const Image &img)
 
     update();
 
-    for (auto & f : m_callbacks)
-        f(m_textureOut);
+    EmitEvent(EventT::Update, m_textureOut);
 }
 
 void ImageWidget::clearImage()
@@ -419,9 +420,4 @@ bool ImageWidget::guessPixelsParameters(const Image &img, QOpenGLTexture::PixelT
     }
 
     return true;
-}
-
-void ImageWidget::RegisterCallback(const CallbackT func)
-{
-    m_callbacks.push_back(func);
 }

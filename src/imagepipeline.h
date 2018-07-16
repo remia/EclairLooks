@@ -12,7 +12,6 @@ enum class ImagePipelineEvent { Reset, Update };
 class ImagePipeline : public EventSource<ImagePipelineEvent>
 {
   public:
-    using EventT  = ImagePipelineEvent;
     using ResetT  = FuncT<void(const Image &img)>;
     using UpdateT = FuncT<void(const Image &img)>;
 

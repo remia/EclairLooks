@@ -21,7 +21,6 @@ class Image;
 class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions, public EventSource<ImageWidgetEvent>
 {
   public:
-    using EventT  = ImageWidgetEvent;
     using UpdateT = FuncT<void(QOpenGLTexture &tex)>;
 
   public:

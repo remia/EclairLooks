@@ -9,9 +9,11 @@
 #include "generic.h"
 
 
-template <typename EventT>
-class EventSource
+template <typename E> class EventSource
 {
+  public:
+    typedef E EventT;
+
   public:
     template <typename F> void Subscribe(EventT id, const F &callback)
     {

@@ -15,7 +15,6 @@ enum class ImageOperatorEvent { Update, UpdateGUI };
 class ImageOperator : public EventSource<ImageOperatorEvent>
 {
   public:
-    using EventT  = ImageOperatorEvent;
     using UpdateT = FuncT<void()>;
     using UpdateGuiT = FuncT<void(const ImageOperatorParameter &op)>;
 

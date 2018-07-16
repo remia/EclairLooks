@@ -7,13 +7,14 @@
 #include <vector>
 
 
-enum class ImagePipelineEvent { Reset, Update };
+typedef EventDesc<
+    FuncT<void(const Image &img)>,
+    FuncT<void(const Image &img)>> IPEvtDesc;
 
-class ImagePipeline : public EventSource<ImagePipelineEvent>
+class ImagePipeline : public EventSource<IPEvtDesc>
 {
   public:
-    using ResetT  = FuncT<void(const Image &img)>;
-    using UpdateT = FuncT<void(const Image &img)>;
+    enum Evt { Reset = 0, Update };
 
   public:
     ImagePipeline();
@@ -29,7 +30,7 @@ class ImagePipeline : public EventSource<ImagePipelineEvent>
 
         m_transformations.emplace_back(new T());
         m_transformations.back()->InitParameters();
-        m_transformations.back()->Subscribe<OP::UpdateT>(OP::EventT::Update, std::bind(&ImagePipeline::Compute, this));
+        m_transformations.back()->Subscribe<OP::Evt::Update>(std::bind(&ImagePipeline::Compute, this));
         return static_cast<T *>(m_transformations.back().get());
     }
 

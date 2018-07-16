@@ -10,13 +10,15 @@ class Image;
 class ImagePipeline;
 class QWidget;
 
-enum class ImageOperatorEvent { Update, UpdateGUI };
 
-class ImageOperator : public EventSource<ImageOperatorEvent>
+typedef EventDesc<
+    FuncT<void()>,
+    FuncT<void(const ImageOperatorParameter &op)>> IOEvtDesc;
+
+class ImageOperator : public EventSource<IOEvtDesc>
 {
   public:
-    using UpdateT = FuncT<void()>;
-    using UpdateGuiT = FuncT<void(const ImageOperatorParameter &op)>;
+    enum Evt { Update = 0, UpdateGUI };
 
   public:
     ImageOperator();

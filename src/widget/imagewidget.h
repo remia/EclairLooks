@@ -14,14 +14,16 @@
 #include <QtWidgets/QOpenGLWidget>
 
 
-enum class ImageWidgetEvent { Update };
+typedef EventDesc <FuncT<void(QOpenGLTexture &tex)>> IWEvtDesc;
 
 class Image;
 
-class ImageWidget : public QOpenGLWidget, public QOpenGLFunctions, public EventSource<ImageWidgetEvent>
+class ImageWidget : public QOpenGLWidget,
+                    public QOpenGLFunctions,
+                    public EventSource<IWEvtDesc>
 {
   public:
-    using UpdateT = FuncT<void(QOpenGLTexture &tex)>;
+    enum Evt { Update = 0 };
 
   public:
     ImageWidget(QWidget *parent = nullptr);

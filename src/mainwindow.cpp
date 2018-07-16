@@ -56,12 +56,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     using std::placeholders::_1;
     using IP = ImagePipeline;
-    m_pipeline.Subscribe<IP::ResetT>(IP::EventT::Reset, std::bind(&ImageWidget::setImage, m_imageWidget, _1));
-    m_pipeline.Subscribe<IP::ResetT>(IP::EventT::Reset, std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
-    m_pipeline.Subscribe<IP::UpdateT>(IP::EventT::Update, std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
+    m_pipeline.Subscribe<IP::Evt::Reset>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
+    m_pipeline.Subscribe<IP::Evt::Reset>(std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
+    m_pipeline.Subscribe<IP::Evt::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
     using IW = ImageWidget;
-    m_imageWidget->Subscribe<IW::UpdateT>(IW::EventT::Update, std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+    m_imageWidget->Subscribe<IW::Evt::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

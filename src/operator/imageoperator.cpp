@@ -11,8 +11,6 @@
 
 ImageOperator::ImageOperator()
 {
-    RegisterEvent<UpdateT>(EventT::Update);
-    RegisterEvent<UpdateGuiT>(EventT::UpdateGUI);
 }
 
 bool ImageOperator::IsIdentity() const
@@ -121,7 +119,7 @@ void ImageOperator::SetParameter(const std::string & name, const std::any & valu
         OpUpdateParamCallback(*param);
     }
 
-    EmitEvent(EventT::Update);
+    EmitEvent<Evt::Update>();
 }
 
 void ImageOperator::UpdateParameter(const std::string & name, const ImageOperatorParameter & op)
@@ -132,6 +130,6 @@ void ImageOperator::UpdateParameter(const std::string & name, const ImageOperato
     if (param)
         *param = op;
 
-    EmitEvent(EventT::UpdateGUI, constant(*param));
-    EmitEvent(EventT::Update);
+    EmitEvent<Evt::UpdateGUI>(*param);
+    EmitEvent<Evt::Update>();
 }

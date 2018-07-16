@@ -57,13 +57,13 @@ static std::string fragmentShaderSource = R"(
 )";
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0), m_textureIn(QOpenGLTexture::Target2D), m_textureOut(QOpenGLTexture::Target2D),
-      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f), m_moveDelta(0.f, 0.f), m_sliderPosition(0.5f)
+    : QOpenGLWidget(parent), m_program(0), m_vao(0),
+      m_textureIn(QOpenGLTexture::Target2D), m_textureOut(QOpenGLTexture::Target2D),
+      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f),
+      m_moveDelta(0.f, 0.f), m_sliderPosition(0.5f)
 {
     setAcceptDrops(true);
     setFocusPolicy(Qt::ClickFocus);
-
-    RegisterEvent<UpdateT>(EventT::Update);
 }
 
 void ImageWidget::mousePressEvent(QMouseEvent *event)
@@ -316,7 +316,7 @@ void ImageWidget::updateImage(const Image &img)
 
     update();
 
-    EmitEvent(EventT::Update, m_textureOut);
+    EmitEvent<Evt::Update>(m_textureOut);
 }
 
 void ImageWidget::clearImage()

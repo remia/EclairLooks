@@ -9,8 +9,6 @@
 
 ImagePipeline::ImagePipeline()
 {
-    RegisterEvent<ResetT>(EventT::Reset);
-    RegisterEvent<UpdateT>(EventT::Update);
 }
 
 void ImagePipeline::SetInput(const Image & img)
@@ -18,7 +16,7 @@ void ImagePipeline::SetInput(const Image & img)
     m_inputImg = img;
     m_outputImg = img;
 
-    EmitEvent(EventT::Reset, constant(m_inputImg));
+    EmitEvent<Evt::Reset>(m_inputImg);
 
     Compute();
 }
@@ -35,7 +33,7 @@ void ImagePipeline::Compute()
         if (!t->IsIdentity())
             t->Apply(m_outputImg);
 
-    EmitEvent(EventT::Update, constant(m_outputImg));
+    EmitEvent<Evt::Update>(m_outputImg);
 }
 
 void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)

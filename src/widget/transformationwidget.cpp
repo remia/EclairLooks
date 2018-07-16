@@ -61,7 +61,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             );
 
             using OP = ImageOperator;
-            op.Subscribe<OP::UpdateGuiT>(OP::EventT::UpdateGUI, [=](const ImageOperatorParameter & new_p) {
+            op.Subscribe<OP::Evt::UpdateGUI>([=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 cb->clear();
@@ -89,7 +89,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             layout->addWidget(tb);
 
             using OP = ImageOperator;
-            op.Subscribe<OP::UpdateGuiT>(OP::EventT::UpdateGUI, [=](const ImageOperatorParameter & new_p) {
+            op.Subscribe<OP::Evt::UpdateGUI>([=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 le->setText(QString::fromStdString(std::any_cast<std::string>(new_p.value)));

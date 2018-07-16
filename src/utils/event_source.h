@@ -1,58 +1,42 @@
 #pragma once
 
-#include <map>
-#include <any>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <tuple>
 
 #include "generic.h"
 
 
-template <typename E> class EventSource
+template <typename... T>
+using EventDesc = std::tuple<std::vector<T>...>;
+
+template <typename EvtDesc> class EventSource
 {
   public:
-    typedef E EventT;
+    typedef uint8_t EventT;
+    typedef EvtDesc EventDescT;
 
   public:
-    template <typename F> void Subscribe(EventT id, const F &callback)
+    template <EventT Id, typename F> void Subscribe(const F &f)
     {
-        try {
-            auto &vec = std::any_cast<std::vector<F> &>(m_callbacks[id]);
-            vec.push_back(callback);
-        } catch (std::bad_any_cast &e) {
-            std::cerr << e.what() << std::endl;
-        }
+        auto &vec = std::get<Id>(m_callbacks);
+        vec.push_back(f);
     }
 
-    template <typename F> void Unsubscribe(EventT id, const F &callback)
+    template <EventT Id, typename F> void Unsubscribe(const EventT id, const F &f)
     {
-        try {
-            auto &vec = std::any_cast<std::vector<F> &>(m_callbacks[id]);
-            std::remove(vec.begin(), vec.end(), callback);
-        } catch (std::bad_any_cast &e) {
-            std::cerr << e.what() << std::endl;
-        }
+        auto &vec = std::get<Id>(m_callbacks);
+        std::remove(vec.begin(), vec.end(), f);
     }
 
   protected:
-    template <typename F> void RegisterEvent(EventT id)
+    template <EventT Id, typename... Args> void EmitEvent(Args &&... args)
     {
-        m_callbacks[id] = std::vector<F>();
-    }
-
-    template <typename... Args> void EmitEvent(const EventT id, Args&&... args)
-    {
-        try {
-            // std::cerr << "Param Type : " << type_name< Args&&... >() << std::endl;
-            auto &vec = std::any_cast<std::vector<FuncT<void(Args...)>> &>(m_callbacks[id]);
-            for (auto &f : vec)
-                f(args...);
-        } catch (std::bad_any_cast &e) {
-            std::cerr << e.what() << std::endl;
-        }
+        for (auto &f : std::get<Id>(m_callbacks))
+            f(args...);
     }
 
   private:
-    std::map<EventT, std::any> m_callbacks;
+    EventDescT m_callbacks;
 };

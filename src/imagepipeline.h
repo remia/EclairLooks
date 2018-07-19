@@ -26,12 +26,11 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     template <typename T>
     T *AddTransformation()
     {
-        using OP = ImageOperator;
+        using PL = ImageOperatorParameterList;
 
-        m_transformations.emplace_back(new T());
-        m_transformations.back()->InitParameters();
-        m_transformations.back()->Subscribe<OP::Evt::Update>(std::bind(&ImagePipeline::Compute, this));
-        return static_cast<T *>(m_transformations.back().get());
+        UPtr<ImageOperator> & op = m_transformations.emplace_back(new T());
+        op->Parameters().Subscribe<PL::UpdateAny>(std::bind(&ImagePipeline::Compute, this) );
+        return static_cast<T *>(op.get());
     }
 
     void Compute();

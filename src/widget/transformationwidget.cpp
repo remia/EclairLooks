@@ -10,7 +10,7 @@ QWidget * TransformationWidget::FromOperator(ImageOperator & op)
     QVBoxLayout * layout = new QVBoxLayout(widget);
     layout->addWidget(new QLabel(QString::fromStdString(op.OpName())));
 
-    for (auto & p : op.GetParameters()) {
+    for (auto & p : op.Parameters()) {
         QHBoxLayout * rowLayout = new QHBoxLayout();
         rowLayout->addWidget(new QLabel(QString::fromStdString(p.name)));
         rowLayout->addWidget(_WidgetFromParameter(op, p));
@@ -31,7 +31,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             QObject::connect(
                 te, &QTextEdit::textChanged,
                 [&, p, te]() {
-                    op.SetParameter(p.name, te->toPlainText().toStdString());
+                    op.Parameters().Set(p.name, te->toPlainText().toStdString());
                 }
             );
 
@@ -56,12 +56,12 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             QObject::connect(
                 cb, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
                 [&, p](const QString &text) {
-                    op.SetParameter(p.name, text.toStdString());
+                    op.Parameters().Set(p.name, text.toStdString());
                 }
             );
 
-            using OP = ImageOperator;
-            op.Subscribe<OP::Evt::UpdateGUI>([=](const ImageOperatorParameter & new_p) {
+            using IOPL = ImageOperatorParameterList;
+            op.Parameters().Subscribe<IOPL::UpdateParam>([=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 cb->clear();
@@ -88,8 +88,8 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             layout->addWidget(le);
             layout->addWidget(tb);
 
-            using OP = ImageOperator;
-            op.Subscribe<OP::Evt::UpdateGUI>([=](const ImageOperatorParameter & new_p) {
+            using IOPL = ImageOperatorParameterList;
+            op.Parameters().Subscribe<IOPL::UpdateParam>([=](const ImageOperatorParameter & new_p) {
                 if (new_p.name != p.name)
                     return;
                 le->setText(QString::fromStdString(std::any_cast<std::string>(new_p.value)));
@@ -105,7 +105,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             QObject::connect(
                 cb, QOverload<int>::of(&QCheckBox::stateChanged),
                 [&, p](int state) {
-                    op.SetParameter(p.name, state == Qt::Checked ? true : false);
+                    op.Parameters().Set(p.name, state == Qt::Checked ? true : false);
                 }
             );
 
@@ -127,7 +127,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
             QObject::connect(
                 slider, QOverload<int>::of(&QSlider::valueChanged),
                 [&, p](int value) {
-                    op.SetParameter(p.name, static_cast<float>(value));
+                    op.Parameters().Set(p.name, static_cast<float>(value));
                 }
             );
 

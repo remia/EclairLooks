@@ -11,18 +11,38 @@
 
 ImageOperator::ImageOperator()
 {
+    using IOP = ImageOperatorParameter;
+    using IOPL = ImageOperatorParameterList;
+
+    m_paramList.Add({ "Enabled", IOP::Type::CheckBox, true });
+    m_paramList.Add({ "Opacity", IOP::Type::Slider, 100.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
+    m_paramList.Add({ "Isolate Contrast", IOP::Type::Slider, 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
+    m_paramList.Add({ "Isolate Color", IOP::Type::Slider, 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
+
+    using std::placeholders::_1;
+    m_paramList.Subscribe<IOPL::UpdateValue>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
+}
+
+ImageOperatorParameterList & ImageOperator::Parameters()
+{
+    return m_paramList;
+}
+
+ImageOperatorParameterList const & ImageOperator::Parameters() const
+{
+    return m_paramList;
 }
 
 bool ImageOperator::IsIdentity() const
 {
-    auto enabled = GetParameter("Enabled");
-    return (!enabled || !std::any_cast<bool>(enabled->value) || OpIsIdentity());
+    auto enabled = m_paramList.Get<bool>("Enabled");
+    return (!enabled.value_or(false) || OpIsIdentity());
 }
 
 void ImageOperator::Apply(Image & img)
 {
-    float isolate_cts = std::any_cast<float>(GetParameter("Isolate Contrast")->value);
-    float isolate_color = std::any_cast<float>(GetParameter("Isolate Color")->value);
+    float isolate_cts = m_paramList.Get<float>("Isolate Contrast").value_or(0.f);
+    float isolate_color = m_paramList.Get<float>("Isolate Color").value_or(0.f);
 
     const Image img_orig = img;
 
@@ -49,7 +69,6 @@ void ImageOperator::Apply(Image & img)
 
         // Apply 1D LUT
         OCIOFileTransform file_op;
-        file_op.InitParameters();
         file_op.SetFileTransform("test.spi1d");
 
         if (isolate_cts != 0.0f) {
@@ -59,7 +78,7 @@ void ImageOperator::Apply(Image & img)
         }
         if (isolate_color != 0.0f) {
             float a = isolate_color / 100.0f;
-            file_op.SetParameter("Direction", std::string("Inverse"));
+            file_op.Parameters().Set("Direction", std::string("Inverse"));
             file_op.OpApply(img);
             OpApply(img);
             img = img_orig * (1.0f - a) + img * a;
@@ -69,67 +88,7 @@ void ImageOperator::Apply(Image & img)
         OpApply(img);
     }
 
-    float opacity = std::any_cast<float>(GetParameter("Opacity")->value);
+    float opacity = m_paramList.Get<float>("Opacity").value_or(100.f);
     float a = opacity / 100.0f;
     img = img_orig * (1.0f - a) + img * a;
-}
-
-void ImageOperator::InitParameters()
-{
-    m_params = {
-        { ImageOperatorParameter::Type::CheckBox, "Enabled", true },
-        { ImageOperatorParameter::Type::Slider, "Opacity", 100.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
-        { ImageOperatorParameter::Type::Slider, "Isolate Contrast", 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
-        { ImageOperatorParameter::Type::Slider, "Isolate Color", 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} },
-    };
-
-    ImageOperatorParameterVec customParams = OpExportParams();
-    m_params.insert(m_params.end(), customParams.begin(), customParams.end());
-}
-
-ImageOperatorParameterVec ImageOperator::GetParameters() const
-{
-    return m_params;
-}
-
-ImageOperatorParameter * ImageOperator::GetParameter(const std::string & name)
-{
-    return (ImageOperatorParameter *)(constant(*this).GetParameter(name));
-}
-
-ImageOperatorParameter const * ImageOperator::GetParameter(const std::string & name) const
-{
-    auto it = std::find_if(m_params.begin(), m_params.end(), [=](auto & elem){
-        return (elem.name == name);
-    });
-
-    if (m_params.end() != it)
-        return &*it;
-
-    return nullptr;
-}
-
-void ImageOperator::SetParameter(const std::string & name, const std::any & value)
-{
-    qInfo() << QString::fromStdString(OpName()) << "-" << QString::fromStdString(name) << "updated by gui event !";
-
-    auto param = GetParameter(name);
-    if (param) {
-        param->value = value;
-        OpUpdateParamCallback(*param);
-    }
-
-    EmitEvent<Evt::Update>();
-}
-
-void ImageOperator::UpdateParameter(const std::string & name, const ImageOperatorParameter & op)
-{
-    qInfo() << QString::fromStdString(OpName()) << "-" << QString::fromStdString(name) << "updated by code !";
-
-    auto param = GetParameter(name);
-    if (param)
-        *param = op;
-
-    EmitEvent<Evt::UpdateGUI>(*param);
-    EmitEvent<Evt::Update>();
 }

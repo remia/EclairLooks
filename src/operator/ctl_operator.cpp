@@ -3,7 +3,6 @@
 #include "../imagepipeline.h"
 
 #include <vector>
-#include <iostream>
 
 #include <boost/filesystem.hpp>
 
@@ -17,7 +16,8 @@ using namespace boost::filesystem;
 
 CTLTransform::CTLTransform()
 {
-
+    Parameters().Add({ "CTL Base Path", ImageOperatorParameter::Type::FilePath, });
+    Parameters().Add({ "CTL Transform", ImageOperatorParameter::Type::Text });
 }
 
 std::string CTLTransform::OpName() const
@@ -27,12 +27,14 @@ std::string CTLTransform::OpName() const
 
 void CTLTransform::OpApply(Image &img)
 {
-    std::string basePath = std::any_cast<std::string>(GetParameter("CTL Base Path")->value);
+    std::string basePath = Parameters().Get<std::string>("CTL Base Path").value();
 
     path p = path(basePath);
     directory_iterator it{p};
-    while (it != directory_iterator{})
-        std::cout << *it++ << '\n';
+    while (it != directory_iterator{}) {
+        qInfo() << QString::fromStdString((*it).path().string()) << '\n';
+        ++it;
+    }
 
     std::vector<std::string> searchs {
         { "/Users/remi/Desktop/color/aces-dev/transforms/ctl/rrt" },
@@ -65,16 +67,7 @@ void CTLTransform::OpApply(Image &img)
 
 bool CTLTransform::OpIsIdentity() const
 {
-    return std::any_cast<std::string>(GetParameter("CTL Transform")->value).empty();
-}
-
-ImageOperatorParameterVec CTLTransform::OpExportParams() const
-{
-    return
-    {
-        { ImageOperatorParameter::Type::FilePath, "CTL Base Path" },
-        { ImageOperatorParameter::Type::Text, "CTL Transform" },
-    };
+    return Parameters().Get<std::string>("CTL Transform").value().empty();
 }
 
 void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
@@ -84,5 +77,5 @@ void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
 
 void CTLTransform::SetBaseFolder(const std::string &baseFolder)
 {
-    UpdateParameter("CTL Base Path", { ImageOperatorParameter::Type::FilePath, "CTL Base Path", baseFolder });
+    Parameters().Update({ "CTL Base Path", ImageOperatorParameter::Type::FilePath, baseFolder });
 }

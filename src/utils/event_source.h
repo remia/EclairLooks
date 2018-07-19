@@ -1,8 +1,5 @@
 #pragma once
 
-#include <functional>
-#include <iostream>
-#include <memory>
 #include <tuple>
 
 #include "generic.h"

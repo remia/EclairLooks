@@ -2,25 +2,8 @@
 
 #include <string>
 #include <vector>
-#include <any>
-#include <optional>
+#include <iostream>
 
-#include "../utils/event_source.h"
-
-
-template <typename T>
-using OptT = std::optional<T>;
-
-template <typename T>
-OptT<T> GetAny(const std::any & any) {
-    try {
-        return OptT<T>(std::any_cast<T>(any));
-    }
-    catch(std::bad_any_cast &e) {
-    }
-
-    return OptT<T>();
-}
 
 struct ImageOperatorParameter
 {
@@ -34,64 +17,85 @@ struct ImageOperatorParameter
         Matrix4x4,
     };
 
+    ImageOperatorParameter() = default;
+    ImageOperatorParameter(const std::string &name, Type t) : name(name), type(t) {}
+
     std::string name;
     Type type;
-
-    std::any value;
-    std::any values;
-    std::any default_val;
 
     operator bool () const { return name != ""; }
 };
 
 
-typedef EventDesc<
-    FuncT<void()>,
-    FuncT<void(const ImageOperatorParameter &op)>,
-    FuncT<void(const ImageOperatorParameter &op)>> IOPEvtDesc;
-
-class ImageOperatorParameterList : public EventSource<IOPEvtDesc>
+struct TextParameter : public ImageOperatorParameter
 {
-  using VecT = std::vector<ImageOperatorParameter>;
-  using VecIt = VecT::iterator;
-  using VecCIt = VecT::const_iterator;
-  using OptP = OptT<ImageOperatorParameter>;
+    TextParameter() = default;
+    TextParameter(const std::string &name) : ImageOperatorParameter(name, Type::Text) {}
 
-public:
-  enum Evt { UpdateAny = 0, UpdateValue, UpdateParam };
-
-public:
-  ImageOperatorParameterList() = default;
-
-public:
-  VecIt begin();
-  VecIt end();
-  VecCIt begin() const;
-  VecCIt end() const;
-
-public:
-  bool Add(const ImageOperatorParameter &op);
-  bool Update(const ImageOperatorParameter &op);
-  bool Delete(const std::string &name);
-
-  OptP const Get(const std::string &name) const;
-  template <typename T> OptT<T> const Get(const std::string &name) const;
-  bool Set(const std::string &name, const std::any &value);
-
-private:
-  VecT m_params;
+    std::string value;
+    std::string default_value;
 };
 
-
-template <typename T>
-OptT<T> const ImageOperatorParameterList::Get(const std::string &name) const
+struct SelectParameter : public ImageOperatorParameter
 {
-    try {
-        if (auto p = Get(name))
-            return OptT<T>(std::any_cast<T>(p->value));
-    } catch (std::bad_any_cast &e) {
+    SelectParameter() = default;
+    SelectParameter(const std::string &name) : ImageOperatorParameter(name, Type::Select) {}
+    SelectParameter(const std::string &name, const std::vector<std::string> &choices) : ImageOperatorParameter(name, Type::Select), choices(choices) { if (choices.size() > 0) value = default_value = choices[0]; }
+    SelectParameter(const std::string &name, std::vector<std::string> choices, const std::string &default_value) : ImageOperatorParameter(name, Type::Select), default_value(default_value), choices(choices) {}
+    ~SelectParameter() { std::cerr << "~SelectParameter" << std::endl; }
 
-    }
+    std::string value;
+    std::string default_value;
+    std::vector<std::string> choices;
+};
 
-    return OptT<T>();
-}
+struct FilePathParameter : public ImageOperatorParameter
+{
+    FilePathParameter() = default;
+    FilePathParameter(const std::string &name) : ImageOperatorParameter(name, Type::FilePath) {}
+    FilePathParameter(const std::string &name, const std::string &value) : ImageOperatorParameter(name, Type::FilePath), value(value) {}
+
+    std::string value;
+    std::string default_value;
+};
+
+struct ButtonParameter : public ImageOperatorParameter
+{
+    ButtonParameter() = default;
+    ButtonParameter(const std::string &name) : ImageOperatorParameter(name, Type::Button) {}
+};
+
+struct CheckBoxParameter : public ImageOperatorParameter
+{
+    CheckBoxParameter() = default;
+    CheckBoxParameter(const std::string &name, bool value) : ImageOperatorParameter(name, Type::CheckBox), value(value), default_value(value) {}
+
+    bool value;
+    bool default_value;
+};
+
+struct SliderParameter : public ImageOperatorParameter
+{
+    SliderParameter() = default;
+    SliderParameter(const std::string &name, float value, float min, float max, float step) : ImageOperatorParameter(name, Type::Slider), value(value), default_value(value), min(min), max(max), step(step) {}
+
+    float value;
+    float default_value;
+    float min;
+    float max;
+    float step;
+};
+
+struct Matrix4x4Parameter : public ImageOperatorParameter
+{
+    Matrix4x4Parameter() = default;
+    Matrix4x4Parameter(const std::string &name) : ImageOperatorParameter(name, Type::Matrix4x4) {}
+
+    float value[16];
+    float default_value[16] = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+};

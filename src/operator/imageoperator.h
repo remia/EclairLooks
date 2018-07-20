@@ -3,7 +3,7 @@
 #include <any>
 #include <vector>
 
-#include "imageoperatorparameter.h"
+#include "imageoperatorparameterlist.h"
 
 
 class Image;

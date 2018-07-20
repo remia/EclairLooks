@@ -3,6 +3,8 @@
 #include <memory>
 #include <functional>
 #include <string>
+#include <optional>
+#include <any>
 
 
 template <typename T>
@@ -10,6 +12,20 @@ using UPtr = std::unique_ptr<T>;
 
 template <typename T>
 using FuncT = std::function<T>;
+
+template <typename T>
+using OptT = std::optional<T>;
+
+template <typename T>
+OptT<T> GetAny(const std::any & any) {
+    try {
+        return OptT<T>(std::any_cast<T>(any));
+    }
+    catch(std::bad_any_cast &e) {
+    }
+
+    return OptT<T>();
+}
 
 template <class T> constexpr std::string_view type_name()
 {

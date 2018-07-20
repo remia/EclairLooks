@@ -4,18 +4,18 @@
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
+#include <iostream>
 
 namespace OCIO = OCIO_NAMESPACE;
 
 
 OCIOColorSpace::OCIOColorSpace()
 {
-    using Type = ImageOperatorParameter::Type;
-    Parameters().Add({ "Config File", Type::FilePath });
-    Parameters().Add({ "Source", Type::Select });
-    Parameters().Add({ "Destination", Type::Select });
-    Parameters().Add({ "Look", Type::Select });
-    Parameters().Add({ "Direction", Type::Select, "Forward", std::vector<std::string>{"Forward", "Inverse"} });
+    Parameters().Add(FilePathParameter("Config File"));
+    Parameters().Add(SelectParameter("Source"));
+    Parameters().Add(SelectParameter("Destination"));
+    Parameters().Add(SelectParameter("Look"));
+    Parameters().Add(SelectParameter("Direction", {"Forward", "Inverse"}));
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -45,16 +45,26 @@ bool OCIOColorSpace::OpIsIdentity() const
 void OCIOColorSpace::OpUpdateParamCallback(const ImageOperatorParameter & op)
 {
     try {
-        if (op.name == "Config File")
-            SetConfig(GetAny<std::string>(op.value).value());
-        else if (op.name == "Source")
-            m_transform->setSrc(GetAny<std::string>(op.value).value().c_str());
-        else if (op.name == "Destination")
-            m_transform->setDst(GetAny<std::string>(op.value).value().c_str());
-        else if (op.name == "Look")
-            m_transform->setLooks(GetAny<std::string>(op.value).value().c_str());
-        else if (op.name == "Direction")
-            m_transform->setDirection(OCIO::TransformDirectionFromString(GetAny<std::string>(op.value).value().c_str()));
+        if (op.name == "Config File") {
+            auto p = static_cast<const FilePathParameter *>(&op);
+            SetConfig(p->value);
+        }
+        else if (op.name == "Source") {
+            auto p = static_cast<const SelectParameter *>(&op);
+            m_transform->setSrc(p->value.c_str());
+        }
+        else if (op.name == "Destination") {
+            auto p = static_cast<const SelectParameter *>(&op);
+            m_transform->setDst(p->value.c_str());
+        }
+        else if (op.name == "Look") {
+            auto p = static_cast<const SelectParameter *>(&op);
+            m_transform->setLooks(p->value.c_str());
+        }
+        else if (op.name == "Direction") {
+            auto p = static_cast<const SelectParameter *>(&op);
+            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value.c_str()));
+        }
 
         m_processor = m_config->getProcessor(m_transform);
     } catch (OCIO::Exception &exception) {
@@ -65,16 +75,17 @@ void OCIOColorSpace::OpUpdateParamCallback(const ImageOperatorParameter & op)
 void OCIOColorSpace::SetConfig(const std::string &configpath)
 {
     m_config = OCIO::Config::CreateFromFile(configpath.c_str());
-    Parameters().Update({ "Config File", ImageOperatorParameter::Type::FilePath, configpath });
+    Parameters().Update(FilePathParameter("Config File", configpath));
 
     std::vector<std::string> colorspaces;
     for (int i = 0; i < m_config->getNumColorSpaces(); i++)
         colorspaces.push_back(m_config->getColorSpaceNameByIndex(i));
-    Parameters().Update({ "Source", ImageOperatorParameter::Type::Select, "0", colorspaces });
-    Parameters().Update({ "Destination", ImageOperatorParameter::Type::Select, "0", colorspaces });
+    Parameters().Update(SelectParameter("Source", colorspaces));
+    Parameters().Update(SelectParameter("Destination", colorspaces));
 
     std::vector<std::string> looks;
+    looks.push_back("");
     for (int i = 0; i < m_config->getNumLooks(); ++i)
         looks.push_back(m_config->getLookNameByIndex(i));
-    Parameters().Update({ "Look", ImageOperatorParameter::Type::Select, "0", looks });
+    Parameters().Update(SelectParameter("Look", looks));
 }

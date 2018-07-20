@@ -10,13 +10,7 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOMatrix::OCIOMatrix()
 {
-    Parameters().Add( {
-        "Matrix", ImageOperatorParameter::Type::Matrix4x4, 0, std::vector<float> {
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        } } );
+    Parameters().Add(Matrix4x4Parameter("Matrix"));
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -47,8 +41,8 @@ void OCIOMatrix::OpUpdateParamCallback(const ImageOperatorParameter & op)
 {
     try {
         if (op.name == "Matrix") {
-            auto m = GetAny<std::vector<float>>(op.values).value();
-            m_transform->setMatrix(m.data());
+            auto p = static_cast<const Matrix4x4Parameter *>(&op);
+            m_transform->setMatrix(p->value);
         }
 
         m_processor = m_config->getProcessor(m_transform);

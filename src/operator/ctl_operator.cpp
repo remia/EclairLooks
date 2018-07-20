@@ -16,8 +16,8 @@ using namespace boost::filesystem;
 
 CTLTransform::CTLTransform()
 {
-    Parameters().Add({ "CTL Base Path", ImageOperatorParameter::Type::FilePath, });
-    Parameters().Add({ "CTL Transform", ImageOperatorParameter::Type::Text });
+    Parameters().Add(FilePathParameter("CTL Base Path"));
+    Parameters().Add(TextParameter("CTL Transform"));
 }
 
 std::string CTLTransform::OpName() const
@@ -27,7 +27,7 @@ std::string CTLTransform::OpName() const
 
 void CTLTransform::OpApply(Image &img)
 {
-    std::string basePath = Parameters().Get<std::string>("CTL Base Path").value();
+    std::string basePath = Parameters().Get<FilePathParameter>("CTL Base Path").value;
 
     path p = path(basePath);
     directory_iterator it{p};
@@ -67,7 +67,7 @@ void CTLTransform::OpApply(Image &img)
 
 bool CTLTransform::OpIsIdentity() const
 {
-    return Parameters().Get<std::string>("CTL Transform").value().empty();
+    return Parameters().Get<TextParameter>("CTL Transform").value.empty();
 }
 
 void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
@@ -77,5 +77,5 @@ void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
 
 void CTLTransform::SetBaseFolder(const std::string &baseFolder)
 {
-    Parameters().Update({ "CTL Base Path", ImageOperatorParameter::Type::FilePath, baseFolder });
+    Parameters().Update(FilePathParameter("CTL Base Path", baseFolder));
 }

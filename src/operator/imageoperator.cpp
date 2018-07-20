@@ -11,15 +11,13 @@
 
 ImageOperator::ImageOperator()
 {
-    using IOP = ImageOperatorParameter;
-    using IOPL = ImageOperatorParameterList;
-
-    m_paramList.Add({ "Enabled", IOP::Type::CheckBox, true });
-    m_paramList.Add({ "Opacity", IOP::Type::Slider, 100.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
-    m_paramList.Add({ "Isolate Contrast", IOP::Type::Slider, 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
-    m_paramList.Add({ "Isolate Color", IOP::Type::Slider, 0.0f, std::vector<float>{0.0f, 100.0f, 1.0f} } );
+    m_paramList.Add(CheckBoxParameter{ "Enabled", true });
+    m_paramList.Add(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f });
+    m_paramList.Add(SliderParameter{ "Isolate Contrast", 0.0f, 0.0f, 100.0f, 1.0f });
+    m_paramList.Add(SliderParameter{ "Isolate Color", 0.0f, 0.0f, 100.0f, 1.0f });
 
     using std::placeholders::_1;
+    using IOPL = ImageOperatorParameterList;
     m_paramList.Subscribe<IOPL::UpdateValue>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
 }
 
@@ -35,14 +33,14 @@ ImageOperatorParameterList const & ImageOperator::Parameters() const
 
 bool ImageOperator::IsIdentity() const
 {
-    auto enabled = m_paramList.Get<bool>("Enabled");
-    return (!enabled.value_or(false) || OpIsIdentity());
+    auto enabled = m_paramList.Get<CheckBoxParameter>("Enabled").value;
+    return (!enabled || OpIsIdentity());
 }
 
 void ImageOperator::Apply(Image & img)
 {
-    float isolate_cts = m_paramList.Get<float>("Isolate Contrast").value_or(0.f);
-    float isolate_color = m_paramList.Get<float>("Isolate Color").value_or(0.f);
+    float isolate_cts = m_paramList.Get<SliderParameter>("Isolate Contrast").value;
+    float isolate_color = m_paramList.Get<SliderParameter>("Isolate Color").value;
 
     const Image img_orig = img;
 
@@ -78,7 +76,7 @@ void ImageOperator::Apply(Image & img)
         }
         if (isolate_color != 0.0f) {
             float a = isolate_color / 100.0f;
-            file_op.Parameters().Set("Direction", std::string("Inverse"));
+            file_op.Parameters().Set<SelectParameter>("Direction", "Inverse");
             file_op.OpApply(img);
             OpApply(img);
             img = img_orig * (1.0f - a) + img * a;
@@ -88,7 +86,7 @@ void ImageOperator::Apply(Image & img)
         OpApply(img);
     }
 
-    float opacity = m_paramList.Get<float>("Opacity").value_or(100.f);
+    float opacity = m_paramList.Get<SliderParameter>("Opacity").value;
     float a = opacity / 100.0f;
     img = img_orig * (1.0f - a) + img * a;
 }

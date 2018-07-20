@@ -51,7 +51,6 @@ set(SOURCES
     src/widget/transformationwidget.cpp
     src/widget/transformationlistwidget.cpp
     src/operator/imageoperator.cpp
-    src/operator/imageoperatorparameter.cpp
     src/operator/imageoperatorparameterlist.cpp
     src/operator/ociofiletransform_operator.cpp
     src/operator/ociocolorspace_operator.cpp

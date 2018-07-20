@@ -68,8 +68,6 @@ void TransformationListWidget::dropEvent(QDropEvent *e)
                 return;
             }
 
-
-            mw->pipeline().Compute();
             update();
         }
     } else

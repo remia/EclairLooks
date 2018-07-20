@@ -16,8 +16,8 @@ using namespace boost::filesystem;
 
 CTLTransform::CTLTransform()
 {
-    Parameters().Add(FilePathParameter("CTL Base Path"));
-    Parameters().Add(TextParameter("CTL Transform"));
+    AddParameter(FilePathParameter("CTL Base Path"));
+    AddParameter(TextParameter("CTL Transform"));
 }
 
 std::string CTLTransform::OpName() const
@@ -67,7 +67,7 @@ void CTLTransform::OpApply(Image &img)
 
 bool CTLTransform::OpIsIdentity() const
 {
-    return Parameters().Get<TextParameter>("CTL Transform").value.empty();
+    return GetParameter<TextParameter>("CTL Transform").value.empty();
 }
 
 void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
@@ -77,5 +77,5 @@ void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
 
 void CTLTransform::SetBaseFolder(const std::string &baseFolder)
 {
-    Parameters().Update(FilePathParameter("CTL Base Path", baseFolder));
+    SetParameter(FilePathParameter("CTL Base Path", baseFolder));
 }

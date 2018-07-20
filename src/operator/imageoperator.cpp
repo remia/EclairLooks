@@ -11,14 +11,13 @@
 
 ImageOperator::ImageOperator()
 {
-    m_paramList.Add(CheckBoxParameter{ "Enabled", true });
-    m_paramList.Add(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f });
-    m_paramList.Add(SliderParameter{ "Isolate Contrast", 0.0f, 0.0f, 100.0f, 1.0f });
-    m_paramList.Add(SliderParameter{ "Isolate Color", 0.0f, 0.0f, 100.0f, 1.0f });
+    AddParameter(CheckBoxParameter{ "Enabled", true });
+    AddParameter(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f });
+    AddParameter(SliderParameter{ "Isolate Contrast", 0.0f, 0.0f, 100.0f, 1.0f });
+    AddParameter(SliderParameter{ "Isolate Color", 0.0f, 0.0f, 100.0f, 1.0f });
 
     using std::placeholders::_1;
-    using IOPL = ImageOperatorParameterList;
-    m_paramList.Subscribe<IOPL::UpdateValue>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
+    Subscribe<UpdateOp>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
 }
 
 ImageOperatorParameterList & ImageOperator::Parameters()
@@ -29,6 +28,11 @@ ImageOperatorParameterList & ImageOperator::Parameters()
 ImageOperatorParameterList const & ImageOperator::Parameters() const
 {
     return m_paramList;
+}
+
+bool ImageOperator::DeleteParameter(const std::string &name)
+{
+    return m_paramList.Delete(name);
 }
 
 bool ImageOperator::IsIdentity() const
@@ -75,10 +79,13 @@ void ImageOperator::Apply(Image & img)
             img = img_orig * (1.0f - a) + img * a;
         }
         if (isolate_color != 0.0f) {
-            float a = isolate_color / 100.0f;
-            file_op.Parameters().Set<SelectParameter>("Direction", "Inverse");
+            auto direction = file_op.GetParameter<SelectParameter>("Direction");
+            direction.value = "Inverse";
+            file_op.SetParameter(direction);
             file_op.OpApply(img);
             OpApply(img);
+
+            float a = isolate_color / 100.0f;
             img = img_orig * (1.0f - a) + img * a;
         }
     }

@@ -10,9 +10,9 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOFileTransform::OCIOFileTransform()
 {
-    Parameters().Add(FilePathParameter("LUT"));
-    Parameters().Add(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}));
-    Parameters().Add(SelectParameter("Direction", {"Forward", "Inverse"}));
+    AddParameter(FilePathParameter("LUT"));
+    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}));
+    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}));
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -42,8 +42,13 @@ bool OCIOFileTransform::OpIsIdentity() const
 void OCIOFileTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
 {
     try {
-        if (op.name == "Interpolation") {
+        if (op.name == "LUT") {
+            auto p = static_cast<const FilePathParameter *>(&op);
+            m_transform->setSrc((p->value.c_str()));
+        }
+        else if (op.name == "Interpolation") {
             auto p = static_cast<const SelectParameter *>(&op);
+            qInfo() << "Update : " << QString::fromStdString(p->value);
             m_transform->setInterpolation(OCIO::InterpolationFromString(p->value.c_str()));
         }
         else if (op.name == "Direction") {
@@ -59,14 +64,16 @@ void OCIOFileTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
 void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
 {
     try {
-        Parameters().Update(FilePathParameter("LUT", lutpath));
-        auto interp = Parameters().Get<SelectParameter>("Interpolation");
-        auto dir = Parameters().Get<SelectParameter>("Direction");
+        auto m = AutoMute(this, UpdateOp);
 
+        auto interp = GetParameter<SelectParameter>("Interpolation");
+        auto dir = GetParameter<SelectParameter>("Direction");
         m_transform->setSrc(lutpath.c_str());
         m_transform->setInterpolation(OCIO::InterpolationFromString(interp.value.c_str()));
         m_transform->setDirection(OCIO::TransformDirectionFromString(dir.value.c_str()));
         m_processor = m_config->getProcessor(m_transform);
+
+        SetParameter(FilePathParameter("LUT", lutpath));
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }

@@ -4,18 +4,17 @@
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
-#include <iostream>
 
 namespace OCIO = OCIO_NAMESPACE;
 
 
 OCIOColorSpace::OCIOColorSpace()
 {
-    Parameters().Add(FilePathParameter("Config File"));
-    Parameters().Add(SelectParameter("Source"));
-    Parameters().Add(SelectParameter("Destination"));
-    Parameters().Add(SelectParameter("Look"));
-    Parameters().Add(SelectParameter("Direction", {"Forward", "Inverse"}));
+    AddParameter(FilePathParameter("Config File"));
+    AddParameter(SelectParameter("Source"));
+    AddParameter(SelectParameter("Destination"));
+    AddParameter(SelectParameter("Look"));
+    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}));
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -74,18 +73,21 @@ void OCIOColorSpace::OpUpdateParamCallback(const ImageOperatorParameter & op)
 
 void OCIOColorSpace::SetConfig(const std::string &configpath)
 {
-    m_config = OCIO::Config::CreateFromFile(configpath.c_str());
-    Parameters().Update(FilePathParameter("Config File", configpath));
+    {
+        auto m = AutoMute(this, UpdateOp);
+        m_config = OCIO::Config::CreateFromFile(configpath.c_str());
+        SetParameter(FilePathParameter("Config File", configpath));
+    }
 
     std::vector<std::string> colorspaces;
     for (int i = 0; i < m_config->getNumColorSpaces(); i++)
         colorspaces.push_back(m_config->getColorSpaceNameByIndex(i));
-    Parameters().Update(SelectParameter("Source", colorspaces));
-    Parameters().Update(SelectParameter("Destination", colorspaces));
+    SetParameter(SelectParameter("Source", colorspaces));
+    SetParameter(SelectParameter("Destination", colorspaces));
 
     std::vector<std::string> looks;
     looks.push_back("");
     for (int i = 0; i < m_config->getNumLooks(); ++i)
         looks.push_back(m_config->getLookNameByIndex(i));
-    Parameters().Update(SelectParameter("Look", looks));
+    SetParameter(SelectParameter("Look", looks));
 }

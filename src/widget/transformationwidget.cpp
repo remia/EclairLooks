@@ -2,8 +2,7 @@
 #include "../operator/imageoperator.h"
 
 #include <QtWidgets/QtWidgets>
-
-using IOPL = ImageOperatorParameterList;
+#include <QtCore/QDebug>
 
 
 QWidget * TransformationWidget::FromOperator(ImageOperator & op)
@@ -56,7 +55,8 @@ QWidget * TransformationWidget::_TextWidget(ImageOperator & op, ImageOperatorPar
     QObject::connect(
         te, &QTextEdit::textChanged,
         [&, param, te]() {
-            op.Parameters().Set<TextParameter>(param->name, te->toPlainText().toStdString());
+            param->value = te->toPlainText().toStdString();
+            op.SetParameter(*param);
         }
     );
 
@@ -75,11 +75,13 @@ QWidget * TransformationWidget::_SelectWidget(ImageOperator & op, ImageOperatorP
     QObject::connect(
         cb, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
         [&, param](const QString &text) {
-            op.Parameters().Set<SelectParameter>(param->name, text.toStdString());
+            auto m = AutoMute(&op, ImageOperator::UpdateGui);
+            param->value = text.toStdString();
+            op.SetParameter(*param);
         }
     );
 
-    op.Parameters().Subscribe<IOPL::UpdateParam>([=](const ImageOperatorParameter & new_p) {
+    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const SelectParameter * new_param = static_cast<const SelectParameter *>(&new_p);
 
         if (new_param->name != param->name)
@@ -105,7 +107,7 @@ QWidget * TransformationWidget::_FilePathWidget(ImageOperator & op, ImageOperato
     layout->addWidget(le);
     layout->addWidget(tb);
 
-    op.Parameters().Subscribe<IOPL::UpdateParam>([=](const ImageOperatorParameter & new_p) {
+    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const FilePathParameter * new_param = static_cast<const FilePathParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
@@ -125,7 +127,8 @@ QWidget * TransformationWidget::_CheckBoxWidget(ImageOperator & op, ImageOperato
     QObject::connect(
         cb, QOverload<int>::of(&QCheckBox::stateChanged),
         [&, param](int state) {
-            op.Parameters().Set<CheckBoxParameter>(param->name, state == Qt::Checked ? true : false);
+            param->value = state == Qt::Checked ? true : false;
+            op.SetParameter(*param);
         }
     );
 
@@ -144,7 +147,8 @@ QWidget * TransformationWidget::_SliderWidget(ImageOperator & op, ImageOperatorP
     QObject::connect(
         slider, QOverload<int>::of(&QSlider::valueChanged),
         [&, param](int value) {
-            op.Parameters().Set<SliderParameter>(param->name, static_cast<float>(value));
+            param->value = static_cast<float>(value);
+            op.SetParameter(*param);
         }
     );
 

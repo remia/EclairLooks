@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-#include <iostream>
 
 
 struct ImageOperatorParameter
@@ -42,7 +41,6 @@ struct SelectParameter : public ImageOperatorParameter
     SelectParameter(const std::string &name) : ImageOperatorParameter(name, Type::Select) {}
     SelectParameter(const std::string &name, const std::vector<std::string> &choices) : ImageOperatorParameter(name, Type::Select), choices(choices) { if (choices.size() > 0) value = default_value = choices[0]; }
     SelectParameter(const std::string &name, std::vector<std::string> choices, const std::string &default_value) : ImageOperatorParameter(name, Type::Select), default_value(default_value), choices(choices) {}
-    ~SelectParameter() { std::cerr << "~SelectParameter" << std::endl; }
 
     std::string value;
     std::string default_value;

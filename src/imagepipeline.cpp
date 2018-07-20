@@ -1,5 +1,6 @@
 #include "imagepipeline.h"
 #include "utils/generic.h"
+#include "utils/chrono.h"
 
 #include <fstream>
 #include <iomanip>
@@ -28,10 +29,16 @@ Image & ImagePipeline::GetOutput()
 
 void ImagePipeline::Compute()
 {
+    Chrono c;
+    c.start();
+
     m_outputImg = m_inputImg;
     for (auto & t : m_transformations)
         if (!t->IsIdentity())
             t->Apply(m_outputImg);
+
+    qInfo() << "Compute Pipeline in : " << fixed << qSetRealNumberPrecision(2)
+            << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
 
     EmitEvent<Evt::Update>(m_outputImg);
 }

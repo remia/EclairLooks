@@ -58,6 +58,7 @@ set(SOURCES
     src/operator/ctl_operator.cpp
     src/operator/ctl_transform.cpp
     src/scope/waveformwidget.cpp
+    src/utils/chrono.cpp
 )
 
 qt5_add_resources(RESOURCES src/resources/res.qrc)

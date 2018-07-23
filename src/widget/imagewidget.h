@@ -1,26 +1,16 @@
 #pragma once
 
+#include "textureview.h"
 #include "../utils/event_source.h"
 
 #include <array>
-
-#include <QtCore/QTime>
-
-#include <QtGui/QOpenGLFunctions>
-#include <QtGui/QOpenGLShaderProgram>
-#include <QtGui/QOpenGLVertexArrayObject>
-#include <QtGui/QOpenGLBuffer>
-#include <QtGui/QOpenGLTexture>
-#include <QtWidgets/QOpenGLWidget>
 
 
 typedef EventDesc <FuncT<void(QOpenGLTexture &tex)>> IWEvtDesc;
 
 class Image;
 
-class ImageWidget : public QOpenGLWidget,
-                    public QOpenGLFunctions,
-                    public EventSource<IWEvtDesc>
+class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
 {
   public:
     enum Evt { Update = 0 };
@@ -28,31 +18,26 @@ class ImageWidget : public QOpenGLWidget,
   public:
     ImageWidget(QWidget *parent = nullptr);
 
+  public:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    virtual QSize sizeHint() const override;
+    QSize sizeHint() const override;
 
-    virtual void initializeGL() override;
-    virtual void resizeGL(int w, int h) override;
-    virtual void paintGL() override;
+    void initializeGL() override;
+    void paintGL() override;
 
+  public:
     void setImage(const Image &img);
     void updateImage(const Image &img);
     void clearImage();
-    void resetViewer();
 
   private:
-    QPointF widgetToNorm(const QPointF & pos) const;
-    QPointF widgetToWorld(const QPointF & pos) const;
+    QMatrix4x4 setupMVP() const;
 
     void createTexture(QOpenGLTexture &tex, const Image &img);
-
     bool guessPixelsParameters(
             const Image &img,
             QOpenGLTexture::PixelType & pt,
@@ -60,28 +45,14 @@ class ImageWidget : public QOpenGLWidget,
             std::array<QOpenGLTexture::SwizzleValue, 4> &sw);
 
   private:
-    GLuint m_posAttr;
-    GLuint m_colAttr;
-    GLuint m_texCoordAttr;
     GLuint m_matrixUniform;
     GLuint m_textureUniformIn;
     GLuint m_textureUniformOut;
-    GLuint m_textureCompleteUniform;
     GLuint m_sliderPosUniform;
 
-    QOpenGLShaderProgram *m_program;
-    QOpenGLVertexArrayObject *m_vao;
-    QOpenGLBuffer m_vertices;
-    QOpenGLBuffer m_colors;
-    QOpenGLBuffer m_texCoords;
+    QOpenGLShaderProgram m_program;
     QOpenGLTexture m_textureIn;
     QOpenGLTexture m_textureOut;
-
-    QPointF m_imagePosition;
-    float m_imageScale;
-
-    QPointF m_clickPosition;
-    QPointF m_moveDelta;
 
     float m_sliderPosition;
 };

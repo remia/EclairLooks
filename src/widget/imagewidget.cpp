@@ -15,38 +15,19 @@
 #include <QtGui/QScreen>
 
 
-static std::string vertexShaderSource = R"(
-    #version 410 core
-    in vec2 posAttr;
-    in vec3 colAttr;
-    in vec2 texCoordAttr;
-    out vec4 col;
-    out vec2 texCoord;
-
-    uniform mat4 matrix;
-
-    void main() {
-       col = vec4(colAttr, 1.0f);
-       texCoord = texCoordAttr;
-       gl_Position = matrix * vec4(posAttr, 0.0f, 1.0f);
-    }
-)";
-
 static std::string fragmentShaderSource = R"(
     #version 410 core
     in vec4 col;
     in vec2 texCoord;
-    out vec4 fragColor;
+
+    layout(location = 0) out vec4 fragColor;
 
     uniform sampler2D imgTexIn;
     uniform sampler2D imgTexOut;
-    uniform bool imgTexComplete;
     uniform float sliderPosition;
 
     void main() {
-       if (!imgTexComplete)
-           fragColor = col;
-       else if (texCoord.x > sliderPosition)
+       if (texCoord.x > sliderPosition)
            fragColor = texture(imgTexOut, texCoord);
        else
            fragColor = texture(imgTexIn, texCoord);
@@ -56,31 +37,22 @@ static std::string fragmentShaderSource = R"(
     }
 )";
 
+
 ImageWidget::ImageWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_program(0), m_vao(0),
-      m_textureIn(QOpenGLTexture::Target2D), m_textureOut(QOpenGLTexture::Target2D),
-      m_imagePosition(0.f, 0.f), m_imageScale(1.f), m_clickPosition(0.f, 0.f),
-      m_moveDelta(0.f, 0.f), m_sliderPosition(0.5f)
+    : TextureView(parent), m_textureIn(QOpenGLTexture::Target2D),
+      m_textureOut(QOpenGLTexture::Target2D), m_sliderPosition(0.5f)
 {
     setAcceptDrops(true);
-    setFocusPolicy(Qt::ClickFocus);
 }
 
 void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
-        m_imagePosition = widgetToWorld(event->localPos());
-    }
-    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+    if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
         setMouseTracking(true);
         m_sliderPosition = widgetToNorm(event->localPos()).x();
     }
-    else {
-        setMouseTracking(true);
-        m_clickPosition = widgetToNorm(event->localPos());
-    }
 
-    update();
+    TextureView::mousePressEvent(event);
 }
 
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
@@ -88,31 +60,8 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
     if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
         m_sliderPosition = widgetToNorm(event->localPos()).x();
     }
-    else if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
-        return;
-    }
-    else {
-        m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
-    }
 
-    update();
-}
-
-void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    setMouseTracking(false);
-    m_imagePosition += m_moveDelta;
-    m_moveDelta = QPointF(0.f, 0.f);
-
-    update();
-}
-
-void ImageWidget::wheelEvent(QWheelEvent *event)
-{
-    m_imageScale += event->delta() / 120.0f;
-    m_imageScale = std::clamp(m_imageScale, 0.1f, 25.f);
-
-    update();
+    TextureView::mouseMoveEvent(event);
 }
 
 void ImageWidget::dragEnterEvent(QDragEnterEvent *e)
@@ -136,17 +85,6 @@ void ImageWidget::dropEvent(QDropEvent *e)
     update();
 }
 
-void ImageWidget::keyPressEvent(QKeyEvent *event)
-{
-  switch (event->key()) {
-      case Qt::Key_Backspace:
-        resetViewer();
-        break;
-      default:
-        QWidget::keyPressEvent(event);
-  }
-}
-
 QSize ImageWidget::sizeHint() const
 {
     return QSize(1024, 728);
@@ -154,81 +92,16 @@ QSize ImageWidget::sizeHint() const
 
 void ImageWidget::initializeGL()
 {
-    initializeOpenGLFunctions();
+    TextureView::initializeGL();
 
-    m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
-    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
-    m_program->link();
-    m_posAttr = m_program->attributeLocation("posAttr");
-    m_colAttr = m_program->attributeLocation("colAttr");
-    m_texCoordAttr = m_program->attributeLocation("texCoordAttr");
-    m_matrixUniform = m_program->uniformLocation("matrix");
-    m_textureUniformIn = m_program->uniformLocation("imgTexIn");
-    m_textureUniformOut = m_program->uniformLocation("imgTexOut");
-    m_textureCompleteUniform = m_program->uniformLocation("imgTexComplete");
-    m_sliderPosUniform = m_program->uniformLocation("sliderPosition");
+    m_program.addShaderFromSourceCode(QOpenGLShader::Vertex, defaultVertexShader());
+    m_program.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
+    m_program.link();
 
-    m_vao = new QOpenGLVertexArrayObject(this);
-    GL_CHECK(m_vao->create());
-    GL_CHECK(m_vao->bind());
-
-    GLfloat vertices[] = {
-        -1.0f, -1.0f,
-        -1.0f,  1.0f,
-         1.0f, -1.0f,
-        -1.0f,  1.0f,
-         1.0f,  1.0f,
-         1.0f, -1.0f,
-    };
-
-    GL_CHECK(m_vertices.create());
-    GL_CHECK(m_vertices.bind());
-    GL_CHECK(m_vertices.allocate(vertices, sizeof(vertices)));
-    GL_CHECK(glEnableVertexAttribArray(m_posAttr));
-    GL_CHECK(glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, 0));
-
-    GLfloat colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f
-    };
-
-    GL_CHECK(m_colors.create());
-    GL_CHECK(m_colors.bind());
-    GL_CHECK(m_colors.allocate(colors, sizeof(colors)));
-    GL_CHECK(glEnableVertexAttribArray(m_colAttr));
-    GL_CHECK(glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0));
-
-    GLfloat texCoords[] = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-    };
-
-    GL_CHECK(m_texCoords.create());
-    GL_CHECK(m_texCoords.bind());
-    GL_CHECK(m_texCoords.allocate(texCoords, sizeof(texCoords)));
-    GL_CHECK(glEnableVertexAttribArray(m_texCoordAttr));
-    GL_CHECK(glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0));
-
-    GL_CHECK(m_vao->release());
-
-    printOpenGLInfo();
-
-    qInfo() << "OpenGL Initialization done !\n";
-}
-
-void ImageWidget::resizeGL(int w, int h)
-{
-    const qreal retinaScale = devicePixelRatio();
-    GL_CHECK(glViewport(0, 0, w * retinaScale, h * retinaScale));
+    GL_CHECK(m_matrixUniform = m_program.uniformLocation("matrix"));
+    GL_CHECK(m_textureUniformIn = m_program.uniformLocation("imgTexIn"));
+    GL_CHECK(m_textureUniformOut = m_program.uniformLocation("imgTexOut"));
+    GL_CHECK(m_sliderPosUniform = m_program.uniformLocation("sliderPosition"));
 }
 
 void ImageWidget::paintGL()
@@ -236,50 +109,21 @@ void ImageWidget::paintGL()
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
     bool texComplete = m_textureIn.isStorageAllocated();
+    if (!texComplete)
+        return;
 
-    m_vao->bind();
-    m_program->bind();
-    if (texComplete) {
-        GL_CHECK(glActiveTexture(GL_TEXTURE0));
-        m_textureIn.bind();
-        GL_CHECK(glActiveTexture(GL_TEXTURE1));
-        m_textureOut.bind();
-    }
+    vaoObject().bind();
+    m_program.bind();
 
-    // 1. Model
-    QMatrix4x4 model;
+    GL_CHECK(glActiveTexture(GL_TEXTURE0));
+    m_textureIn.bind();
+    GL_CHECK(glActiveTexture(GL_TEXTURE1));
+    m_textureOut.bind();
 
-    // 2. View
-    QMatrix4x4 view;
-
-    // Aspect ratio adaptation
-    QSize dstSize = this->size();
-    QSize srcSize = QSize(m_textureIn.width(), m_textureIn.height());
-    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
-    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
-
-    if (dstRatio > srcRatio)
-        view.scale((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
-    else
-        view.scale(1.0, (dstSize.width() / srcRatio) / dstSize.height());
-
-    // Viewer settings
-    view.scale(m_imageScale, m_imageScale);
-    view.translate(
-        m_imagePosition.x() + m_moveDelta.x(),
-        m_imagePosition.y() + m_moveDelta.y());
-
-    // 3. Projection
-    QMatrix4x4 projection;
-    projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
-
-    QMatrix4x4 mvp = projection * view * model;
-    m_program->setUniformValue(m_matrixUniform, mvp);
-    m_program->setUniformValue(m_textureCompleteUniform, texComplete);
-    m_program->setUniformValue(m_sliderPosUniform, m_sliderPosition);
-
-    GL_CHECK(m_program->setUniformValue(m_textureUniformIn, 0));
-    GL_CHECK(m_program->setUniformValue(m_textureUniformOut, 1));
+    GL_CHECK(m_program.setUniformValue(m_matrixUniform, setupMVP()));
+    GL_CHECK(m_program.setUniformValue(m_sliderPosUniform, m_sliderPosition));
+    GL_CHECK(m_program.setUniformValue(m_textureUniformIn, 0));
+    GL_CHECK(m_program.setUniformValue(m_textureUniformOut, 1));
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -287,8 +131,8 @@ void ImageWidget::paintGL()
         m_textureIn.release();
         m_textureOut.release();
     }
-    m_program->release();
-    m_vao->release();
+    m_program.release();
+    vaoObject().release();
 }
 
 void ImageWidget::setImage(const Image &img)
@@ -298,7 +142,7 @@ void ImageWidget::setImage(const Image &img)
     createTexture(m_textureIn, img);
     createTexture(m_textureOut, img);
 
-    resetViewer();
+    resetView();
 
     qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
     qInfo() << "Texture Initialization done !\n";
@@ -329,22 +173,33 @@ void ImageWidget::clearImage()
     update();
 }
 
-void ImageWidget::resetViewer()
+QMatrix4x4 ImageWidget::setupMVP() const
 {
-    m_imageScale = 1.f;
-    m_imagePosition = QPointF(0.f, 0.f);
+    // 1. Model
+    QMatrix4x4 model;
 
-    update();
-}
+    // 2. View
+    QMatrix4x4 view;
 
-QPointF ImageWidget::widgetToNorm(const QPointF & pos) const
-{
-    return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
-}
+    // Aspect ratio adaptation
+    QSize dstSize = this->size();
+    QSize srcSize = QSize(m_textureIn.width(), m_textureIn.height());
+    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
+    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
 
-QPointF ImageWidget::widgetToWorld(const QPointF & pos) const
-{
-    return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
+    if (dstRatio > srcRatio)
+        view.scale((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
+    else
+        view.scale(1.0, (dstSize.width() / srcRatio) / dstSize.height());
+
+    // Viewer settings
+    view *= viewMatrix();
+
+    // 3. Projection
+    QMatrix4x4 projection;
+    // projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
+
+    return projection * view * model;
 }
 
 void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)

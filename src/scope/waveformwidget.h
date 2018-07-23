@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../widget/textureview.h"
+
 #include <QtWidgets/QOpenGLWidget>
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLVertexArrayObject>
@@ -10,51 +12,41 @@
 
 class Image;
 
-class WaveformWidget : public QOpenGLWidget, public QOpenGLFunctions
+class WaveformWidget : public TextureView
 {
   public:
     WaveformWidget(QWidget *parent = nullptr);
 
   public:
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
-    virtual void initializeGL() override;
-    virtual void resizeGL(int w, int h) override;
-    virtual void paintGL() override;
+    void initializeGL() override;
+    void paintGL() override;
 
     void resetTexture(const Image & img);
-    void updateTexture(QOpenGLTexture & tex);
+    void updateTexture(QOpenGLTexture &tex);
 
   private:
-    QPointF widgetToNorm(const QPointF &pos) const;
-    QPointF widgetToWorld(const QPointF &pos) const;
+    void initLegend();
+    void initScope(uint16_t w, uint16_t h);
 
   private:
     float m_alpha;
 
-    GLuint m_posAttr;
-    GLuint m_textureSrcUniform;
-    GLuint m_alphaUniform;
-    GLuint m_matrixUniform;
+    QOpenGLTexture * m_textureSrc;
+
+    QOpenGLShaderProgram m_programScope;
+    QOpenGLVertexArrayObject m_vaoScope;
+    QOpenGLBuffer m_verticesScope;
+    GLuint m_scopeAlphaUniform;
+    GLuint m_scopeMatrixUniform;
+    GLuint m_scopegMatrixUniform;
+    GLuint m_scopeTextureUniform;
+
+    QOpenGLShaderProgram m_programLegend;
+    QOpenGLVertexArrayObject m_vaoLegend;
+    QOpenGLBuffer m_verticesLegend;
     GLuint m_legendColorUniform;
     GLuint m_legendAlphaUniform;
     GLuint m_legendMatrixUniform;
-
-    QOpenGLShaderProgram *m_program;
-    QOpenGLVertexArrayObject *m_vao;
-    QOpenGLBuffer m_vertices;
-    QOpenGLTexture * m_textureSrc;
-
-    QOpenGLShaderProgram *m_programLegend;
-    QOpenGLVertexArrayObject *m_vaoLegend;
-    QOpenGLBuffer m_verticesLegend;
-
-    QPointF m_imagePosition;
-    float m_imageScale;
-    QPointF m_clickPosition;
-    QPointF m_moveDelta;
 };

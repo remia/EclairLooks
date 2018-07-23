@@ -3,6 +3,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/QOpenGLFunctions>
 
+
 #define GL_CHECK(stmt)                                                                   \
     stmt;                                                                                \
     checkOpenGLError(#stmt, __FILE__, __LINE__);
@@ -32,3 +33,5 @@ inline void printOpenGLInfo()
             << "\tVersion : " << gl_version << "\n"
             << "\tGLSL Version : " << gl_glsl_version << "\n";
 }
+
+enum AttributeLocation { Position = 0, Color, TextureCoord };

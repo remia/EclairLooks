@@ -48,6 +48,7 @@ set(SOURCES
     src/imagepipeline.cpp
     src/widget/imagewidget.cpp
     src/widget/logwidget.cpp
+    src/widget/textureview.cpp
     src/widget/transformationwidget.cpp
     src/widget/transformationlistwidget.cpp
     src/operator/imageoperator.cpp

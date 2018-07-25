@@ -3,16 +3,22 @@
 #include <QtWidgets/QListWidget>
 
 
+class ImagePipeline;
 class ImageOperator;
 
 class TransformationListWidget : public QListWidget
 {
   public:
-    TransformationListWidget(QWidget *parent = nullptr);
+    TransformationListWidget(ImagePipeline *pipeline, QWidget *parent = nullptr);
 
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-private:
+    QSize sizeHint() const override;
+
+  private:
     void initTransformationWidget(ImageOperator &op);
+
+  private:
+    ImagePipeline *m_pipeline;
 };

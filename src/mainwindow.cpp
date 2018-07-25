@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_logWidget = new LogWidget();
     m_imageWidget = new ImageWidget();
-    m_transformationsWidget = new TransformationListWidget();
+    m_transformationsWidget = new TransformationListWidget(&m_pipeline);
     m_waveformWidget = new WaveformWidget();
 
     setWindowTitle("Eclair Look");

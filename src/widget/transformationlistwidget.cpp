@@ -12,8 +12,8 @@
 #include <QtWidgets/QtWidgets>
 
 
-TransformationListWidget::TransformationListWidget(QWidget *parent)
-    : QListWidget(parent)
+TransformationListWidget::TransformationListWidget(ImagePipeline *pipeline, QWidget *parent)
+    : QListWidget(parent), m_pipeline(pipeline)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
@@ -33,9 +33,6 @@ void TransformationListWidget::dragEnterEvent(QDragEnterEvent *e)
 
 void TransformationListWidget::dropEvent(QDropEvent *e)
 {
-    // Direct Parent : DockWidget
-    MainWindow * mw = (MainWindow *) parent()->parent();
-
     if (e->mimeData()->hasUrls()) {
         foreach (const QUrl &url, e->mimeData()->urls()) {
             QString fileName = url.toLocalFile();
@@ -44,21 +41,21 @@ void TransformationListWidget::dropEvent(QDropEvent *e)
 
             if (fileInfo.isDir()) {
                 qDebug() << "Dropped ctl folder :" << fileName << "\n";
-                auto t = mw->pipeline().AddTransformation<CTLTransform>();
+                auto t = m_pipeline->AddTransformation<CTLTransform>();
                 initTransformationWidget(*t);
                 t->SetBaseFolder(fileName.toStdString());
                 image_op = t;
             }
             else if (fileName.endsWith(".ocio")) {
                 qDebug() << "Dropped config file :" << fileName << "\n";
-                auto t = mw->pipeline().AddTransformation<OCIOColorSpace>();
+                auto t = m_pipeline->AddTransformation<OCIOColorSpace>();
                 initTransformationWidget(*t);
                 t->SetConfig(fileName.toStdString());
                 image_op = t;
             }
             else if (fileName.endsWith(".3dl") || fileName.endsWith(".cube")){
                 qDebug() << "Dropped transform file :" << fileName << "\n";
-                auto t = mw->pipeline().AddTransformation<OCIOFileTransform>();
+                auto t = m_pipeline->AddTransformation<OCIOFileTransform>();
                 initTransformationWidget(*t);
                 t->SetFileTransform(fileName.toStdString());
                 image_op = t;
@@ -72,6 +69,11 @@ void TransformationListWidget::dropEvent(QDropEvent *e)
         }
     } else
         QListWidget::dropEvent(e);
+}
+
+QSize TransformationListWidget::sizeHint() const
+{
+    return QSize(160, 480);
 }
 
 void TransformationListWidget::initTransformationWidget(ImageOperator &op)

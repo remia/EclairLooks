@@ -2,6 +2,8 @@
 
 #include <QtCore/QDateTime>
 
+#include <iostream>
+
 
 static LogWidget * thisInstance = nullptr;
 
@@ -26,15 +28,17 @@ void LogHandler(QtMsgType type, const QMessageLogContext &context, const QString
       break;
     case QtFatalMsg:
       color = "black";
-      abort();
     }
 
     QDateTime now = QDateTime::currentDateTime();
     QString msgHtml = msg;
     msgHtml.replace("\n", "<br>");
-    QString text = QString("<font color=\"%1\">%2 : %3</font>")
+    QString textHtml = QString("<font color=\"%1\">%2 : %3</font>")
                        .arg(color, now.toString("hh:mm:ss.z"), msgHtml);
-    thisInstance->appendHtml(text);
+    thisInstance->appendHtml(textHtml);
+
+    QString text = QString("Eclair Looks : %1 : %2").arg(now.toString("hh:mm:ss.z"), msg);
+    std::cout << text.toStdString() << std::endl;
 }
 
 LogWidget::LogWidget(QWidget *parent)

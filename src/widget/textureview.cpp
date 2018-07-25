@@ -52,6 +52,15 @@ void TextureView::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
+void TextureView::mouseDoubleClickEvent(QMouseEvent * e)
+{
+    if (e->button() == Qt::LeftButton) {
+        resetView();
+    }
+
+    update();
+}
+
 void TextureView::wheelEvent(QWheelEvent *event)
 {
     m_imageScale += event->delta() / 120.0f;

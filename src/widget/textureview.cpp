@@ -63,7 +63,7 @@ void TextureView::mouseDoubleClickEvent(QMouseEvent * e)
 
 void TextureView::wheelEvent(QWheelEvent *event)
 {
-    m_imageScale += event->delta() / 120.0f;
+    m_imageScale += event->delta() >= 0 ? 0.1 : -0.1;
     m_imageScale = std::clamp(m_imageScale, 0.1f, 25.f);
 
     update();

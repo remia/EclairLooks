@@ -84,7 +84,6 @@ void TextureView::initializeGL()
 {
     initializeOpenGLFunctions();
 
-    // m_vao = new QOpenGLVertexArrayObject(this);
     GL_CHECK(m_vao.create());
     GL_CHECK(m_vao.bind());
 

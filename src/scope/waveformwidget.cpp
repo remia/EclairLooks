@@ -106,6 +106,11 @@ void WaveformWidget::keyPressEvent(QKeyEvent *event)
   TextureView::keyPressEvent(event);
 }
 
+QSize WaveformWidget::sizeHint() const
+{
+    return QSize(220, 180);
+}
+
 void WaveformWidget::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -125,7 +130,6 @@ void WaveformWidget::paintGL()
     QMatrix4x4 model;
     QMatrix4x4 view = viewMatrix();
     QMatrix4x4 projection;
-    // projection.ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
     QMatrix4x4 mvp = projection * view * model;
 
     // Draw legend

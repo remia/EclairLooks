@@ -23,6 +23,8 @@ class WaveformWidget : public TextureView
     void initializeGL() override;
     void paintGL() override;
 
+    QSize sizeHint() const override;
+
     void resetTexture(const Image & img);
     void updateTexture(QOpenGLTexture &tex);
 

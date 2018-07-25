@@ -87,7 +87,7 @@ void ImageWidget::dropEvent(QDropEvent *e)
 
 QSize ImageWidget::sizeHint() const
 {
-    return QSize(1024, 728);
+    return QSize(1024, 768);
 }
 
 void ImageWidget::initializeGL()

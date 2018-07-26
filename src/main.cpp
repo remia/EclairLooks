@@ -1,6 +1,7 @@
 #include <QtWidgets/QApplication>
 #include <QtGui/QSurfaceFormat>
 #include <QtWidgets/QDesktopWidget>
+#include <QFile>
 
 #include "mainwindow.h"
 
@@ -18,6 +19,12 @@ int main(int argc, char **argv)
     QSurfaceFormat::setDefaultFormat(format);
 
     QApplication app(argc, argv);
+
+    QFile cssFile(":/css/application.css");
+    cssFile.open(QFile::ReadOnly);
+    QString cssString = QLatin1String(cssFile.readAll());
+    app.setStyleSheet(cssString);
+
     MainWindow mainWindow;
     mainWindow.show();
 

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/hexa.png</file>
+        <file>css/application.css</file>
     </qresource>
 </RCC>

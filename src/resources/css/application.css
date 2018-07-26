@@ -1,0 +1,46 @@
+
+/*
+ * *******************************
+ * Default application look & feel
+ * *******************************
+*/
+
+* {
+    color: #d7d6d5;
+    background-color: #35322f;
+    /* border: 1px solid #1e1b18; */
+}
+
+
+/*
+ * *******************************
+ *         Tab Widget
+ * *******************************
+*/
+
+ /* The tab widget frame */
+QTabWidget::pane {
+    /* border-top: 1px solid #1e1b18; */
+}
+
+QTabWidget::tab-bar {
+    left: 0px;
+}
+
+QTabBar::tab {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #5d5b59, stop: 0.4 #35322f,
+                                stop: 0.5 #35322f, stop: 1.0 #5d5b59);
+    border: 1px solid #1e1b18;
+    border-bottom-color: #1e1b18;
+    min-width: 15ex;
+    padding: 2px;
+}
+
+QTabBar::tab:selected, QTabBar::tab:hover {
+    color: #e0c31e;
+}
+
+QTabBar::tab:selected {
+    font: bold;
+}

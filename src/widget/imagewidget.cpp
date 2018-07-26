@@ -78,8 +78,7 @@ void ImageWidget::dropEvent(QDropEvent *e)
         qDebug() << "Dropped file:" << fileName << "\n";
 
         Image img = Image::FromFile(fileName.toStdString());
-        MainWindow * mw = (MainWindow *) parent();
-        mw->pipeline().SetInput(img);
+        EmitEvent<DropImage>(img);
     }
 
     update();

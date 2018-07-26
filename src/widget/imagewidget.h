@@ -6,14 +6,16 @@
 #include <array>
 
 
-typedef EventDesc <FuncT<void(QOpenGLTexture &tex)>> IWEvtDesc;
-
 class Image;
+
+typedef EventDesc <
+    FuncT<void(QOpenGLTexture &tex)>,
+    FuncT<void(const Image &img)>> IWEvtDesc;
 
 class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
 {
   public:
-    enum Evt { Update = 0 };
+    enum Evt { Update = 0, DropImage };
 
   public:
     ImageWidget(QWidget *parent = nullptr);

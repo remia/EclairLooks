@@ -37,4 +37,6 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
 
     m_pipeline->Subscribe<IP::Reset>(std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+
+    m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_pipeline, _1));
 }

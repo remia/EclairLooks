@@ -12,8 +12,8 @@
 #include <QtWidgets/QtWidgets>
 
 
-TransformationListWidget::TransformationListWidget(ImagePipeline *pipeline, QWidget *parent)
-    : QListWidget(parent), m_pipeline(pipeline)
+TransformationListWidget::TransformationListWidget(QWidget *parent)
+    : QListWidget(parent), m_pipeline(nullptr)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
@@ -74,6 +74,11 @@ void TransformationListWidget::dropEvent(QDropEvent *e)
 QSize TransformationListWidget::sizeHint() const
 {
     return QSize(160, 480);
+}
+
+void TransformationListWidget::setPipeline(ImagePipeline *pipeline)
+{
+    m_pipeline = pipeline;
 }
 
 void TransformationListWidget::initTransformationWidget(ImageOperator &op)

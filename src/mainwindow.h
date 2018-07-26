@@ -4,30 +4,26 @@
 
 #include "imagepipeline.h"
 
-class QToolBar;
 
-class ImageWidget;
+class DevWidget;
 class LogWidget;
-class TransformationListWidget;
-class WaveformWidget;
 
 class MainWindow : public QMainWindow
 {
   public:
     MainWindow(QWidget *parent = nullptr);
 
-    ImagePipeline &pipeline() { return m_pipeline; }
-    ImageWidget *viewer() { return m_imageWidget; }
-
   public:
     void keyPressEvent(QKeyEvent *event) override;
 
+  public:
+    ImagePipeline &pipeline() { return m_pipeline; }
+
   private:
-    QToolBar *m_toolBar;
+    QTabWidget *m_tabWidget;
+
     LogWidget *m_logWidget;
-    ImageWidget *m_imageWidget;
-    TransformationListWidget *m_transformationsWidget;
-    WaveformWidget *m_waveformWidget;
+    DevWidget *m_devWidget;
 
     ImagePipeline m_pipeline;
 };

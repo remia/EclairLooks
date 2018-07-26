@@ -35,6 +35,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Qt5Widgets)
+find_package(Qt5UiTools)
 find_package(OpenImageIO)
 find_package(OpenColorIO)
 find_package(CTL)
@@ -46,6 +47,8 @@ set(SOURCES
     src/mainwindow.cpp
     src/image.cpp
     src/imagepipeline.cpp
+    src/widget/uiloader.cpp
+    src/widget/devwidget.cpp
     src/widget/imagewidget.cpp
     src/widget/logwidget.cpp
     src/widget/textureview.cpp
@@ -79,3 +82,4 @@ target_link_libraries(${PROJECT_NAME} ${CTL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${IlmBase_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${OpenEXR_LIBRARY})
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt5::UiTools)

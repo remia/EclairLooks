@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>icons/hexa.png</file>
         <file>css/application.css</file>
+        <file>ui/devwidget.ui</file>
     </qresource>
 </RCC>

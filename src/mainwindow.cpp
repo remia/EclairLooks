@@ -1,8 +1,6 @@
 #include "mainwindow.h"
-#include "widget/imagewidget.h"
+#include "widget/devwidget.h"
 #include "widget/logwidget.h"
-#include "widget/transformationlistwidget.h"
-#include "scope/waveformwidget.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -10,58 +8,40 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    setWindowTitle("Eclair Look");
+
     //
-    // GUI Setup
+    // Setup
     //
 
     m_logWidget = new LogWidget();
-    m_imageWidget = new ImageWidget();
-    m_transformationsWidget = new TransformationListWidget(&m_pipeline);
-    m_waveformWidget = new WaveformWidget();
+    m_devWidget = new DevWidget(&m_pipeline);
 
-    setWindowTitle("Eclair Look");
-    setCentralWidget(m_imageWidget);
+    m_tabWidget = new QTabWidget();
+    m_tabWidget->addTab(m_devWidget, "Dev");
+    m_tabWidget->addTab(m_logWidget, "Log");
+    setCentralWidget(m_tabWidget);
 
-    QDockWidget *dw = nullptr;
+    //
+    // Actions
+    //
 
-    dw = new QDockWidget("Log");
-    dw->setWidget(m_logWidget);
-    addDockWidget(Qt::BottomDockWidgetArea, dw);
-
-    dw = new QDockWidget("Scope");
-    dw->setWidget(m_waveformWidget);
-    addDockWidget(Qt::BottomDockWidgetArea, dw);
-
-    dw = new QDockWidget("Transformations");
-    dw->setWidget(m_transformationsWidget);
-    addDockWidget(Qt::LeftDockWidgetArea, dw);
-
-    QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
-
-    m_toolBar = new QToolBar();
-    m_toolBar->addAction(exportAction);
-    addToolBar(Qt::TopToolBarArea, m_toolBar);
+    // QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
+    // m_toolBar = new QToolBar();
+    // m_toolBar->addAction(exportAction);
+    // addToolBar(Qt::TopToolBarArea, m_toolBar);
 
     //
     // Connections
     //
 
-    QObject::connect(
-        exportAction, &QAction::triggered,
-        [this]() {
-            QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
-            m_pipeline.ExportLUT(fileName.toStdString(), 64);
-        }
-    );
-
-    using std::placeholders::_1;
-    using IP = ImagePipeline;
-    m_pipeline.Subscribe<IP::Reset>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
-    m_pipeline.Subscribe<IP::Reset>(std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
-    m_pipeline.Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
-
-    using IW = ImageWidget;
-    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+    // QObject::connect(
+    //     exportAction, &QAction::triggered,
+    //     [this]() {
+    //         QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
+    //         m_pipeline.ExportLUT(fileName.toStdString(), 64);
+    //     }
+    // );
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

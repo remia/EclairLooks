@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DevWidget</class>
+ <widget class="QWidget" name="DevWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>929</width>
+    <height>601</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="vSplitterGlobal">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QSplitter" name="hSplitterTop">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="lookWidget" native="true"/>
+      <widget class="TransformationListWidget" name="pipelineWidget" native="true"/>
+      <widget class="ImageWidget" name="imageWidget" native="true"/>
+     </widget>
+     <widget class="QSplitter" name="hSplitterBottom">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="widget_3" native="true">
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>60</y>
+          <width>114</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>_OPERATOR_LIST_</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="widget_4" native="true">
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>60</y>
+          <width>140</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>_OPERATOR_DETAILS_</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="WaveformWidget" name="waveformWidget" native="true"/>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageWidget</class>
+   <extends>QWidget</extends>
+   <header>imagewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WaveformWidget</class>
+   <extends>QWidget</extends>
+   <header>waveformwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TransformationListWidget</class>
+   <extends>QWidget</extends>
+   <header>transformationlistwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

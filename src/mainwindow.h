@@ -20,8 +20,9 @@ class MainWindow : public QMainWindow
     ImagePipeline &pipeline() { return m_pipeline; }
 
   private:
-    QTabWidget *m_tabWidget;
+    QMenu *m_fileMenu;
 
+    QTabWidget *m_tabWidget;
     LogWidget *m_logWidget;
     DevWidget *m_devWidget;
 

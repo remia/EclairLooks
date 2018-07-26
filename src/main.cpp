@@ -7,6 +7,7 @@
 
 int main(int argc, char **argv)
 {
+    QCoreApplication::setApplicationName("Eclair Looks");
     QCoreApplication::setOrganizationName("Ymagis");
     QCoreApplication::setOrganizationDomain("ymagis.com");
 

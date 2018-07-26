@@ -26,22 +26,22 @@ MainWindow::MainWindow(QWidget *parent)
     // Actions
     //
 
-    // QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "");
-    // m_toolBar = new QToolBar();
-    // m_toolBar->addAction(exportAction);
-    // addToolBar(Qt::TopToolBarArea, m_toolBar);
+    QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), "Export");
+
+    m_fileMenu = menuBar()->addMenu(tr("&File"));
+    m_fileMenu->addAction(exportAction);
 
     //
     // Connections
     //
 
-    // QObject::connect(
-    //     exportAction, &QAction::triggered,
-    //     [this]() {
-    //         QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
-    //         m_pipeline.ExportLUT(fileName.toStdString(), 64);
-    //     }
-    // );
+    QObject::connect(
+        exportAction, &QAction::triggered,
+        [this]() {
+            QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
+            m_pipeline.ExportLUT(fileName.toStdString(), 64);
+        }
+    );
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

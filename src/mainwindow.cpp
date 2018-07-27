@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Actions
     //
 
-    QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), tr("&Export"));
+    QAction *exportAction = new QAction(QIcon(QPixmap(":/icons/hexa.png")), tr("Export"));
 
     m_fileMenu = menuBar()->addMenu(tr("&File"));
     m_fileMenu->addAction(exportAction);

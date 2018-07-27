@@ -23,13 +23,8 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     void SetInput(const Image &img);
     Image &GetOutput();
 
-    template <typename T>
-    T *AddTransformation()
-    {
-        UPtr<ImageOperator> & op = m_transformations.emplace_back(new T());
-        op->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
-        return static_cast<T *>(op.get());
-    }
+
+    template <typename T> T *AddTransformation();
 
     void Compute();
     void ExportLUT(const std::string &filename, uint32_t size);
@@ -39,3 +34,12 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     Image m_outputImg;
     std::vector<UPtr<ImageOperator>> m_transformations;
 };
+
+
+template <typename T>
+T * ImagePipeline::AddTransformation()
+{
+    UPtr<ImageOperator> & op = m_transformations.emplace_back(new T());
+    op->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
+    return static_cast<T *>(op.get());
+}

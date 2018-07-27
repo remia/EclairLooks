@@ -111,12 +111,28 @@ QWidget * TransformationWidget::_FilePathWidget(ImageOperator & op, ImageOperato
     layout->addWidget(le);
     layout->addWidget(tb);
 
+    le->setText(QString::fromStdString(param->value));
+
+    QObject::connect(
+        tb, &QToolButton::clicked,
+        [&, param, widget, le]() {
+            QString fileName = QFileDialog::getOpenFileName(
+                widget, QString::fromStdString(param->dialog_title), "",  QString::fromStdString(param->filters));
+
+            if (!fileName.isEmpty()) {
+                param->value = fileName.toStdString();
+                le->setText(QString::fromStdString(param->value));
+                op.SetParameter(*param);
+            }
+        }
+    );
+
     op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const FilePathParameter * new_param = static_cast<const FilePathParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
 
-        le->setText(QString::fromStdString(std::any_cast<std::string>(new_param->value)));
+        le->setText(QString::fromStdString(new_param->value));
     });
 
     return widget;

@@ -51,10 +51,12 @@ struct FilePathParameter : public ImageOperatorParameter
 {
     FilePathParameter() = default;
     FilePathParameter(const std::string &name) : ImageOperatorParameter(name, Type::FilePath) {}
-    FilePathParameter(const std::string &name, const std::string &value) : ImageOperatorParameter(name, Type::FilePath), value(value) {}
+    FilePathParameter(const std::string &name, const std::string &value, const std::string &dialog_title = "", const std::string &filters = "") : ImageOperatorParameter(name, Type::FilePath), value(value), filters(filters) {}
 
     std::string value;
     std::string default_value;
+    std::string dialog_title;
+    std::string filters;
 };
 
 struct ButtonParameter : public ImageOperatorParameter

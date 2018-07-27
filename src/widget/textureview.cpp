@@ -14,10 +14,10 @@
 
 
 TextureView::TextureView(QWidget *parent)
-    : QOpenGLWidget(parent), m_imagePosition(0.f, 0.f), m_imageScale(1.f),
-      m_clickPosition(0.f, 0.f), m_moveDelta(0.f, 0.f)
+    : QOpenGLWidget(parent), m_defaultScale(1.f)
 {
     setFocusPolicy(Qt::ClickFocus);
+    resetView();
 }
 
 void TextureView::mousePressEvent(QMouseEvent *event)
@@ -144,6 +144,12 @@ void TextureView::resizeGL(int w, int h)
     GL_CHECK(glViewport(0, 0, w * retinaScale, h * retinaScale));
 }
 
+void TextureView::setDefaultScale(float s)
+{
+    m_defaultScale = s;
+    resetView();
+}
+
 QString TextureView::defaultVertexShader() const
 {
     std::string source = R"(
@@ -193,8 +199,10 @@ QString TextureView::defaultFragmentShader() const
 
 void TextureView::resetView()
 {
-    m_imageScale = 1.f;
+    m_imageScale = m_defaultScale;
     m_imagePosition = QPointF(0.f, 0.f);
+    m_clickPosition = QPointF(0.f, 0.f);
+    m_moveDelta = QPointF(0.f, 0.f);
 
     update();
 }

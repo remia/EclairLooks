@@ -25,6 +25,8 @@ class TextureView : public QOpenGLWidget, public QOpenGLFunctions
     void resizeGL(int w, int h) override;
 
   protected:
+    void setDefaultScale(float s);
+
     QString defaultVertexShader() const;
     QString defaultFragmentShader() const;
 
@@ -46,4 +48,6 @@ class TextureView : public QOpenGLWidget, public QOpenGLFunctions
     float m_imageScale;
     QPointF m_clickPosition;
     QPointF m_moveDelta;
+
+    float m_defaultScale;
 };

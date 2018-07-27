@@ -10,7 +10,7 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOMatrix::OCIOMatrix()
 {
-    AddParameter(Matrix4x4Parameter("Matrix"));
+    AddParameter(Matrix4x4Parameter("Matrix"), "Matrix Transform");
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();

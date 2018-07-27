@@ -10,11 +10,11 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOColorSpace::OCIOColorSpace()
 {
-    AddParameter(FilePathParameter("Config File"));
-    AddParameter(SelectParameter("Source"));
-    AddParameter(SelectParameter("Destination"));
-    AddParameter(SelectParameter("Look"));
-    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}));
+    AddParameter(FilePathParameter("Config File", "", "Choose an OpenColorIO config", "OCIO Config (*.ocio)"), "ColorSpace Transform");
+    AddParameter(SelectParameter("Source"), "ColorSpace Transform");
+    AddParameter(SelectParameter("Destination"), "ColorSpace Transform");
+    AddParameter(SelectParameter("Look"), "ColorSpace Transform");
+    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}), "ColorSpace Transform");
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();

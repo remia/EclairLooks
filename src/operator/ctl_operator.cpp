@@ -16,8 +16,8 @@ using namespace boost::filesystem;
 
 CTLTransform::CTLTransform()
 {
-    AddParameter(FilePathParameter("CTL Base Path"));
-    AddParameter(TextParameter("CTL Transform"));
+    AddParameter(FilePathParameter("CTL Base Path"), "CTL");
+    AddParameter(TextParameter("CTL Transform"), "CTL");
 }
 
 std::string CTLTransform::OpName() const

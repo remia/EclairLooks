@@ -7,16 +7,20 @@
 
 QWidget * TransformationWidget::FromOperator(ImageOperator & op)
 {
-    QWidget * widget = new QWidget();
-    QVBoxLayout * layout = new QVBoxLayout(widget);
-    layout->addWidget(new QLabel(QString::fromStdString(op.OpName())));
+    QTabWidget * widget = new QTabWidget();
 
-    for (auto & p : op.Parameters()) {
-        QHBoxLayout * rowLayout = new QHBoxLayout();
-        rowLayout->addWidget(new QLabel(QString::fromStdString(p->name)));
-        rowLayout->addWidget(_WidgetFromParameter(op, *p));
+    for (auto &[cat, plist] : op.Categories()) {
+        QWidget * tab = new QWidget();
+        QFormLayout * formLayout = new QFormLayout(tab);
 
-        layout->addLayout(rowLayout);
+        for (auto & name : plist)
+            for (auto & p : op.Parameters())
+                if (p->name == name) {
+                    QLabel * label = new QLabel(QString::fromStdString(name));
+                    formLayout->addRow(label, _WidgetFromParameter(op, *p));
+                }
+
+        widget->addTab(tab, QString::fromStdString(cat));
     }
 
     return widget;

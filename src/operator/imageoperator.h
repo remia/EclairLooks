@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include "../utils/event_source.h"
 #include "imageoperatorparameterlist.h"
@@ -16,6 +17,7 @@ class Image;
 class ImageOperator : public EventSource<IOPEvtDesc>
 {
   public:
+    using CategoryMapT = std::map<std::string, std::vector<std::string>>;
     enum Evt { Update, UpdateOp, UpdateGui };
 
   public:
@@ -32,7 +34,9 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     ImageOperatorParameterList & Parameters();
     ImageOperatorParameterList const & Parameters() const;
 
-    template <typename T> bool AddParameter(const T &op);
+    CategoryMapT const & Categories() const;
+
+    template <typename T> bool AddParameter(const T &op, const std::string & category = "Global");
     bool DeleteParameter(const std::string &name);
 
     template <typename T> T const GetParameter(const std::string &name) const;
@@ -43,13 +47,18 @@ class ImageOperator : public EventSource<IOPEvtDesc>
 
   private:
     ImageOperatorParameterList m_paramList;
+    CategoryMapT m_categoryMap;
 };
 
 
 template <typename T>
-bool ImageOperator::AddParameter(const T &op)
+bool ImageOperator::AddParameter(const T &op, const std::string & category)
 {
-    return m_paramList.Add(op);
+    bool res = m_paramList.Add(op);
+    if (res)
+        m_categoryMap[category].push_back(op.name);
+
+    return res;
 }
 
 template <typename T>

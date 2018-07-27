@@ -27,6 +27,11 @@ Image & ImagePipeline::GetOutput()
     return m_outputImg;
 }
 
+ImageOperator &ImagePipeline::GetOperator(int index)
+{
+    return *m_transformations[index];
+}
+
 void ImagePipeline::Compute()
 {
     Chrono c;

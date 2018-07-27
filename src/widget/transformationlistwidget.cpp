@@ -13,14 +13,17 @@
 
 
 TransformationListWidget::TransformationListWidget(QWidget *parent)
-    : QListWidget(parent), m_pipeline(nullptr)
+    : QListWidget(parent), m_pipeline(nullptr), m_operatorDetailWidget(nullptr)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
-    viewport()->setAcceptDrops(true);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::MoveAction);
     setDropIndicatorShown(true);
+
+    QObject::connect(
+        this, &QListWidget::currentRowChanged,
+        this, &TransformationListWidget::updateSelection);
 }
 
 void TransformationListWidget::dragEnterEvent(QDragEnterEvent *e)
@@ -81,12 +84,27 @@ void TransformationListWidget::setPipeline(ImagePipeline *pipeline)
     m_pipeline = pipeline;
 }
 
+void TransformationListWidget::setOperatorDetailWidget(QScrollArea *w)
+{
+    m_operatorDetailWidget = w;
+}
+
+void TransformationListWidget::buildFromPipeline()
+{
+
+}
+
 void TransformationListWidget::initTransformationWidget(ImageOperator &op)
 {
-    QListWidgetItem * item = new QListWidgetItem();
-    QWidget * widget = TransformationWidget::FromOperator(op);
-    item->setSizeHint(widget->sizeHint());
-
+    QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(op.OpName()));
     addItem(item);
-    setItemWidget(item, widget);
+}
+
+void TransformationListWidget::updateSelection(int selectedRow)
+{
+    if (!m_operatorDetailWidget)
+        return;
+
+    QWidget * widget = TransformationWidget::FromOperator(m_pipeline->GetOperator(selectedRow));
+    m_operatorDetailWidget->setWidget(widget);
 }

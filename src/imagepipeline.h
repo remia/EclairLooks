@@ -23,6 +23,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     void SetInput(const Image &img);
     Image &GetOutput();
 
+    ImageOperator &GetOperator(int index);
 
     template <typename T> T *AddTransformation();
 

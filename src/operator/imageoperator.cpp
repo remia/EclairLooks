@@ -30,6 +30,12 @@ ImageOperatorParameterList const & ImageOperator::Parameters() const
     return m_paramList;
 }
 
+ImageOperator::CategoryMapT const & ImageOperator::Categories() const
+{
+    return m_categoryMap;
+}
+
+
 bool ImageOperator::DeleteParameter(const std::string &name)
 {
     return m_paramList.Delete(name);

@@ -14,6 +14,10 @@ class DevWidget : public QWidget
     DevWidget(ImagePipeline *pipeline, QWidget *parent = nullptr);
 
   private:
+    QWidget * setupUi();
+    void initPipelineView();
+
+  private:
     ImagePipeline *m_pipeline;
 
     ImageWidget *m_imageWidget;

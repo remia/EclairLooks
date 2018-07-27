@@ -12,21 +12,24 @@
 DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
     : QWidget(parent), m_pipeline(pipeline)
 {
-    UiLoader loader;
-    QFile file(":/ui/devwidget.ui");
-    file.open(QFile::ReadOnly);
-    QWidget *myWidget = loader.load(&file, this);
-    file.close();
+    //
+    // Setup
+    //
 
+    QWidget * w = setupUi();
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(myWidget);
+    layout->addWidget(w);
     setLayout(layout);
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
     m_transformationsWidget = findChild<TransformationListWidget*>("pipelineWidget");
     m_waveformWidget = findChild<WaveformWidget*>("waveformWidget");
 
-    m_transformationsWidget->setPipeline(m_pipeline);
+    initPipelineView();
+
+    //
+    // Connections
+    //
 
     using std::placeholders::_1;
     using IP = ImagePipeline;
@@ -39,4 +42,20 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_pipeline, _1));
+}
+
+QWidget * DevWidget::setupUi()
+{
+    UiLoader loader;
+    QFile file(":/ui/devwidget.ui");
+    file.open(QFile::ReadOnly);
+    return loader.load(&file, this);
+}
+
+void DevWidget::initPipelineView()
+{
+    QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
+
+    m_transformationsWidget->setPipeline(m_pipeline);
+    m_transformationsWidget->setOperatorDetailWidget(operatorDetail);
 }

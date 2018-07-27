@@ -48,16 +48,17 @@ void OCIOFileTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
         }
         else if (op.name == "Interpolation") {
             auto p = static_cast<const SelectParameter *>(&op);
-            qInfo() << "Update : " << QString::fromStdString(p->value);
             m_transform->setInterpolation(OCIO::InterpolationFromString(p->value.c_str()));
         }
         else if (op.name == "Direction") {
             auto p = static_cast<const SelectParameter *>(&op);
             m_transform->setDirection(OCIO::TransformDirectionFromString(p->value.c_str()));
         }
+
         m_processor = m_config->getProcessor(m_transform);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+        m_processor = OCIO::Processor::Create();
     }
 }
 

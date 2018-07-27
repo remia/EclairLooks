@@ -17,8 +17,10 @@ static std::string geometryShaderSource = R"(
     layout (invocations = <p_invocations>) in;
 
     out vec4 gColor;
+
     uniform mat4 gMatrix;
     uniform sampler2D imgTex;
+    uniform int drawMode; // 0 : R, 1 : G, 2 : B, 3 : RGB
 
     void main() {
         int primitive_count = <p_max_vertices> / 3;
@@ -26,31 +28,39 @@ static std::string geometryShaderSource = R"(
 
         for (int i = 0; i < primitive_count; ++i) {
             // Sample colour
+
             float x = (gl_in[0].gl_Position.x + 1.0) / 2.0f;
             float y = start_offset + (i / (primitive_count - 1.f)) * (1.f / <p_invocations>);
             vec4 colour = texture(imgTex, vec2(x, 1.0f - y));
 
             // Emit points according to colour
-            gl_Position = gl_in[0].gl_Position;
-            gl_Position.y = -1.f * ((colour.r * 2.0f) - 1.0f);
-            gl_Position = gMatrix * gl_Position;
-            gColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-            EmitVertex();
-            EndPrimitive();
 
-            gl_Position = gl_in[0].gl_Position;
-            gl_Position.y = -1.f * ((colour.g * 2.0f) - 1.0f);
-            gl_Position = gMatrix * gl_Position;
-            gColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-            EmitVertex();
-            EndPrimitive();
+            if (drawMode == 0 || drawMode == 3) {
+                gl_Position = gl_in[0].gl_Position;
+                gl_Position.y = -1.f * ((colour.r * 2.0f) - 1.0f);
+                gl_Position = gMatrix * gl_Position;
+                gColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+                EmitVertex();
+                EndPrimitive();
+            }
 
-            gl_Position = gl_in[0].gl_Position;
-            gl_Position.y = -1.f * ((colour.b * 2.0f) - 1.0f);
-            gl_Position = gMatrix * gl_Position;
-            gColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-            EmitVertex();
-            EndPrimitive();
+            if (drawMode == 1 || drawMode == 3) {
+                gl_Position = gl_in[0].gl_Position;
+                gl_Position.y = -1.f * ((colour.g * 2.0f) - 1.0f);
+                gl_Position = gMatrix * gl_Position;
+                gColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+                EmitVertex();
+                EndPrimitive();
+            }
+
+            if (drawMode == 2 || drawMode == 3) {
+                gl_Position = gl_in[0].gl_Position;
+                gl_Position.y = -1.f * ((colour.b * 2.0f) - 1.0f);
+                gl_Position = gMatrix * gl_Position;
+                gColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
+                EmitVertex();
+                EndPrimitive();
+            }
         }
     }
 )";
@@ -81,9 +91,9 @@ static std::string fragmentShaderSolidSource = R"(
 )";
 
 WaveformWidget::WaveformWidget(QWidget *parent)
-    : TextureView(parent), m_alpha(0.1f), m_textureSrc(nullptr)
+    : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform"), m_textureSrc(nullptr)
 {
-
+    setDefaultScale(0.9);
 }
 
 void WaveformWidget::keyPressEvent(QKeyEvent *event)
@@ -123,43 +133,23 @@ void WaveformWidget::paintGL()
     GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-	GL_CHECK(glEnable(GL_BLEND));
-	GL_CHECK(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    GL_CHECK(glEnable(GL_BLEND));
+    GL_CHECK(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
 
-    // Zoom / Pan
-    QMatrix4x4 model;
-    QMatrix4x4 view = viewMatrix();
-    QMatrix4x4 projection;
-    QMatrix4x4 mvp = projection * view * model;
 
-    // Draw legend
-    m_vaoLegend.bind();
-    m_programLegend.bind();
-
-        GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
-        GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, mvp));
-        GL_CHECK(glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat)));
-
-    m_programLegend.release();
-    m_vaoLegend.release();
-
-    // Fill in waveform
-    bool texComplete = m_textureSrc && m_textureSrc->isStorageAllocated();
-    if (!texComplete)
-        return;
-
-    GL_CHECK(m_vaoScope.bind());
-    GL_CHECK(m_programScope.bind());
-    GL_CHECK(m_textureSrc->bind());
-
-        GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, QMatrix4x4()));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, m_alpha));
-        GL_CHECK(m_programScope.setUniformValue(m_scopegMatrixUniform, mvp));
-        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_verticesScope.size() / sizeof(GLfloat)));
-
-    GL_CHECK(m_textureSrc->release());
-    GL_CHECK(m_programScope.release());
-    GL_CHECK(m_vaoScope.release());
+    if (m_scopeType == "Waveform") {
+        drawGraph(viewMatrix(), 3);
+    }
+    else if (m_scopeType == "Parade") {
+        QMatrix4x4 m = viewMatrix();
+        for (uint8_t i = 0; i < 3; ++i) {
+            QMatrix4x4 subm = m;
+            subm.translate(-1. + i * 2./3., 0.0);
+            subm.scale(1./3., 1.f);
+            subm.translate(1., 0.);
+            drawGraph(subm, i);
+        }
+    }
 }
 
 void WaveformWidget::resetTexture(const Image & img)
@@ -170,6 +160,12 @@ void WaveformWidget::resetTexture(const Image & img)
 void WaveformWidget::updateTexture(QOpenGLTexture & tex)
 {
     m_textureSrc = &tex;
+    update();
+}
+
+void WaveformWidget::setScopeType(const std::string &type)
+{
+    m_scopeType = type;
     update();
 }
 
@@ -256,6 +252,7 @@ void WaveformWidget::initScope(uint16_t w, uint16_t h)
     GL_CHECK(m_scopeAlphaUniform = m_programScope.uniformLocation("alpha"));
     GL_CHECK(m_scopeMatrixUniform = m_programScope.uniformLocation("matrix"));
     GL_CHECK(m_scopegMatrixUniform = m_programScope.uniformLocation("gMatrix"));
+    GL_CHECK(m_scopeDrawModeUniform = m_programScope.uniformLocation("drawMode"));
 
     GL_CHECK(m_vaoScope.destroy());
     GL_CHECK(m_vaoScope.create());
@@ -274,5 +271,42 @@ void WaveformWidget::initScope(uint16_t w, uint16_t h)
     GL_CHECK(glEnableVertexAttribArray(AttributeLocation::Position));
     GL_CHECK(glVertexAttribPointer(AttributeLocation::Position, 2, GL_FLOAT, GL_FALSE, 0, 0));
 
+    GL_CHECK(m_vaoScope.release());
+}
+
+void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
+{
+    // Draw legend
+    m_vaoLegend.bind();
+    m_programLegend.bind();
+
+        GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
+        GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
+        GL_CHECK(glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat)));
+
+    m_programLegend.release();
+    m_vaoLegend.release();
+
+    // Fill in waveform
+    bool texComplete = m_textureSrc && m_textureSrc->isStorageAllocated();
+    if (!texComplete)
+        return;
+
+    float alpha = m_alpha;
+    if (mode != 3)
+        alpha /= 3.f;
+
+    GL_CHECK(m_vaoScope.bind());
+    GL_CHECK(m_programScope.bind());
+    GL_CHECK(m_textureSrc->bind());
+
+        GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, QMatrix4x4()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
+        GL_CHECK(m_programScope.setUniformValue(m_scopegMatrixUniform, m));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeDrawModeUniform, mode));
+        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_verticesScope.size() / sizeof(GLfloat)));
+
+    GL_CHECK(m_textureSrc->release());
+    GL_CHECK(m_programScope.release());
     GL_CHECK(m_vaoScope.release());
 }

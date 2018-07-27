@@ -19,21 +19,24 @@ class WaveformWidget : public TextureView
 
   public:
     void keyPressEvent(QKeyEvent *event) override;
-
     void initializeGL() override;
     void paintGL() override;
-
     QSize sizeHint() const override;
 
     void resetTexture(const Image & img);
     void updateTexture(QOpenGLTexture &tex);
 
+    void setScopeType(const std::string &type);
+
   private:
     void initLegend();
     void initScope(uint16_t w, uint16_t h);
 
+    void drawGraph(const QMatrix4x4 &m, uint8_t mode);
+
   private:
     float m_alpha;
+    std::string m_scopeType;
 
     QOpenGLTexture * m_textureSrc;
 
@@ -44,6 +47,7 @@ class WaveformWidget : public TextureView
     GLuint m_scopeMatrixUniform;
     GLuint m_scopegMatrixUniform;
     GLuint m_scopeTextureUniform;
+    GLuint m_scopeDrawModeUniform;
 
     QOpenGLShaderProgram m_programLegend;
     QOpenGLVertexArrayObject m_vaoLegend;

@@ -12,6 +12,7 @@ QWidget * TransformationWidget::FromOperator(ImageOperator & op)
     for (auto &[cat, plist] : op.Categories()) {
         QWidget * tab = new QWidget();
         QFormLayout * formLayout = new QFormLayout(tab);
+        formLayout->setLabelAlignment(Qt::AlignLeft);
 
         for (auto & name : plist)
             for (auto & p : op.Parameters())
@@ -106,6 +107,8 @@ QWidget * TransformationWidget::_FilePathWidget(ImageOperator & op, ImageOperato
     FilePathParameter * param = static_cast<FilePathParameter *>(&p);
     QWidget * widget = new QWidget();
     QHBoxLayout * layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+
     QLineEdit * le = new QLineEdit();
     QToolButton * tb = new QToolButton();
     layout->addWidget(le);

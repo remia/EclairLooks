@@ -3,6 +3,7 @@
 #include <QtWidgets/QWidget>
 
 
+class QTabBar;
 class ImagePipeline;
 class ImageWidget;
 class TransformationListWidget;
@@ -15,12 +16,15 @@ class DevWidget : public QWidget
 
   private:
     QWidget * setupUi();
+
     void initPipelineView();
+    void initScopeView();
 
   private:
     ImagePipeline *m_pipeline;
 
     ImageWidget *m_imageWidget;
     TransformationListWidget *m_transformationsWidget;
-    WaveformWidget *m_waveformWidget;
+    QTabBar *m_scopeTab;
+    WaveformWidget *m_scopeWidget;
 };

@@ -33,7 +33,7 @@ QTabBar::tab {
                                 stop: 0.5 #35322f, stop: 1.0 #5d5b59);
     border: 1px solid #1e1b18;
     border-bottom-color: #1e1b18;
-    min-width: 15ex;
+    min-width: 7ex;
     padding: 2px;
 }
 

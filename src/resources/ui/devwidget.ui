@@ -45,16 +45,16 @@
          <widget class="QWidget" name="presetWidget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="leftMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="toolButton_3">
@@ -125,8 +125,58 @@
         </property>
        </widget>
       </widget>
-      <widget class="QScrollArea" name="operatorDetailWidget" native="true"/>
-      <widget class="WaveformWidget" name="waveformWidget" native="true"/>
+      <widget class="QScrollArea" name="operatorDetailWidget"/>
+      <widget class="QWidget" name="scopeView" native="true">
+       <layout class="QVBoxLayout" name="scopeVLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="scopeHLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QTabBar" name="scopeBar" native="true"/>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="WaveformWidget" name="scopeWidget" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>
@@ -150,6 +200,11 @@
    <extends>QWidget</extends>
    <header>transformationlistwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QTabBar</class>
+   <extends>QWidget</extends>
+   <header>qtabbar.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

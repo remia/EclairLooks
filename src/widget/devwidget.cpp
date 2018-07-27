@@ -23,9 +23,11 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
     m_transformationsWidget = findChild<TransformationListWidget*>("pipelineWidget");
-    m_waveformWidget = findChild<WaveformWidget*>("waveformWidget");
+    m_scopeTab = findChild<QTabBar*>("scopeBar");
+    m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
 
     initPipelineView();
+    initScopeView();
 
     //
     // Connections
@@ -38,8 +40,8 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
     m_pipeline->Subscribe<IP::Reset>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
     m_pipeline->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
-    m_pipeline->Subscribe<IP::Reset>(std::bind(&WaveformWidget::resetTexture, m_waveformWidget, _1));
-    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+    m_pipeline->Subscribe<IP::Reset>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
+    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_scopeWidget, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_pipeline, _1));
 }
@@ -58,4 +60,25 @@ void DevWidget::initPipelineView()
 
     m_transformationsWidget->setPipeline(m_pipeline);
     m_transformationsWidget->setOperatorDetailWidget(operatorDetail);
+}
+
+void DevWidget::initScopeView()
+{
+    // NOTE : ideally we should make no assomptions of what scope mode are
+    // available and discover them from the ScopeWidget class directly.
+    m_scopeTab->setExpanding(false);
+    m_scopeTab->addTab("W");
+    m_scopeTab->addTab("P");
+
+    QObject::connect(
+        m_scopeTab, &QTabBar::tabBarClicked,
+        [&, this](int index) {
+            QString tabText = this->m_scopeTab->tabText(index);
+
+            if (tabText == "W")
+                this->m_scopeWidget->setScopeType("Waveform");
+            else if (tabText == "P")
+                this->m_scopeWidget->setScopeType("Parade");
+        }
+    );
 }

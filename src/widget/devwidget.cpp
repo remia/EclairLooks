@@ -1,6 +1,6 @@
 #include "devwidget.h"
 #include "uiloader.h"
-#include "transformationlistwidget.h"
+#include "pipelinewidget.h"
 #include "imagewidget.h"
 #include "../scope/waveformwidget.h"
 #include "../imagepipeline.h"
@@ -22,7 +22,7 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
     setLayout(layout);
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
-    m_transformationsWidget = findChild<TransformationListWidget*>("pipelineWidget");
+    m_pipelineWidget = findChild<PipelineWidget*>("pipelineWidget");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
     m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
 
@@ -58,8 +58,8 @@ void DevWidget::initPipelineView()
 {
     QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
 
-    m_transformationsWidget->setPipeline(m_pipeline);
-    m_transformationsWidget->setOperatorDetailWidget(operatorDetail);
+    m_pipelineWidget->setPipeline(m_pipeline);
+    m_pipelineWidget->setOperatorDetailWidget(operatorDetail);
 }
 
 void DevWidget::initScopeView()

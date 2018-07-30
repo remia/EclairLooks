@@ -27,9 +27,22 @@ Image & ImagePipeline::GetOutput()
     return m_outputImg;
 }
 
-ImageOperator &ImagePipeline::GetOperator(int index)
+ImageOperator &ImagePipeline::GetOperator(uint8_t index)
 {
-    return *m_transformations[index];
+    return *m_operators[index];
+}
+
+bool ImagePipeline::DeleteOperator(uint8_t index)
+{
+    if (index >= m_operators.size()) {
+        qWarning() << "Cannot remove operator at index" << index;
+        return false;
+    }
+
+    m_operators.erase(m_operators.begin() + index);
+    Compute();
+
+    return true;
 }
 
 void ImagePipeline::Compute()
@@ -38,7 +51,7 @@ void ImagePipeline::Compute()
     c.start();
 
     m_outputImg = m_inputImg;
-    for (auto & t : m_transformations)
+    for (auto & t : m_operators)
         if (!t->IsIdentity())
             t->Apply(m_outputImg);
 
@@ -54,7 +67,7 @@ void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)
     Image lattice = Image::Lattice(size);
 
     // Run pipeline
-    for (auto & t : m_transformations)
+    for (auto & t : m_operators)
         if (!t->IsIdentity())
             t->Apply(lattice);
 

@@ -23,7 +23,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="lookWidget" native="true">
+      <widget class="QScrollArea" name="lookWidget" native="true">
        <widget class="QLabel" name="label_3">
         <property name="geometry">
          <rect>
@@ -38,7 +38,7 @@
         </property>
        </widget>
       </widget>
-      <widget class="TransformationListWidget" name="pipelineWidget" native="true"/>
+      <widget class="PipelineWidget" name="pipelineWidget" native="true"/>
       <widget class="QWidget" name="vLayout" native="true">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
@@ -110,7 +110,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="widget_3" native="true">
+      <widget class="QScrollArea" name="operatorListWidget" native="true">
        <widget class="QLabel" name="label_2">
         <property name="geometry">
          <rect>
@@ -196,9 +196,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>TransformationListWidget</class>
+   <class>PipelineWidget</class>
    <extends>QWidget</extends>
-   <header>transformationlistwidget.h</header>
+   <header>pipelinewidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

@@ -1,7 +1,7 @@
 #include "uiloader.h"
 
 #include "imagewidget.h"
-#include "transformationlistwidget.h"
+#include "pipelinewidget.h"
 #include "../scope/waveformwidget.h"
 
 
@@ -14,8 +14,8 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         ImageWidget *w = new ImageWidget(parent);
         w->setObjectName(name);
         return w;
-    } else if (className == "TransformationListWidget") {
-        TransformationListWidget *w = new TransformationListWidget(parent);
+    } else if (className == "PipelineWidget") {
+        PipelineWidget *w = new PipelineWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "WaveformWidget") {

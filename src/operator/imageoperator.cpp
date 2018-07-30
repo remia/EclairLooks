@@ -5,9 +5,12 @@
 #include "ociomatrix_operator.h"
 #include "ociofiletransform_operator.h"
 
-#include <QtCore/QDebug>
 #include <fstream>
 
+#include <QtCore/QDebug>
+
+
+std::string ImageOperator::m_defaultCategory = "Global";
 
 ImageOperator::ImageOperator()
 {
@@ -28,6 +31,11 @@ ImageOperatorParameterList & ImageOperator::Parameters()
 ImageOperatorParameterList const & ImageOperator::Parameters() const
 {
     return m_paramList;
+}
+
+std::string ImageOperator::DefaultCategory() const
+{
+    return m_defaultCategory;
 }
 
 ImageOperator::CategoryMapT const & ImageOperator::Categories() const

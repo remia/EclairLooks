@@ -34,9 +34,10 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     ImageOperatorParameterList & Parameters();
     ImageOperatorParameterList const & Parameters() const;
 
+    std::string DefaultCategory() const;
     CategoryMapT const & Categories() const;
 
-    template <typename T> bool AddParameter(const T &op, const std::string & category = "Global");
+    template <typename T> bool AddParameter(const T &op, const std::string & category = m_defaultCategory);
     bool DeleteParameter(const std::string &name);
 
     template <typename T> T const GetParameter(const std::string &name) const;
@@ -47,7 +48,9 @@ class ImageOperator : public EventSource<IOPEvtDesc>
 
   private:
     ImageOperatorParameterList m_paramList;
+
     CategoryMapT m_categoryMap;
+    static std::string m_defaultCategory;
 };
 
 

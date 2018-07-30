@@ -1,11 +1,11 @@
-#include "transformationwidget.h"
+#include "operatorwidget.h"
 #include "../operator/imageoperator.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
 
 
-QWidget * TransformationWidget::FromOperator(ImageOperator & op)
+QWidget * OperatorWidget::FromOperator(ImageOperator & op)
 {
     QTabWidget * widget = new QTabWidget();
 
@@ -22,12 +22,15 @@ QWidget * TransformationWidget::FromOperator(ImageOperator & op)
                 }
 
         widget->addTab(tab, QString::fromStdString(cat));
+
+        if (cat == op.DefaultCategory())
+            widget->tabBar()->moveTab(widget->count() - 1, 0);
     }
 
     return widget;
 }
 
-QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_WidgetFromParameter(ImageOperator & op, ImageOperatorParameter & p)
 {
     switch (p.type) {
         case ImageOperatorParameter::Type::Text:
@@ -50,7 +53,7 @@ QWidget * TransformationWidget::_WidgetFromParameter(ImageOperator & op, ImageOp
     }
 }
 
-QWidget * TransformationWidget::_TextWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_TextWidget(ImageOperator & op, ImageOperatorParameter & p)
 {
     TextParameter * param = static_cast<TextParameter *>(&p);
     QTextEdit * te = new QTextEdit();
@@ -68,7 +71,7 @@ QWidget * TransformationWidget::_TextWidget(ImageOperator & op, ImageOperatorPar
     return te;
 }
 
-QWidget * TransformationWidget::_SelectWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParameter & p)
 {
     SelectParameter * param = static_cast<SelectParameter *>(&p);
     QComboBox * cb = new QComboBox();
@@ -78,9 +81,8 @@ QWidget * TransformationWidget::_SelectWidget(ImageOperator & op, ImageOperatorP
     cb->setCurrentText(QString::fromStdString(param->default_value));
 
     QObject::connect(
-        cb, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+        cb, QOverload<const QString &>::of(&QComboBox::activated),
         [&, param](const QString &text) {
-            auto m = AutoMute(&op, ImageOperator::UpdateGui);
             param->value = text.toStdString();
             op.SetParameter(*param);
         }
@@ -96,13 +98,17 @@ QWidget * TransformationWidget::_SelectWidget(ImageOperator & op, ImageOperatorP
         for (auto & v : new_param->choices) {
             cb->addItem(QString::fromStdString(v));
         }
-        cb->setCurrentText(QString::fromStdString(new_param->default_value));
+
+        if (!new_param->value.empty())
+            cb->setCurrentText(QString::fromStdString(new_param->value));
+        else
+            cb->setCurrentText(QString::fromStdString(new_param->default_value));
     });
 
     return cb;
 }
 
-QWidget * TransformationWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParameter & p)
 {
     FilePathParameter * param = static_cast<FilePathParameter *>(&p);
     QWidget * widget = new QWidget();
@@ -141,24 +147,32 @@ QWidget * TransformationWidget::_FilePathWidget(ImageOperator & op, ImageOperato
     return widget;
 }
 
-QWidget * TransformationWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParameter & p)
 {
     CheckBoxParameter * param = static_cast<CheckBoxParameter *>(&p);
     QCheckBox * cb = new QCheckBox(QString::fromStdString(p.name));
     cb->setCheckState(param->value ? Qt::Checked : Qt::Unchecked);
 
     QObject::connect(
-        cb, QOverload<int>::of(&QCheckBox::stateChanged),
-        [&, param](int state) {
-            param->value = state == Qt::Checked ? true : false;
+        cb, &QCheckBox::clicked,
+        [&, param, cb]() {
+            param->value = cb->isChecked() ? true : false;
             op.SetParameter(*param);
         }
     );
 
+    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+        const CheckBoxParameter * new_param = static_cast<const CheckBoxParameter *>(&new_p);
+        if (new_param->name != param->name)
+            return;
+
+        cb->setCheckState(new_param->value ? Qt::Checked : Qt::Unchecked);
+    });
+
     return cb;
 }
 
-QWidget * TransformationWidget::_SliderWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_SliderWidget(ImageOperator & op, ImageOperatorParameter & p)
 {
     SliderParameter * param = static_cast<SliderParameter *>(&p);
     QSlider * slider = new QSlider(Qt::Horizontal);

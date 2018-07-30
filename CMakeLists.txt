@@ -52,8 +52,8 @@ set(SOURCES
     src/widget/imagewidget.cpp
     src/widget/logwidget.cpp
     src/widget/textureview.cpp
-    src/widget/transformationwidget.cpp
-    src/widget/transformationlistwidget.cpp
+    src/widget/pipelinewidget.cpp
+    src/widget/operatorwidget.cpp
     src/operator/imageoperator.cpp
     src/operator/imageoperatorparameterlist.cpp
     src/operator/ociofiletransform_operator.cpp

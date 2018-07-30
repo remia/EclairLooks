@@ -6,7 +6,7 @@
 class QTabBar;
 class ImagePipeline;
 class ImageWidget;
-class TransformationListWidget;
+class PipelineWidget;
 class WaveformWidget;
 
 class DevWidget : public QWidget
@@ -24,7 +24,7 @@ class DevWidget : public QWidget
     ImagePipeline *m_pipeline;
 
     ImageWidget *m_imageWidget;
-    TransformationListWidget *m_transformationsWidget;
+    PipelineWidget *m_pipelineWidget;
     QTabBar *m_scopeTab;
     WaveformWidget *m_scopeWidget;
 };

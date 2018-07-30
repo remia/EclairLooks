@@ -7,12 +7,13 @@ class QScrollArea;
 class ImagePipeline;
 class ImageOperator;
 
-class TransformationListWidget : public QListWidget
+class PipelineWidget : public QListWidget
 {
   public:
-    TransformationListWidget(QWidget *parent = nullptr);
+    PipelineWidget(QWidget *parent = nullptr);
 
   public:
+    void keyPressEvent(QKeyEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     QSize sizeHint() const override;
@@ -23,7 +24,10 @@ class TransformationListWidget : public QListWidget
   private:
     void buildFromPipeline();
     void initTransformationWidget(ImageOperator &op);
+
     void updateSelection(int selectedRow);
+    void disableSelection(int selectedRow);
+    void removeSelection(int selectedRow);
 
   private:
     ImagePipeline *m_pipeline;

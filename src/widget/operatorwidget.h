@@ -5,7 +5,7 @@ class ImageOperator;
 struct ImageOperatorParameter;
 class QWidget;
 
-class TransformationWidget
+class OperatorWidget
 {
 public:
     static QWidget * FromOperator(ImageOperator & op);

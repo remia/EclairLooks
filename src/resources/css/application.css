@@ -8,7 +8,29 @@
 * {
     color: #d7d6d5;
     background-color: #35322f;
-    /* border: 1px solid #1e1b18; */
+
+    /* Need both properties to disable focus rectangle style */
+    border: none;
+    outline: none;
+}
+
+QScrollArea {
+    border: 1px solid #1e1b18;
+}
+
+
+/*
+ * *******************************
+ *       Named Widget
+ * *******************************
+*/
+
+QWidget#scopeView {
+    border: 1px solid #1e1b18;
+}
+
+QWidget#presetWidget {
+    border: 1px solid #1e1b18;
 }
 
 
@@ -27,6 +49,10 @@ QTabWidget::tab-bar {
     left: 0px;
 }
 
+QTabBar {
+    border: 1px solid #1e1b18;
+}
+
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #5d5b59, stop: 0.4 #35322f,
@@ -34,7 +60,10 @@ QTabBar::tab {
     border: 1px solid #1e1b18;
     border-bottom-color: #1e1b18;
     min-width: 7ex;
-    padding: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 QTabBar::tab:selected, QTabBar::tab:hover {
@@ -42,5 +71,41 @@ QTabBar::tab:selected, QTabBar::tab:hover {
 }
 
 QTabBar::tab:selected {
-    font: bold;
+    /* This mess up the text rendering */
+    /* font-weight: bold; */
+}
+
+
+/*
+ * *******************************
+ *         List Widget
+ * *******************************
+*/
+
+QListWidget {
+    show-decoration-selected: 1; /* make the selection span the entire width of the view */
+    border: 1px solid #1e1b18;
+}
+
+QListWidget::item:alternate {
+    background: #EEEEEE;
+}
+
+QListWidget::item:selected {
+    border: 1px solid #6a6ea9;
+}
+
+QListWidget::item:selected:!active {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #ABAFE5, stop: 1 #8588B2);
+}
+
+QListWidget::item:selected:active {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #6a6ea9, stop: 1 #888dd9);
+}
+
+QListWidget::item:hover {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #949596, stop: 1 #7c7d87);
 }

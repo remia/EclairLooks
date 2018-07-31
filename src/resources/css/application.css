@@ -83,29 +83,29 @@ QTabBar::tab:selected {
 */
 
 QListWidget {
-    show-decoration-selected: 1; /* make the selection span the entire width of the view */
+    show-decoration-selected: 0; /* make the selection span the entire width of the view */
     border: 1px solid #1e1b18;
 }
 
-QListWidget::item:alternate {
-    background: #EEEEEE;
+QListWidget::item {
+    border: 1px solid #1e1b18;
+    border-radius: 5px;
+    margin: 5px;
+    padding: 2px;
 }
 
 QListWidget::item:selected {
-    border: 1px solid #6a6ea9;
+    border: 1px solid #e0c31e;
 }
 
 QListWidget::item:selected:!active {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #ABAFE5, stop: 1 #8588B2);
+    color: #e0c31e;
 }
 
 QListWidget::item:selected:active {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #6a6ea9, stop: 1 #888dd9);
+    color: #e0c31e;
 }
 
 QListWidget::item:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #949596, stop: 1 #7c7d87);
+    color: #e0c31e;
 }

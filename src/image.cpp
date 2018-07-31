@@ -2,6 +2,7 @@
 
 #include <QtCore/QDebug>
 #include <OpenImageIO/imageio.h>
+#include <OpenImageIO/filesystem.h>
 
 using namespace OIIO;
 
@@ -73,8 +74,10 @@ Image Image::FromFile(const std::string &filepath)
     qInfo() << "OIIO uses " << threads << " threads\n";
 
     ImageInput *in = ImageInput::open(filepath);
-    if (!in)
+    if (!in) {
+        qWarning() << "Could not open image !";
         return Image();
+    }
 
     const ImageSpec &spec = in->spec();
     TypeDesc pixel_type = TypeDesc::FLOAT;
@@ -94,6 +97,7 @@ Image Image::FromFile(const std::string &filepath)
         res.m_format = PixelFormat::RGBA;
 
     res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+
     in->read_image(pixel_type, res.m_pixels.data());
     in->close();
 
@@ -102,6 +106,39 @@ Image Image::FromFile(const std::string &filepath)
     ImageInput::destroy(in);
     return res;
 }
+
+// Image Image::FromBuffer(void * buffer, size_t size)
+// {
+//     ImageSpec config;
+//     Filesystem::IOMemReader memreader(buffer, size);
+//     void *ptr = &memreader;
+//     config.attribute("oiio:ioproxy", TypeDesc::PTR, &ptr);
+//
+//     ImageSpec spec;
+//     ImageInput *in = ImageInput::open("in.png", spec, &config);
+//     TypeDesc pixel_type = TypeDesc::FLOAT;
+//
+//     Image res;
+//     res.m_width = spec.width;
+//     res.m_height = spec.height;
+//     res.m_channels = spec.nchannels;
+//     res.m_type = PixelType::Float;
+//
+//     if (res.m_channels == 1)
+//         res.m_format = PixelFormat::GRAY;
+//     if (res.m_channels == 3)
+//         res.m_format = PixelFormat::RGB;
+//     else if (res.m_channels == 4)
+//         res.m_format = PixelFormat::RGBA;
+//
+//     res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+//
+//     in->read_image(pixel_type, res.m_pixels.data());
+//     in->close();
+//
+//     ImageInput::destroy(in);
+//     return res;
+// }
 
 Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
 {

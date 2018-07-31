@@ -53,6 +53,7 @@ class Image
 
   public:
     static Image FromFile(const std::string &filepath);
+    // static Image FromBuffer(void * buffer, size_t size);
     static Image Ramp1D(uint64_t size, float min = 0.0f, float max = 1.0f, RampType t = RampType::NEUTRAL);
     static Image Lattice(uint64_t size, uint32_t maxwidth = 512);
 

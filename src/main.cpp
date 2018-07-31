@@ -42,5 +42,12 @@ int main(int argc, char **argv)
     // Load default image
     p.SetInput(Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif"));
 
+    // NOTE : Waiting for a OpenImageIO release that includes the new IOProxy feature
+    // QFile f = QFile(":/images/stresstest.png");
+    // if (f.open(QIODevice::ReadOnly)) {
+    //     QByteArray blob = f.readAll();
+    //     p.SetInput(Image::FromBuffer((void *) blob.data(), blob.count()));
+    // }
+
     return app.exec();
 }

@@ -2,29 +2,28 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "imagepipeline.h"
 
-
+class ImagePipeline;
 class DevWidget;
 class LogWidget;
 
 class MainWindow : public QMainWindow
 {
   public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(ImagePipeline *pipeline, QWidget *parent = nullptr);
 
   public:
     void keyPressEvent(QKeyEvent *event) override;
 
   public:
-    ImagePipeline &pipeline() { return m_pipeline; }
+    ImagePipeline *pipeline();
 
   private:
+    ImagePipeline *m_pipeline;
+
     QMenu *m_fileMenu;
 
     QTabWidget *m_tabWidget;
     LogWidget *m_logWidget;
     DevWidget *m_devWidget;
-
-    ImagePipeline m_pipeline;
 };

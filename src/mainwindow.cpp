@@ -1,12 +1,13 @@
 #include "mainwindow.h"
+#include "imagepipeline.h"
 #include "widget/devwidget.h"
 #include "widget/logwidget.h"
 
 #include <QtWidgets/QtWidgets>
 
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(ImagePipeline *pipeline, QWidget *parent)
+    : QMainWindow(parent), m_pipeline(pipeline)
 {
     setWindowTitle("Eclair Look");
 
@@ -15,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     //
 
     m_logWidget = new LogWidget();
-    m_devWidget = new DevWidget(&m_pipeline);
+    m_devWidget = new DevWidget(m_pipeline);
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");
@@ -39,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
         exportAction, &QAction::triggered,
         [this]() {
             QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
-            m_pipeline.ExportLUT(fileName.toStdString(), 64);
+            m_pipeline->ExportLUT(fileName.toStdString(), 64);
         }
     );
 }
@@ -53,4 +54,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
       default:
         QMainWindow::keyPressEvent(event);
   }
+}
+
+ImagePipeline *MainWindow::pipeline()
+{
+    return m_pipeline;
 }

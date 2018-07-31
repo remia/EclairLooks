@@ -4,6 +4,8 @@
 #include <QFile>
 
 #include "mainwindow.h"
+#include "imagepipeline.h"
+
 
 int main(int argc, char **argv)
 {
@@ -19,6 +21,8 @@ int main(int argc, char **argv)
     format.setVersion(3, 2);
     QSurfaceFormat::setDefaultFormat(format);
 
+    ImagePipeline p;
+
     QApplication app(argc, argv);
 
     QFile cssFile(":/css/application.css");
@@ -26,7 +30,7 @@ int main(int argc, char **argv)
     QString cssString = QLatin1String(cssFile.readAll());
     app.setStyleSheet(cssString);
 
-    MainWindow mainWindow;
+    MainWindow mainWindow(&p);
     mainWindow.show();
 
     QRect screenGeometry = QApplication::desktop()->screenGeometry();
@@ -34,9 +38,8 @@ int main(int argc, char **argv)
     int y = (screenGeometry.height() - mainWindow.height()) / 2;
     mainWindow.move(x, y);
 
-    // Debug
-    Image img = Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif");
-    mainWindow.pipeline().SetInput(img);
+    // Load default image
+    p.SetInput(Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif"));
 
     return app.exec();
 }

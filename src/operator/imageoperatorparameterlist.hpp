@@ -1,3 +1,5 @@
+#pragma once
+
 
 template <typename T>
 bool ImageOperatorParameterList::Add(const T &op)

@@ -23,21 +23,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QScrollArea" name="lookWidget" native="true">
-       <widget class="QLabel" name="label_3">
-        <property name="geometry">
-         <rect>
-          <x>100</x>
-          <y>130</y>
-          <width>60</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>_LOOK_LIST_</string>
-        </property>
-       </widget>
-      </widget>
+      <widget class="QScrollArea" name="lookWidget" native="true"/>
       <widget class="PipelineWidget" name="pipelineWidget" native="true"/>
       <widget class="QWidget" name="vLayout" native="true">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -110,21 +96,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QScrollArea" name="operatorListWidget" native="true">
-       <widget class="QLabel" name="label_2">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>60</y>
-          <width>114</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>_OPERATOR_LIST_</string>
-        </property>
-       </widget>
-      </widget>
+      <widget class="QScrollArea" name="operatorListWidget" native="true"/>
       <widget class="QScrollArea" name="operatorDetailWidget"/>
       <widget class="QWidget" name="scopeView" native="true">
        <layout class="QVBoxLayout" name="scopeVLayout">

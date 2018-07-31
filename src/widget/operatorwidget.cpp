@@ -88,7 +88,7 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
         }
     );
 
-    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const SelectParameter * new_param = static_cast<const SelectParameter *>(&new_p);
 
         if (new_param->name != param->name)
@@ -104,6 +104,13 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
         else
             cb->setCurrentText(QString::fromStdString(new_param->default_value));
     });
+
+    QObject::connect(
+        cb, &QWidget::destroyed,
+        [&, connect]() {
+            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
+        }
+    );
 
     return cb;
 }
@@ -136,13 +143,20 @@ QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParam
         }
     );
 
-    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const FilePathParameter * new_param = static_cast<const FilePathParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
 
         le->setText(QString::fromStdString(new_param->value));
     });
+
+    QObject::connect(
+        cb, &QWidget::destroyed,
+        [&, connect]() {
+            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
+        }
+    );
 
     return widget;
 }
@@ -161,13 +175,20 @@ QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParam
         }
     );
 
-    op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
         const CheckBoxParameter * new_param = static_cast<const CheckBoxParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
 
         cb->setCheckState(new_param->value ? Qt::Checked : Qt::Unchecked);
     });
+
+    QObject::connect(
+        cb, &QWidget::destroyed,
+        [&, connect]() {
+            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
+        }
+    );
 
     return cb;
 }

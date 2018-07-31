@@ -6,27 +6,35 @@
 #include "generic.h"
 
 
+using ConnectIdT = uint16_t;
+using EventIdT = uint8_t;
+
 template <typename... T>
-using EventDesc = std::tuple<std::vector<T>...>;
+using EventDesc = std::tuple<std::map<ConnectIdT, T>...>;
+
+struct EventProxy
+{
+    EventIdT EventId;
+    ConnectIdT ConnectionId;
+};
 
 template <typename EvtDesc> class EventSource
 {
   public:
-    using EventT = uint8_t;
-    using EventDescT = EvtDesc;
-    using SilentT = std::map<EventT, bool>;
+    using SilentT = std::map<EventIdT, bool>;
 
-    static const EventT InvalidEventT = std::numeric_limits<EventT>::max();
+    static const EventIdT InvalidEventT = std::numeric_limits<EventIdT>::max();
 
 public:
     EventSource()
+    : m_currentId(0)
     {
         for (int i = 0; i < std::tuple_size<EvtDesc>::value; ++i)
             m_silent[i] = false;
     }
 
   public:
-    void Mute(EventT id = InvalidEventT)
+    void Mute(EventIdT id = InvalidEventT)
     {
         for (auto &[k, v] : m_silent)
             if (id == InvalidEventT || k == id) {
@@ -34,44 +42,47 @@ public:
             }
     }
 
-    void Unmute(EventT id = InvalidEventT)
+    void Unmute(EventIdT id = InvalidEventT)
     {
         for (auto &[k, v] : m_silent)
             if (id == InvalidEventT || k == id)
                 v = false;
     }
 
-    template <EventT Id, typename F> void Subscribe(const F &f)
+    template <EventIdT Id, typename F> EventProxy Subscribe(const F &f)
     {
-        auto &vec = std::get<Id>(m_callbacks);
-        vec.push_back(f);
+        auto &cbs = std::get<Id>(m_callbacks);
+        cbs[m_currentId] = f;
+
+        return EventProxy { Id, m_currentId++ };
     }
 
-    template <EventT Id, typename F> void Unsubscribe(const EventT id, const F &f)
+    template <EventIdT Id> void Unsubscribe(const EventProxy &ep)
     {
-        auto &vec = std::get<Id>(m_callbacks);
-        std::remove(vec.begin(), vec.end(), f);
+        auto &cbs = std::get<Id>(m_callbacks);
+        cbs.erase(ep.ConnectionId);
     }
 
   protected:
-    template <EventT Id, typename... Args> void EmitEvent(Args &&... args)
+    template <EventIdT Id, typename... Args> void EmitEvent(Args &&... args)
     {
         if (m_silent[Id])
             return;
 
-        for (auto &f : std::get<Id>(m_callbacks))
+        for (auto &[coId, f] : std::get<Id>(m_callbacks))
             f(args...);
     }
 
   private:
-    EventDescT m_callbacks;
+    EvtDesc m_callbacks;
     SilentT m_silent;
+    ConnectIdT m_currentId;
 };
 
 template <typename T> class AutoMute
 {
   public:
-    AutoMute(T *obj, typename T::EventT id = T::InvalidEventT)
+    AutoMute(T *obj, EventIdT id = T::InvalidEventT)
     : m_obj(obj)
     , m_id(id)
     {
@@ -85,5 +96,5 @@ template <typename T> class AutoMute
 
   private:
     T *m_obj;
-    typename T::EventT m_id;
+    EventIdT m_id;
 };

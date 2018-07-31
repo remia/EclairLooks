@@ -155,7 +155,7 @@ QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParam
     });
 
     QObject::connect(
-        cb, &QWidget::destroyed,
+        tb, &QWidget::destroyed,
         [&, connect]() {
             op.Unsubscribe<ImageOperator::UpdateGui>(connect);
         }

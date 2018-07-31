@@ -10,6 +10,7 @@
 
 ImagePipeline::ImagePipeline()
 {
+
 }
 
 void ImagePipeline::SetInput(const Image & img)
@@ -25,6 +26,11 @@ void ImagePipeline::SetInput(const Image & img)
 Image & ImagePipeline::GetOutput()
 {
     return m_outputImg;
+}
+
+uint8_t ImagePipeline::OperatorCount() const
+{
+    return m_operators.size();
 }
 
 ImageOperator &ImagePipeline::GetOperator(uint8_t index)

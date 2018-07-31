@@ -78,7 +78,11 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
 
     for (auto & v : param->choices)
         cb->addItem(QString::fromStdString(v));
-    cb->setCurrentText(QString::fromStdString(param->default_value));
+
+    if (!param->value.empty())
+        cb->setCurrentText(QString::fromStdString(param->value));
+    else
+        cb->setCurrentText(QString::fromStdString(param->default_value));
 
     QObject::connect(
         cb, QOverload<const QString &>::of(&QComboBox::activated),
@@ -95,9 +99,8 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
             return;
 
         cb->clear();
-        for (auto & v : new_param->choices) {
+        for (auto & v : new_param->choices)
             cb->addItem(QString::fromStdString(v));
-        }
 
         if (!new_param->value.empty())
             cb->setCurrentText(QString::fromStdString(new_param->value));

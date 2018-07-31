@@ -1,4 +1,5 @@
 #include "pipelinewidget.h"
+#include "../imagepipeline.h"
 #include "../operator/ociofiletransform_operator.h"
 #include "../operator/ociocolorspace_operator.h"
 #include "../operator/ctl_operator.h"
@@ -22,7 +23,7 @@ PipelineWidget::PipelineWidget(QWidget *parent)
     setDropIndicatorShown(true);
 
     QObject::connect(
-        this, &QListWidget::currentRowChanged,
+        this, &QListWidget::itemClicked,
         this, &PipelineWidget::updateSelection);
 }
 
@@ -119,9 +120,11 @@ void PipelineWidget::initTransformationWidget(ImageOperator &op)
     addItem(item);
 }
 
-void PipelineWidget::updateSelection(int selectedRow)
+void PipelineWidget::updateSelection(QListWidgetItem * item)
 {
-    if (selectedRow < 0)
+    int selectedRow = row(item);
+
+    if (selectedRow < 0 || selectedRow >= m_pipeline->OperatorCount())
         return;
     if (!m_operatorDetailWidget)
         return;

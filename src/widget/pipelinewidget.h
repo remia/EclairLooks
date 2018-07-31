@@ -25,7 +25,7 @@ class PipelineWidget : public QListWidget
     void buildFromPipeline();
     void initTransformationWidget(ImageOperator &op);
 
-    void updateSelection(int selectedRow);
+    void updateSelection(QListWidgetItem * item);
     void disableSelection(int selectedRow);
     void removeSelection(int selectedRow);
 

@@ -33,6 +33,7 @@ int main(int argc, char **argv)
     MainWindow mainWindow(&p);
     mainWindow.show();
 
+    // Move window to the center of the screen
     QRect screenGeometry = QApplication::desktop()->screenGeometry();
     int x = (screenGeometry.width() - mainWindow.width()) / 2;
     int y = (screenGeometry.height() - mainWindow.height()) / 2;

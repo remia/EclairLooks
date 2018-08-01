@@ -20,9 +20,26 @@ CTLTransform::CTLTransform()
     AddParameter(TextParameter("CTL Transform"), "CTL");
 }
 
+ImageOperator *CTLTransform::OpCreate() const
+{
+    return new CTLTransform();
+}
+
 std::string CTLTransform::OpName() const
 {
     return "CTL Transform";
+}
+
+ImageOperator *CTLTransform::OpCreateFromPath(const std::string &filepath) const
+{
+    QFileInfo file = QFileInfo(QString::fromStdString(filepath));
+    if (file.isDir()) {
+        CTLTransform * ct = new CTLTransform();
+        ct->SetBaseFolder(filepath);
+        return ct;
+    }
+
+    return nullptr;
 }
 
 void CTLTransform::OpApply(Image &img)

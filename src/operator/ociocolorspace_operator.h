@@ -11,18 +11,20 @@ class Image;
 
 class OCIOColorSpace : public ImageOperator
 {
-public:
+  public:
     OCIOColorSpace();
 
-public:
+  public:
+    ImageOperator *OpCreate() const override;
+    ImageOperator *OpCreateFromPath(const std::string &filepath) const override;
     std::string OpName() const override;
-    void OpApply(Image & img) override;
+    void OpApply(Image &img) override;
     bool OpIsIdentity() const override;
-    void OpUpdateParamCallback(const ImageOperatorParameter & op) override;
+    void OpUpdateParamCallback(const ImageOperatorParameter &op) override;
 
     void SetConfig(const std::string &configpath);
 
-private:
+  private:
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;
     OCIO_NAMESPACE::ConstProcessorRcPtr m_processor;
     OCIO_NAMESPACE::LookTransformRcPtr m_transform;

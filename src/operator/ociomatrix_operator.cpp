@@ -17,6 +17,11 @@ OCIOMatrix::OCIOMatrix()
     m_transform = OCIO::MatrixTransform::Create();
 }
 
+ImageOperator * OCIOMatrix::OpCreate() const
+{
+    return new OCIOMatrix();
+}
+
 std::string OCIOMatrix::OpName() const
 {
     return "OCIO Matrix";

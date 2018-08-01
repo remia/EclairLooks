@@ -21,6 +21,23 @@ OCIOColorSpace::OCIOColorSpace()
     m_transform = OCIO::LookTransform::Create();
 }
 
+ImageOperator *OCIOColorSpace::OpCreate() const
+{
+    return new OCIOColorSpace();
+}
+
+ImageOperator *OCIOColorSpace::OpCreateFromPath(const std::string &filepath) const
+{
+    QFileInfo file = QFileInfo(QString::fromStdString(filepath));
+    if (file.completeSuffix() == "ocio") {
+        OCIOColorSpace * ct = new OCIOColorSpace();
+        ct->SetConfig(filepath);
+        return ct;
+    }
+
+    return nullptr;
+}
+
 std::string OCIOColorSpace::OpName() const
 {
     return "OCIO ColorSpace";

@@ -15,6 +15,7 @@ public:
     OCIOMatrix();
 
 public:
+    ImageOperator * OpCreate() const override;
     std::string OpName() const override;
     void OpApply(Image & img) override;
     bool OpIsIdentity() const override;

@@ -18,6 +18,24 @@ OCIOFileTransform::OCIOFileTransform()
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
     m_transform = OCIO::FileTransform::Create();
+
+ImageOperator *OCIOFileTransform::OpCreate() const
+{
+    return new OCIOFileTransform();
+}
+
+ImageOperator *OCIOFileTransform::OpCreateFromPath(const std::string &filepath) const
+{
+    QStringList exts = SupportedExtensions();
+
+    QFileInfo file = QFileInfo(QString::fromStdString(filepath));
+    if (exts.contains(file.completeSuffix())) {
+        OCIOFileTransform * ft = new OCIOFileTransform();
+        ft->SetFileTransform(filepath);
+        return ft;
+    }
+
+    return nullptr;
 }
 
 std::string OCIOFileTransform::OpName() const
@@ -61,6 +79,14 @@ void OCIOFileTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
         m_processor = OCIO::Processor::Create();
     }
+}
+
+QStringList OCIOFileTransform::SupportedExtensions() const
+{
+    QStringList exts;
+    for (size_t i = 0; i < m_transform->getNumFormats(); ++i)
+        exts << m_transform->getFormatExtensionByIndex(i);
+    return exts;
 }
 
 void OCIOFileTransform::SetFileTransform(const std::string &lutpath)

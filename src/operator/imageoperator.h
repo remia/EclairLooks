@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include <map>
 
@@ -25,6 +26,9 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     ImageOperator(const ImageOperator &) = default;
     virtual ~ImageOperator() = default;
 
+  public:
+    virtual ImageOperator * OpCreate() const = 0;
+    virtual ImageOperator * OpCreateFromPath(const std::string &filepath) const { return nullptr; };
     virtual std::string OpName() const = 0;
     virtual void OpApply(Image &img) = 0;
     virtual bool OpIsIdentity() const { return true; }

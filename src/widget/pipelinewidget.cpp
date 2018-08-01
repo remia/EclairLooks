@@ -3,7 +3,6 @@
 #include "../operator/ociofiletransform_operator.h"
 #include "../operator/ociocolorspace_operator.h"
 #include "../operator/ctl_operator.h"
-#include "../mainwindow.h"
 #include "imagewidget.h"
 #include "operatorwidget.h"
 

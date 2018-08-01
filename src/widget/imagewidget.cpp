@@ -1,6 +1,5 @@
 #include "imagewidget.h"
 #include "../image.h"
-#include "../mainwindow.h"
 #include "../utils/gl.h"
 
 #include <cstdlib>

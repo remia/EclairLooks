@@ -10,14 +10,20 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOFileTransform::OCIOFileTransform()
 {
-    // NOTE : does OpenColorIO provide an API to get the supported LUT extensions ?
-    AddParameter(FilePathParameter("LUT", "", "Choose a LUT", "LUT Files (*.cube *.3dl *.spi1d *.spi3d)"), "File Transform");
-    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}), "File Transform");
-    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}), "File Transform");
-
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
     m_transform = OCIO::FileTransform::Create();
+
+    QStringList exts = SupportedExtensions();
+    QString filter = QString("LUT files (*.%1)").arg(exts.join(" *."));
+
+    AddParameter(FilePathParameter("LUT", "", "Choose a LUT", filter.toStdString()), "File Transform");
+    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}), "File Transform");
+    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}), "File Transform");
+
+    m_transform->setInterpolation(OCIO::InterpolationFromString("Best"));
+    m_transform->setDirection(OCIO::TransformDirectionFromString("Forward"));
+}
 
 ImageOperator *OCIOFileTransform::OpCreate() const
 {

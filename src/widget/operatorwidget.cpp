@@ -127,6 +127,7 @@ QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParam
 
     QLineEdit * le = new QLineEdit();
     QToolButton * tb = new QToolButton();
+    tb->setText("...");
     layout->addWidget(le);
     layout->addWidget(tb);
 

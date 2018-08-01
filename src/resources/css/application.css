@@ -18,6 +18,11 @@ QScrollArea {
     border: 1px solid #1e1b18;
 }
 
+QAbstractButton {
+    border: 1px solid #1e1b18;
+    border-radius: 2px;
+}
+
 
 /*
  * *******************************

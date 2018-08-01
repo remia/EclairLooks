@@ -13,8 +13,16 @@ struct BitdepthFormat
     float scale;
 };
 
-void PrintImageMetadata(ImageSpec spec)
+void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
 {
+    qInfo() << "File -" << QString::fromStdString(filepath);
+    qInfo() << "Dimensions :" << spec.width << "x" << spec.height << "~" << spec.nchannels;
+    qInfo() << "Type :" << spec.format.elementsize() * 8 << "bits" << (spec.format.is_floating_point() ? "Float" : "Integer");
+
+    for (size_t i = 0; i < spec.channelnames.size(); ++i)
+        qInfo() << "Channel " << i << ":" << QString::fromStdString(spec.channelnames[i]);
+
+    qInfo() << "-----------------";
     for (const ParamValue &p : spec.extra_attribs) {
         QDebug info = qInfo();
         info << p.name().c_str() << "\t";
@@ -33,6 +41,7 @@ void PrintImageMetadata(ImageSpec spec)
                  << f[11] << f[12] << f[13] << f[14] << f[15];
         }
     }
+    qInfo() << "-----------------\n";
 }
 
 Image::Image()
@@ -101,7 +110,7 @@ Image Image::FromFile(const std::string &filepath)
     in->read_image(pixel_type, res.m_pixels.data());
     in->close();
 
-    PrintImageMetadata(spec);
+    PrintImageMetadata(filepath, spec);
 
     ImageInput::destroy(in);
     return res;

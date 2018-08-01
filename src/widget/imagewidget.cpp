@@ -142,9 +142,6 @@ void ImageWidget::setImage(const Image &img)
     createTexture(m_textureOut, img);
 
     resetView();
-
-    qInfo() << "Texture - " << img.width() << "X" << img.height() << "~" << img.channels() << "\n";
-    qInfo() << "Texture Initialization done !\n";
 }
 
 void ImageWidget::updateImage(const Image &img)

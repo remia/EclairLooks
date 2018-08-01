@@ -25,6 +25,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
 
     uint8_t OperatorCount() const;
     ImageOperator &GetOperator(uint8_t index);
+    void AddOperator(ImageOperator * op);
     template <typename T> T * AddOperator();
     bool DeleteOperator(uint8_t index);
 
@@ -34,6 +35,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
   private:
     Image m_inputImg;
     Image m_outputImg;
+
     std::vector<UPtr<ImageOperator>> m_operators;
 };
 
@@ -43,5 +45,8 @@ T * ImagePipeline::AddOperator()
 {
     UPtr<ImageOperator> & op = m_operators.emplace_back(new T());
     op->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
+
+    Compute();
+
     return static_cast<T *>(op.get());
 }

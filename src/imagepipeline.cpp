@@ -38,6 +38,14 @@ ImageOperator &ImagePipeline::GetOperator(uint8_t index)
     return *m_operators[index];
 }
 
+void ImagePipeline::AddOperator(ImageOperator * op)
+{
+    UPtr<ImageOperator> & optr = m_operators.emplace_back(UPtr<ImageOperator>(op));
+    optr->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
+
+    Compute();
+}
+
 bool ImagePipeline::DeleteOperator(uint8_t index)
 {
     if (index >= m_operators.size()) {

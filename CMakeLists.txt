@@ -53,8 +53,10 @@ set(SOURCES
     src/widget/logwidget.cpp
     src/widget/textureview.cpp
     src/widget/pipelinewidget.cpp
+    src/widget/operatorlistwidget.cpp
     src/widget/operatorwidget.cpp
     src/operator/imageoperator.cpp
+    src/operator/imageoperatorlist.cpp
     src/operator/imageoperatorparameterlist.cpp
     src/operator/ociofiletransform_operator.cpp
     src/operator/ociocolorspace_operator.cpp

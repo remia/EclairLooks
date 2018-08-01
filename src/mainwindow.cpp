@@ -6,17 +6,34 @@
 #include <QtWidgets/QtWidgets>
 
 
-MainWindow::MainWindow(ImagePipeline *pipeline, QWidget *parent)
-    : QMainWindow(parent), m_pipeline(pipeline)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), m_pipeline(nullptr), m_operators(nullptr)
 {
     setWindowTitle("Eclair Look");
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+  switch (event->key()) {
+      case Qt::Key_Escape:
+        close();
+        break;
+      default:
+        QMainWindow::keyPressEvent(event);
+  }
+}
+
+void MainWindow::setup()
+{
+    if (!m_pipeline || !m_operators)
+        return;
 
     //
     // Setup
     //
 
     m_logWidget = new LogWidget();
-    m_devWidget = new DevWidget(m_pipeline);
+    m_devWidget = new DevWidget(m_pipeline, m_operators);
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");
@@ -45,18 +62,23 @@ MainWindow::MainWindow(ImagePipeline *pipeline, QWidget *parent)
     );
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+void MainWindow::setPipeline(ImagePipeline *p)
 {
-  switch (event->key()) {
-      case Qt::Key_Escape:
-        close();
-        break;
-      default:
-        QMainWindow::keyPressEvent(event);
-  }
+    m_pipeline = p;
 }
 
 ImagePipeline *MainWindow::pipeline()
 {
     return m_pipeline;
 }
+
+void MainWindow::setOperators(ImageOperatorList *l)
+{
+    m_operators = l;
+}
+
+ImageOperatorList *MainWindow::operators()
+{
+    return m_operators;
+}
+

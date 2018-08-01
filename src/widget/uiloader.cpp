@@ -2,6 +2,7 @@
 
 #include "imagewidget.h"
 #include "pipelinewidget.h"
+#include "operatorlistwidget.h"
 #include "../scope/waveformwidget.h"
 
 
@@ -16,6 +17,10 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         return w;
     } else if (className == "PipelineWidget") {
         PipelineWidget *w = new PipelineWidget(parent);
+        w->setObjectName(name);
+        return w;
+    }  else if (className == "OperatorListWidget") {
+        OperatorListWidget *w = new OperatorListWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "WaveformWidget") {

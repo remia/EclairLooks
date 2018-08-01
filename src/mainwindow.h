@@ -4,22 +4,30 @@
 
 
 class ImagePipeline;
+class ImageOperatorList;
 class DevWidget;
 class LogWidget;
 
 class MainWindow : public QMainWindow
 {
   public:
-    MainWindow(ImagePipeline *pipeline, QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
 
   public:
     void keyPressEvent(QKeyEvent *event) override;
 
   public:
+    void setup();
+
+    void setPipeline(ImagePipeline *p);
     ImagePipeline *pipeline();
+
+    void setOperators(ImageOperatorList *l);
+    ImageOperatorList *operators();
 
   private:
     ImagePipeline *m_pipeline;
+    ImageOperatorList *m_operators;
 
     QMenu *m_fileMenu;
 

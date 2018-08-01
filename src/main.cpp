@@ -5,6 +5,11 @@
 
 #include "mainwindow.h"
 #include "imagepipeline.h"
+#include "operator/imageoperatorlist.h"
+#include "operator/ociomatrix_operator.h"
+#include "operator/ociofiletransform_operator.h"
+#include "operator/ociocolorspace_operator.h"
+#include "operator/ctl_operator.h"
 
 
 int main(int argc, char **argv)
@@ -21,7 +26,13 @@ int main(int argc, char **argv)
     format.setVersion(3, 2);
     QSurfaceFormat::setDefaultFormat(format);
 
-    ImagePipeline p;
+    // Pipeline
+    ImagePipeline pipeline;
+    ImageOperatorList operators;
+    operators.Register<OCIOMatrix>();
+    operators.Register<OCIOFileTransform>();
+    operators.Register<OCIOColorSpace>();
+    operators.Register<CTLTransform>();
 
     QApplication app(argc, argv);
 
@@ -30,7 +41,10 @@ int main(int argc, char **argv)
     QString cssString = QLatin1String(cssFile.readAll());
     app.setStyleSheet(cssString);
 
-    MainWindow mainWindow(&p);
+    MainWindow mainWindow;
+    mainWindow.setPipeline(&pipeline);
+    mainWindow.setOperators(&operators);
+    mainWindow.setup();
     mainWindow.show();
 
     // Move window to the center of the screen
@@ -40,7 +54,7 @@ int main(int argc, char **argv)
     mainWindow.move(x, y);
 
     // Load default image
-    p.SetInput(Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif"));
+    pipeline.SetInput(Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif"));
 
     // NOTE : Waiting for a OpenImageIO release that includes the new IOProxy feature
     // QFile f = QFile(":/images/stresstest.png");

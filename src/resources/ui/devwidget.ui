@@ -96,7 +96,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QScrollArea" name="operatorListWidget" native="true"/>
+      <widget class="OperatorListWidget" name="operatorListWidget" native="true"/>
       <widget class="QScrollArea" name="operatorDetailWidget"/>
       <widget class="QWidget" name="scopeView" native="true">
        <layout class="QVBoxLayout" name="scopeVLayout">

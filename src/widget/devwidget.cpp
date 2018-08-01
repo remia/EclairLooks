@@ -2,6 +2,8 @@
 #include "uiloader.h"
 #include "pipelinewidget.h"
 #include "imagewidget.h"
+#include "operatorlistwidget.h"
+#include "../operator/imageoperatorlist.h"
 #include "../scope/waveformwidget.h"
 #include "../imagepipeline.h"
 
@@ -9,8 +11,8 @@
 #include <QFile>
 
 
-DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
-    : QWidget(parent), m_pipeline(pipeline)
+DevWidget::DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent)
+    : QWidget(parent), m_pipeline(pipeline), m_operators(list)
 {
     //
     // Setup
@@ -23,11 +25,13 @@ DevWidget::DevWidget(ImagePipeline *pipeline, QWidget *parent)
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
     m_pipelineWidget = findChild<PipelineWidget*>("pipelineWidget");
+    m_operatorsWidget = findChild<OperatorListWidget*>("operatorListWidget");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
     m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
 
     initPipelineView();
     initScopeView();
+    initOperatorsView();
 
     //
     // Connections
@@ -59,6 +63,7 @@ void DevWidget::initPipelineView()
     QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
 
     m_pipelineWidget->setPipeline(m_pipeline);
+    m_pipelineWidget->setOperators(m_operators);
     m_pipelineWidget->setOperatorDetailWidget(operatorDetail);
 }
 
@@ -81,4 +86,9 @@ void DevWidget::initScopeView()
                 this->m_scopeWidget->setScopeType("Parade");
         }
     );
+}
+
+void DevWidget::initOperatorsView()
+{
+    m_operatorsWidget->setOperators(m_operators);
 }

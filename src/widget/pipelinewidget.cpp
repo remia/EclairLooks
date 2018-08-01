@@ -1,8 +1,6 @@
 #include "pipelinewidget.h"
 #include "../imagepipeline.h"
-#include "../operator/ociofiletransform_operator.h"
-#include "../operator/ociocolorspace_operator.h"
-#include "../operator/ctl_operator.h"
+#include "../operator/imageoperatorlist.h"
 #include "imagewidget.h"
 #include "operatorwidget.h"
 
@@ -13,7 +11,8 @@
 
 
 PipelineWidget::PipelineWidget(QWidget *parent)
-    : QListWidget(parent), m_pipeline(nullptr), m_operatorDetailWidget(nullptr)
+    : QListWidget(parent), m_pipeline(nullptr), m_operators(nullptr),
+      m_operatorDetailWidget(nullptr), m_currentIndex(0)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
@@ -21,9 +20,8 @@ PipelineWidget::PipelineWidget(QWidget *parent)
     setDefaultDropAction(Qt::MoveAction);
     setDropIndicatorShown(true);
 
-    QObject::connect(
-        this, &QListWidget::itemClicked,
-        this, &PipelineWidget::updateSelection);
+    QObject::connect(this, &QListWidget::itemClicked, this,
+                     &PipelineWidget::updateSelection);
 }
 
 void PipelineWidget::keyPressEvent(QKeyEvent *event)
@@ -39,15 +37,14 @@ void PipelineWidget::keyPressEvent(QKeyEvent *event)
             default:
                 QListWidget::keyPressEvent(event);
         }
-    }
-    else {
+    } else {
         QListWidget::keyPressEvent(event);
     }
 }
 
 void PipelineWidget::dragEnterEvent(QDragEnterEvent *e)
 {
-    if (e->mimeData()->hasUrls())
+    if (e->mimeData()->hasUrls() || e->mimeData()->hasText())
         e->acceptProposedAction();
     else
         QListWidget::dragEnterEvent(e);
@@ -55,71 +52,62 @@ void PipelineWidget::dragEnterEvent(QDragEnterEvent *e)
 
 void PipelineWidget::dropEvent(QDropEvent *e)
 {
+    if (!m_operators)
+        return;
+
     if (e->mimeData()->hasUrls()) {
         foreach (const QUrl &url, e->mimeData()->urls()) {
             QString fileName = url.toLocalFile();
-            QFileInfo fileInfo(fileName);
-            ImageOperator * image_op = nullptr;
 
-            if (fileInfo.isDir()) {
-                qDebug() << "Dropped ctl folder :" << fileName << "\n";
-                auto t = m_pipeline->AddOperator<CTLTransform>();
-                initTransformationWidget(*t);
-                t->SetBaseFolder(fileName.toStdString());
-                image_op = t;
-            }
-            else if (fileName.endsWith(".ocio")) {
-                qDebug() << "Dropped config file :" << fileName << "\n";
-                auto t = m_pipeline->AddOperator<OCIOColorSpace>();
-                initTransformationWidget(*t);
-                t->SetConfig(fileName.toStdString());
-                image_op = t;
-            }
-            else if (fileName.endsWith(".3dl") || fileName.endsWith(".cube")){
-                qDebug() << "Dropped transform file :" << fileName << "\n";
-                auto t = m_pipeline->AddOperator<OCIOFileTransform>();
-                initTransformationWidget(*t);
-                t->SetFileTransform(fileName.toStdString());
-                image_op = t;
+            if (ImageOperator *op = m_operators->CreateFromPath(fileName.toStdString())) {
+                m_pipeline->AddOperator(op);
+                initTransformationWidget(*op);
+                update();
             }
             else {
                 qDebug() << "Dropped file not supported" << fileName << "\n";
                 return;
             }
 
+        }
+    }
+    else if (e->mimeData()->hasText()) {
+        QString text = e->mimeData()->text();
+        if (ImageOperator *op = m_operators->CreateFromName(text.toStdString())) {
+            m_pipeline->AddOperator(op);
+            initTransformationWidget(*op);
             update();
         }
-    } else
+        else {
+            qDebug() << "Dropped text not recognized" << text << "\n";
+            return;
+        }
+    }
+    else
         QListWidget::dropEvent(e);
 }
 
-QSize PipelineWidget::sizeHint() const
-{
-    return QSize(160, 480);
-}
+QSize PipelineWidget::sizeHint() const { return QSize(180, 480); }
 
-void PipelineWidget::setPipeline(ImagePipeline *pipeline)
-{
-    m_pipeline = pipeline;
-}
+void PipelineWidget::setPipeline(ImagePipeline *pipeline) { m_pipeline = pipeline; }
+
+void PipelineWidget::setOperators(ImageOperatorList *list) { m_operators = list; }
 
 void PipelineWidget::setOperatorDetailWidget(QScrollArea *w)
 {
     m_operatorDetailWidget = w;
 }
 
-void PipelineWidget::buildFromPipeline()
-{
-
-}
+void PipelineWidget::buildFromPipeline() {}
 
 void PipelineWidget::initTransformationWidget(ImageOperator &op)
 {
-    QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(op.OpName()));
-    addItem(item);
+    QString name = QString("%1 [%2]").arg(
+        QString::fromStdString(op.OpName()), QString::number(++m_currentIndex));
+    addItem(new QListWidgetItem(name));
 }
 
-void PipelineWidget::updateSelection(QListWidgetItem * item)
+void PipelineWidget::updateSelection(QListWidgetItem *item)
 {
     int selectedRow = row(item);
 
@@ -128,18 +116,18 @@ void PipelineWidget::updateSelection(QListWidgetItem * item)
     if (!m_operatorDetailWidget)
         return;
 
-    QWidget * widget = OperatorWidget::FromOperator(m_pipeline->GetOperator(selectedRow));
+    QWidget *widget = OperatorWidget::FromOperator(m_pipeline->GetOperator(selectedRow));
     m_operatorDetailWidget->setWidget(widget);
 }
 
 void PipelineWidget::disableSelection(int selectedRow)
 {
-    // NOTE : we should also track the operator state to choose new styles on enable / disable
-    // From the CSS would be perfect, I think we have to subclass QListWidgetItem and add new property
-    // that will be accessible from the CSS ?
-    auto & op = m_pipeline->GetOperator(selectedRow);
-    auto param = op.GetParameter<CheckBoxParameter>("Enabled");
-        param.value = !param.value;
+    // NOTE : we should also track the operator state to choose new styles on enable /
+    // disable From the CSS would be perfect, I think we have to subclass QListWidgetItem
+    // and add new property that will be accessible from the CSS ?
+    auto &op    = m_pipeline->GetOperator(selectedRow);
+    auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
+    param.value = !param.value;
     op.SetParameter(param);
 }
 

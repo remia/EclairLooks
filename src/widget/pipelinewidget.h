@@ -5,6 +5,7 @@
 
 class QScrollArea;
 class ImagePipeline;
+class ImageOperatorList;
 class ImageOperator;
 
 class PipelineWidget : public QListWidget
@@ -19,6 +20,7 @@ class PipelineWidget : public QListWidget
     QSize sizeHint() const override;
 
     void setPipeline(ImagePipeline *pipeline);
+    void setOperators(ImageOperatorList *list);
     void setOperatorDetailWidget(QScrollArea *w);
 
   private:
@@ -31,6 +33,8 @@ class PipelineWidget : public QListWidget
 
   private:
     ImagePipeline *m_pipeline;
-
+    ImageOperatorList *m_operators;
     QScrollArea *m_operatorDetailWidget;
+
+    uint16_t m_currentIndex;
 };

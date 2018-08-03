@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(looks)
+project(ELook)
 
 # -----------------------------------------------------------------------------
 # Global settings
@@ -69,7 +69,11 @@ set(SOURCES
 
 qt5_add_resources(RESOURCES src/resources/res.qrc)
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${RESOURCES})
+set(MACOSX_BUNDLE_ICON_FILE hexa.icns)
+set(ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/icons/hexa.icns)
+set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${RESOURCES} ${ICON})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})
@@ -85,3 +89,9 @@ target_link_libraries(${PROJECT_NAME} ${IlmBase_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${OpenEXR_LIBRARY})
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
 target_link_libraries(${PROJECT_NAME} Qt5::UiTools)
+
+# -----------------------------------------------------------------------------
+# Packaging
+# -----------------------------------------------------------------------------
+
+# /usr/local/Cellar/qt/5.10.1/bin/macdeployqt ELook.app [-dmg]

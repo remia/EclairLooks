@@ -7,7 +7,7 @@ project(ELook)
 # -----------------------------------------------------------------------------
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-set(CMAKE_PREFIX_PATH /usr/local/Cellar/qt/5.10.1/lib/cmake)
+set(CMAKE_PREFIX_PATH /usr/local/opt/qt/lib/cmake)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

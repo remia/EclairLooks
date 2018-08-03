@@ -77,7 +77,8 @@ void ImageWidget::dropEvent(QDropEvent *e)
         qDebug() << "Dropped file:" << fileName << "\n";
 
         Image img = Image::FromFile(fileName.toStdString());
-        EmitEvent<DropImage>(img);
+        if (img)
+            EmitEvent<DropImage>(img);
     }
 
     update();

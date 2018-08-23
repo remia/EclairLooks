@@ -6,8 +6,10 @@ project(ELook)
 # Global settings
 # -----------------------------------------------------------------------------
 
+set(QT_PREFIX /usr/local/opt/qt)
+
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-set(CMAKE_PREFIX_PATH /usr/local/opt/qt/lib/cmake)
+set(CMAKE_PREFIX_PATH ${QT_PREFIX}/lib/cmake)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -94,4 +96,7 @@ target_link_libraries(${PROJECT_NAME} Qt5::UiTools)
 # Packaging
 # -----------------------------------------------------------------------------
 
-# /usr/local/Cellar/qt/5.10.1/bin/macdeployqt ELook.app [-dmg]
+add_custom_target(package
+    COMMAND ${QT_PREFIX}/bin/macdeployqt ELook.app -dmg
+    DEPENDS ${PROJECT_NAME}
+)

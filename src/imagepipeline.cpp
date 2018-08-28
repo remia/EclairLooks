@@ -23,6 +23,11 @@ void ImagePipeline::SetInput(const Image & img)
     Compute();
 }
 
+Image & ImagePipeline::GetInput()
+{
+    return m_inputImg;
+}
+
 Image & ImagePipeline::GetOutput()
 {
     return m_outputImg;
@@ -57,6 +62,13 @@ bool ImagePipeline::DeleteOperator(uint8_t index)
     Compute();
 
     return true;
+}
+
+void ImagePipeline::Reset()
+{
+    m_operators.clear();
+
+    Compute();
 }
 
 void ImagePipeline::Compute()

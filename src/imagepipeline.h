@@ -21,13 +21,17 @@ class ImagePipeline : public EventSource<IPEvtDesc>
 
   public:
     void SetInput(const Image &img);
+    Image &GetInput();
     Image &GetOutput();
 
     uint8_t OperatorCount() const;
     ImageOperator &GetOperator(uint8_t index);
+
     void AddOperator(ImageOperator * op);
     template <typename T> T * AddOperator();
     bool DeleteOperator(uint8_t index);
+
+    void Reset();
 
     void Compute();
     void ExportLUT(const std::string &filename, uint32_t size);

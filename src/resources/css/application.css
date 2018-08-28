@@ -23,6 +23,14 @@ QAbstractButton {
     border-radius: 2px;
 }
 
+QTreeView {
+    border: 1px solid #1e1b18;
+}
+
+QLineEdit {
+    border: 1px solid #1e1b18;
+}
+
 
 /*
  * *******************************
@@ -34,10 +42,9 @@ QWidget#scopeView {
     border: 1px solid #1e1b18;
 }
 
-QWidget#presetWidget {
+QWidget#lookDetailWidget {
     border: 1px solid #1e1b18;
 }
-
 
 /*
  * *******************************

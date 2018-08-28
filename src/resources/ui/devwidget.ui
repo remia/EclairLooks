@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QSplitter" name="vSplitterGlobal">
+    <widget class="QSplitter" name="vSplitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -23,10 +23,16 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QScrollArea" name="lookWidget" native="true"/>
+      <widget class="QScrollArea" name="lookWidget"/>
       <widget class="PipelineWidget" name="pipelineWidget" native="true"/>
       <widget class="QWidget" name="vLayout" native="true">
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QWidget" name="presetWidget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
@@ -177,6 +183,11 @@
    <class>QTabBar</class>
    <extends>QWidget</extends>
    <header>qtabbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OperatorListWidget</class>
+   <extends>QWidget</extends>
+   <header>operatorlistwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

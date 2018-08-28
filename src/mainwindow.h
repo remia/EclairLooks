@@ -15,6 +15,7 @@ class MainWindow : public QMainWindow
 
   public:
     void keyPressEvent(QKeyEvent *event) override;
+    QSize sizeHint() const override;
 
   public:
     void setup();

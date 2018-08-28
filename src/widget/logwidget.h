@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QPlainTextEdit>
 
+
 class LogWidget : public QPlainTextEdit
 {
   public:

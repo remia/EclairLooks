@@ -12,8 +12,8 @@ class OperatorListWidget : public QListWidget
 
   public:
     void mousePressEvent(QMouseEvent *event) override;
-    QSize sizeHint() const override;
 
+  public:
     void setOperators(ImageOperatorList *list);
 
   private:

@@ -29,6 +29,14 @@ DevWidget::DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *
     m_scopeTab = findChild<QTabBar*>("scopeBar");
     m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
 
+    // NOTE : see https://stackoverflow.com/a/43835396/4814046
+    QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
+    vSplitter->setSizes(QList<int>({75000, 25000}));
+    QSplitter *hSplitterTop = findChild<QSplitter*>("hSplitterTop");
+    hSplitterTop->setSizes(QList<int>({15000, 15000, 70000}));
+    QSplitter *hSplitterBottom = findChild<QSplitter*>("hSplitterBottom");
+    hSplitterBottom->setSizes(QList<int>({15000, 45000, 40000}));
+
     initPipelineView();
     initScopeView();
     initOperatorsView();

@@ -116,11 +116,6 @@ void WaveformWidget::keyPressEvent(QKeyEvent *event)
   TextureView::keyPressEvent(event);
 }
 
-QSize WaveformWidget::sizeHint() const
-{
-    return QSize(220, 180);
-}
-
 void WaveformWidget::initializeGL()
 {
     initializeOpenGLFunctions();

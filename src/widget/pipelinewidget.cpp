@@ -87,8 +87,6 @@ void PipelineWidget::dropEvent(QDropEvent *e)
         QListWidget::dropEvent(e);
 }
 
-QSize PipelineWidget::sizeHint() const { return QSize(180, 480); }
-
 void PipelineWidget::setPipeline(ImagePipeline *pipeline) { m_pipeline = pipeline; }
 
 void PipelineWidget::setOperators(ImageOperatorList *list) { m_operators = list; }

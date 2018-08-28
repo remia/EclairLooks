@@ -23,6 +23,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
   }
 }
 
+QSize MainWindow::sizeHint() const
+{
+    return QSize(1280, 800);
+}
+
 void MainWindow::setup()
 {
     if (!m_pipeline || !m_operators)

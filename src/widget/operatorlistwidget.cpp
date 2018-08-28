@@ -15,8 +15,6 @@ OperatorListWidget::OperatorListWidget(QWidget *parent)
     setDragDropMode(QAbstractItemView::DragOnly);
 }
 
-QSize OperatorListWidget::sizeHint() const { return QSize(80, 220); }
-
 void OperatorListWidget::mousePressEvent(QMouseEvent *event)
 {
     QListWidgetItem *child = itemAt(event->pos());

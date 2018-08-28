@@ -84,11 +84,6 @@ void ImageWidget::dropEvent(QDropEvent *e)
     update();
 }
 
-QSize ImageWidget::sizeHint() const
-{
-    return QSize(1024, 768);
-}
-
 void ImageWidget::initializeGL()
 {
     TextureView::initializeGL();

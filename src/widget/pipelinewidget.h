@@ -17,7 +17,6 @@ class PipelineWidget : public QListWidget
     void keyPressEvent(QKeyEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
-    QSize sizeHint() const override;
 
     void setPipeline(ImagePipeline *pipeline);
     void setOperators(ImageOperatorList *list);

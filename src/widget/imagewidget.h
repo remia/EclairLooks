@@ -26,8 +26,6 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    QSize sizeHint() const override;
-
     void initializeGL() override;
     void paintGL() override;
 

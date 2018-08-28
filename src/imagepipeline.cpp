@@ -18,7 +18,7 @@ void ImagePipeline::SetInput(const Image & img)
     m_inputImg = img;
     m_outputImg = img;
 
-    EmitEvent<Evt::Reset>(m_inputImg);
+    EmitEvent<Evt::NewInput>(m_inputImg);
 
     Compute();
 }

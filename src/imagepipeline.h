@@ -14,7 +14,7 @@ typedef EventDesc<
 class ImagePipeline : public EventSource<IPEvtDesc>
 {
   public:
-    enum Evt { Reset = 0, Update };
+    enum Evt { NewInput = 0, Update };
 
   public:
     ImagePipeline();

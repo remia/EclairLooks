@@ -41,10 +41,10 @@ DevWidget::DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *
     using IP = ImagePipeline;
     using IW = ImageWidget;
 
-    m_pipeline->Subscribe<IP::Reset>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
+    m_pipeline->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
     m_pipeline->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
-    m_pipeline->Subscribe<IP::Reset>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
+    m_pipeline->Subscribe<IP::NewInput>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_scopeWidget, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_pipeline, _1));

@@ -7,12 +7,6 @@
 using namespace OIIO;
 
 
-struct BitdepthFormat
-{
-    TypeDesc type;
-    float scale;
-};
-
 void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
 {
     qInfo() << "File -" << QString::fromStdString(filepath);
@@ -52,6 +46,12 @@ Image::Image()
 
 void Image::save(const std::string & path, PixelType format) const
 {
+    struct BitdepthFormat
+    {
+        TypeDesc type;
+        float scale;
+    };
+
     std::map<PixelType, BitdepthFormat> BitdepthMap;
     BitdepthMap[PixelType::Uint8] = { TypeDesc::UINT8, 255.0f };
     BitdepthMap[PixelType::Uint16] = { TypeDesc::UINT16, 65535.0f };

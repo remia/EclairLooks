@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "imagepipeline.h"
 #include "widget/devwidget.h"
+#include "widget/lookwidget.h"
 #include "widget/logwidget.h"
 
 #include <QtWidgets/QtWidgets>
@@ -39,9 +40,11 @@ void MainWindow::setup()
 
     m_logWidget = new LogWidget();
     m_devWidget = new DevWidget(m_pipeline, m_operators);
+    m_lookWidget = new LookWidget(m_pipeline, m_operators);
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");
+    m_tabWidget->addTab(m_lookWidget, "Look");
     m_tabWidget->addTab(m_logWidget, "Log");
     setCentralWidget(m_tabWidget);
 

@@ -57,6 +57,10 @@ set(SOURCES
     src/widget/pipelinewidget.cpp
     src/widget/operatorlistwidget.cpp
     src/widget/operatorwidget.cpp
+    src/widget/lookwidget.cpp
+    src/widget/lookbrowserwidget.cpp
+    src/widget/lookviewwidget.cpp
+    src/widget/lookdetailwidget.cpp
     src/operator/imageoperator.cpp
     src/operator/imageoperatorlist.cpp
     src/operator/imageoperatorparameterlist.cpp

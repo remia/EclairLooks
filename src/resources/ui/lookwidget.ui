@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LookWidget</class>
+ <widget class="QWidget" name="LookWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>929</width>
+    <height>601</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="hSplitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="vLayout" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout2">
+       <property name="spacing">
+        <number>7</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="LookBrowserWidget" name="lookBrowserWidget" native="true"/>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lookBrowserSearch">
+         <property name="placeholderText">
+          <string>Search look...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QSplitter" name="vSplitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="LookViewWidget" name="lookViewWidget" native="true"/>
+      <widget class="LookDetailWidget" name="lookDetailWidget" native="true"/>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LookDetailWidget</class>
+   <extends>QWidget</extends>
+   <header>lookdetailwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LookViewWidget</class>
+   <extends>QWidget</extends>
+   <header>lookviewwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LookBrowserWidget</class>
+   <extends>QWidget</extends>
+   <header>lookbrowserwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

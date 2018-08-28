@@ -6,6 +6,7 @@
 class ImagePipeline;
 class ImageOperatorList;
 class DevWidget;
+class LookWidget;
 class LogWidget;
 
 class MainWindow : public QMainWindow
@@ -35,4 +36,5 @@ class MainWindow : public QMainWindow
     QTabWidget *m_tabWidget;
     LogWidget *m_logWidget;
     DevWidget *m_devWidget;
+    LookWidget *m_lookWidget;
 };

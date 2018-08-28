@@ -3,6 +3,7 @@
         <file>icons/hexa.png</file>
         <file>css/application.css</file>
         <file>ui/devwidget.ui</file>
+        <file>ui/lookwidget.ui</file>
         <file>images/stresstest.png</file>
     </qresource>
 </RCC>

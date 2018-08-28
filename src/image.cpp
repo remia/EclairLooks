@@ -38,10 +38,75 @@ void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
     qInfo() << "-----------------\n";
 }
 
+uint8_t GetPixelDepth(PixelType type)
+{
+    switch(type) {
+        case PixelType::Uint8:
+            return 1;
+        case PixelType::Uint16:
+            return 2;
+        case PixelType::Half:
+            return 2;
+        case PixelType::Float:
+            return 4;
+        case PixelType::Double:
+            return 8;
+        default:
+            return 255;
+    }
+}
+
 Image::Image()
     : m_width(0), m_height(0), m_channels(0), m_type(PixelType::Uint8),
       m_format(PixelFormat::RGB)
 {
+}
+
+Image Image::to_type(PixelType t) const
+{
+    if (type() != PixelType::Float) {
+        qWarning() << "Image cast only available for Float Pixel Type\n";
+        return Image();
+    }
+
+    Image res;
+    res.m_width = width();
+    res.m_height = height();
+    res.m_channels = channels();
+    res.m_format = format();
+    res.m_type = t;
+
+    uint8_t pixel_depth = GetPixelDepth(t);
+    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+
+    const float * src_pixels = pixels_asfloat();
+
+    for (uint64_t i = 0; i < res.count() * res.channels(); ++i) {
+        switch(t) {
+            case PixelType::Uint8:
+                res.m_pixels[i] = std::clamp(static_cast<int32_t>(src_pixels[i] * 255), 0, 255);
+                break;
+            case PixelType::Uint16:
+                res.m_pixels[i] = std::clamp(static_cast<int32_t>(src_pixels[i] * 65535), 0, 65535);
+                break;
+            case PixelType::Half:
+                // NOTE : use ILM Lib ?
+                qWarning() << "Cast to Half not implemented\n";
+                res.m_pixels[i] = static_cast<uint16_t>(src_pixels[i]);
+                break;
+            case PixelType::Float:
+                res.m_pixels[i] = static_cast<float>(src_pixels[i]);
+                break;
+            case PixelType::Double:
+                res.m_pixels[i] = static_cast<double>(src_pixels[i]);
+                break;
+            default:
+                res.m_pixels[i] = src_pixels[i];
+                break;
+        }
+    }
+
+    return res;
 }
 
 void Image::save(const std::string & path, PixelType format) const

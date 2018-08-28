@@ -49,6 +49,8 @@ class Image
     float *pixels_asfloat() { return reinterpret_cast<float *>(m_pixels.data()); }
     float const * pixels_asfloat() const { return reinterpret_cast<float const *>(m_pixels.data()); }
 
+    Image to_type(PixelType type) const;
+
     void save(const std::string & path, PixelType format = PixelType::Uint16) const;
 
   public:

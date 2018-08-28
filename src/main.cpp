@@ -17,6 +17,7 @@ int main(int argc, char **argv)
     QCoreApplication::setApplicationName("Eclair Looks");
     QCoreApplication::setOrganizationName("Ymagis");
     QCoreApplication::setOrganizationDomain("ymagis.com");
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 
     QSurfaceFormat format;
     format.setSamples(16);

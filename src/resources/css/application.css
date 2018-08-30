@@ -54,7 +54,7 @@ QWidget#lookDetailWidget {
 
  /* The tab widget frame */
 QTabWidget::pane {
-    /* border-top: 1px solid #1e1b18; */
+    border: 1px solid #1e1b18;
 }
 
 QTabWidget::tab-bar {

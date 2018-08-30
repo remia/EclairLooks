@@ -5,7 +5,8 @@
 #include <QtWidgets/QTreeView>
 
 
-class QFileSystemModel;
+class LookBrowserModel;
+class QSortFilterProxyModel;
 
 typedef EventDesc <
     FuncT<void(const QString &)>> LBEvtDesc;
@@ -20,9 +21,14 @@ class LookBrowserWidget : public QTreeView, public EventSource<LBEvtDesc>
 
   public:
     void setBrowserRootPath(const QString &path);
+
     void filterList(const QString &filter);
-    void updateSelection(const QItemSelection &selected, const QItemSelection &deselected);
+    void updateSelection(const QModelIndex &index);
+    void updateRootPath(const QString &path);
 
   private:
-    QFileSystemModel *m_fileSystemModel;
+    QString m_rootPath;
+
+    LookBrowserModel *m_fileSystemModel;
+    QSortFilterProxyModel *m_sortFilterModel;
 };

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <cstdint>
+#include "utils/generic.h"
 
 
 enum class PixelType
@@ -11,14 +9,16 @@ enum class PixelType
     Uint16,
     Half,
     Float,
-    Double
+    Double,
+    Unknown
 };
 
 enum class PixelFormat
 {
     GRAY,
     RGB,
-    RGBA
+    RGBA,
+    Unknown
 };
 
 enum class RampType
@@ -29,56 +29,59 @@ enum class RampType
     BLUE
 };
 
+namespace OpenImageIO_v1_8 { class ImageBuf; }
 
 class Image
 {
   public:
     Image();
-
-    uint16_t width() const { return m_width; }
-    uint16_t height() const { return m_height; }
-    uint8_t channels() const { return m_channels; }
-    PixelType type() const { return m_type; }
-    PixelFormat format() const { return m_format; }
-
-    uint64_t count() const { return width() * height(); }
-
-    uint8_t const * pixels() const { return m_pixels.data(); }
-    uint8_t * pixels() { return m_pixels.data(); }
-
-    float *pixels_asfloat() { return reinterpret_cast<float *>(m_pixels.data()); }
-    float const * pixels_asfloat() const { return reinterpret_cast<float const *>(m_pixels.data()); }
-
-    Image to_type(PixelType type) const;
-
-    void save(const std::string & path, PixelType format = PixelType::Uint16) const;
+    Image(const Image &src);
+    Image & operator=(const Image &src);
+    ~Image();
 
   public:
-    static Image FromFile(const std::string &filepath);
-    // static Image FromBuffer(void * buffer, size_t size);
-    static Image Ramp1D(uint64_t size, float min = 0.0f, float max = 1.0f, RampType t = RampType::NEUTRAL);
+    uint16_t width() const;
+    uint16_t height() const;
+    uint8_t channels() const;
+    PixelType type() const;
+    PixelFormat format() const;
+
+    uint64_t count() const;
+
+    uint8_t const *pixels() const;
+    uint8_t *pixels();
+
+    float *pixels_asfloat();
+    float const *pixels_asfloat() const;
+
+  public:
+    Image to_type(PixelType type) const;
+
+    Image resize(uint16_t width, uint16_t height, bool keepAspectRatio = true) const;
+
+    bool read(const std::string &path);
+    bool write(const std::string &path, PixelType type = PixelType::Uint16) const;
+
+  public:
+    static Image FromFile(const std::string &path);
+    // static Image FromBuffer(void *buffer, size_t size);
+    static Image Ramp1D(uint64_t size, float min = 0.f, float max = 1.f, RampType t = RampType::NEUTRAL);
     static Image Lattice(uint64_t size, uint32_t maxwidth = 512);
 
   public:
     explicit operator bool() const;
 
-    Image & operator +(const Image & rhs);
+    Image &operator+(const Image &rhs);
 
-    Image & operator -(const Image & rhs);
+    Image &operator-(const Image &rhs);
 
-    Image & operator *(const Image & rhs);
+    Image &operator*(const Image &rhs);
 
-    Image & operator *(float v);
-    Image operator *(float v) const;
+    Image &operator*(float v);
+    Image operator*(float v) const;
 
-    Image & operator /(const Image & rhs);
+    Image &operator/(const Image &rhs);
 
-private:
-    uint16_t m_width;
-    uint16_t m_height;
-    uint8_t m_channels;
-    PixelType m_type;
-    PixelFormat m_format;
-
-    std::vector<uint8_t> m_pixels;
+  private:
+    UPtr<OpenImageIO_v1_8::ImageBuf> m_imgBuf;
 };

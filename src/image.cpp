@@ -1,11 +1,14 @@
 #include "image.h"
 
 #include <QtCore/QDebug>
-#include <OpenImageIO/imageio.h>
-#include <OpenImageIO/filesystem.h>
+
+#include <OpenImageIO/imagebuf.h>
+#include <OpenImageIO/imagebufalgo.h>
 
 using namespace OIIO;
 
+
+// ----------------------------------------------------------------------------
 
 void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
 {
@@ -38,146 +41,180 @@ void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
     qInfo() << "-----------------\n";
 }
 
-uint8_t GetPixelDepth(PixelType type)
+PixelType TypeDescToPixelType(TypeDesc type)
 {
-    switch(type) {
-        case PixelType::Uint8:
-            return 1;
-        case PixelType::Uint16:
-            return 2;
-        case PixelType::Half:
-            return 2;
-        case PixelType::Float:
-            return 4;
-        case PixelType::Double:
-            return 8;
+    switch(type.basetype) {
+        case TypeDesc::UINT8:
+            return PixelType::Uint8;
+        case TypeDesc::UINT16:
+            return PixelType::Uint16;
+        case TypeDesc::HALF:
+            return PixelType::Half;
+        case TypeDesc::FLOAT:
+            return PixelType::Float;
+        case TypeDesc::DOUBLE:
+            return PixelType::Double;
         default:
-            return 255;
+            return PixelType::Unknown;
     }
 }
 
-Image::Image()
-    : m_width(0), m_height(0), m_channels(0), m_type(PixelType::Uint8),
-      m_format(PixelFormat::RGB)
+TypeDesc PixelTypeToTypeDesc(PixelType type)
 {
+    switch(type) {
+        case PixelType::Uint8:
+            return TypeDesc::UINT8;
+        case PixelType::Uint16:
+            return TypeDesc::UINT16;
+        case PixelType::Half:
+            return TypeDesc::HALF;
+        case PixelType::Float:
+            return TypeDesc::FLOAT;
+        case PixelType::Double:
+            return TypeDesc::DOUBLE;
+        default:
+            return TypeDesc::UNKNOWN;
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+Image::Image()
+{
+    m_imgBuf = std::make_unique<ImageBuf>();
+}
+
+Image::Image(const Image &src)
+{
+    m_imgBuf = std::make_unique<ImageBuf>();
+    m_imgBuf->copy(*src.m_imgBuf);
+}
+
+Image& Image::operator=(const Image &src)
+{
+    m_imgBuf->copy(*src.m_imgBuf);
+    return *this;
+}
+
+Image::~Image()
+{
+
+}
+
+uint16_t Image::width() const
+{
+    return m_imgBuf->spec().width;
+}
+
+uint16_t Image::height() const
+{
+    return m_imgBuf->spec().height;
+}
+
+uint8_t Image::channels() const
+{
+    return m_imgBuf->spec().nchannels;
+}
+
+PixelType Image::type() const
+{
+    return TypeDescToPixelType(m_imgBuf->spec().format);
+}
+
+PixelFormat Image::format() const
+{
+    switch(channels()) {
+        case 1:
+            return PixelFormat::GRAY;
+        case 3:
+            return PixelFormat::RGB;
+        case 4:
+            return PixelFormat::RGBA;
+        default:
+            return PixelFormat::Unknown;
+    }
+}
+
+uint64_t Image::count() const
+{
+    return width() * height();
+}
+
+
+uint8_t const *Image::pixels() const
+{
+    return static_cast<uint8_t*>(m_imgBuf->localpixels());
+}
+
+uint8_t *Image::pixels()
+{
+    return static_cast<uint8_t*>(m_imgBuf->localpixels());
+}
+
+float *Image::pixels_asfloat()
+{
+    return static_cast<float*>(m_imgBuf->localpixels());
+}
+
+float const *Image::pixels_asfloat() const
+{
+    return static_cast<float*>(m_imgBuf->localpixels());
 }
 
 Image Image::to_type(PixelType t) const
 {
-    if (type() != PixelType::Float) {
-        qWarning() << "Image cast only available for Float Pixel Type\n";
-        return Image();
-    }
-
     Image res;
-    res.m_width = width();
-    res.m_height = height();
-    res.m_channels = channels();
-    res.m_format = format();
-    res.m_type = t;
-
-    uint8_t pixel_depth = GetPixelDepth(t);
-    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
-
-    const float * src_pixels = pixels_asfloat();
-
-    for (uint64_t i = 0; i < res.count() * res.channels(); ++i) {
-        switch(t) {
-            case PixelType::Uint8:
-                res.m_pixels[i] = std::clamp(static_cast<int32_t>(src_pixels[i] * 255), 0, 255);
-                break;
-            case PixelType::Uint16:
-                res.m_pixels[i] = std::clamp(static_cast<int32_t>(src_pixels[i] * 65535), 0, 65535);
-                break;
-            case PixelType::Half:
-                // NOTE : use ILM Lib ?
-                qWarning() << "Cast to Half not implemented\n";
-                res.m_pixels[i] = static_cast<uint16_t>(src_pixels[i]);
-                break;
-            case PixelType::Float:
-                res.m_pixels[i] = static_cast<float>(src_pixels[i]);
-                break;
-            case PixelType::Double:
-                res.m_pixels[i] = static_cast<double>(src_pixels[i]);
-                break;
-            default:
-                res.m_pixels[i] = src_pixels[i];
-                break;
-        }
-    }
-
+    res.m_imgBuf->copy(*m_imgBuf, PixelTypeToTypeDesc(t));
     return res;
 }
 
-void Image::save(const std::string & path, PixelType format) const
+Image Image::resize(uint16_t in_width, uint16_t in_height, bool keepAspectRatio) const
 {
-    struct BitdepthFormat
-    {
-        TypeDesc type;
-        float scale;
-    };
+    uint16_t w = in_width;
+    uint16_t h = in_height;
 
-    std::map<PixelType, BitdepthFormat> BitdepthMap;
-    BitdepthMap[PixelType::Uint8] = { TypeDesc::UINT8, 255.0f };
-    BitdepthMap[PixelType::Uint16] = { TypeDesc::UINT16, 65535.0f };
-    BitdepthMap[PixelType::Half] = { TypeDesc::HALF, 1.0f };
-    BitdepthMap[PixelType::Float] = { TypeDesc::FLOAT, 1.0f };
+    if (keepAspectRatio) {
+        float ar = float(width()) / float(height());
 
-    BitdepthFormat oiio_format = BitdepthMap[format];
-
-    ImageSpec spec;
-    spec.width = m_width;
-    spec.height = m_height;
-    spec.nchannels = m_channels;
-    spec.set_format(oiio_format.type);
-    spec.default_channel_names();
-
-    std::unique_ptr<ImageOutput> out(ImageOutput::create(path));
-    if (!out)
-        return;
-    out->open(path, spec);
-    out->write_image(TypeDesc::FLOAT, m_pixels.data());
-    out->close();
-}
-
-Image Image::FromFile(const std::string &filepath)
-{
-    int threads;
-    OIIO::attribute("threads", 4);
-    OIIO::getattribute("threads", threads);
-    qInfo() << "OIIO uses " << threads << " threads\n";
-
-    ImageInput *in = ImageInput::open(filepath);
-    if (!in) {
-        qWarning() << "Could not open image !";
-        return Image();
+        if (ar >= 1.0)
+            h = int(height() * h / width());
+        else
+            w = (width() * w / height());
     }
 
-    const ImageSpec &spec = in->spec();
-    TypeDesc pixel_type = TypeDesc::FLOAT;
-    uint8_t pixel_depth = 4;
+    ROI roi (0, w, 0, h, 0, 1, 0, channels());
 
     Image res;
-    res.m_width = spec.width;
-    res.m_height = spec.height;
-    res.m_channels = spec.nchannels;
-    res.m_type = PixelType::Float;
+    ImageBufAlgo::resize(*res.m_imgBuf, *m_imgBuf, "", 0.0f, roi);
+    return res;
+}
 
-    if (res.m_channels == 1)
-        res.m_format = PixelFormat::GRAY;
-    if (res.m_channels == 3)
-        res.m_format = PixelFormat::RGB;
-    else if (res.m_channels == 4)
-        res.m_format = PixelFormat::RGBA;
+bool Image::read(const std::string &path)
+{
+    m_imgBuf.reset(new ImageBuf(path));
+    if (!m_imgBuf->read(0, 0, true, TypeDesc::FLOAT)) {
+        qWarning() << "Could not open image !";
+        return false;
+    }
 
-    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+    const ImageSpec &spec = m_imgBuf->nativespec();
+    PrintImageMetadata(path, spec);
 
-    in->read_image(pixel_type, res.m_pixels.data());
-    in->close();
+    return true;
+}
 
-    PrintImageMetadata(filepath, spec);
+bool Image::write(const std::string &path, PixelType type) const
+{
+    m_imgBuf->set_write_format(PixelTypeToTypeDesc(type));
+    return m_imgBuf->write(path);
+}
 
-    ImageInput::destroy(in);
+Image Image::FromFile(const std::string &path)
+{
+    Image res;
+    if (!res.read(path))
+        return Image();
+
     return res;
 }
 
@@ -216,33 +253,33 @@ Image Image::FromFile(const std::string &filepath)
 
 Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
 {
-    uint8_t pixel_depth = 4;
+    ImageSpec spec;
+    spec.width = size;
+    spec.height = 1;
+    spec.nchannels = 3;
+    spec.set_format(TypeDesc::FLOAT);
 
     Image res;
-    res.m_width = size;
-    res.m_height = 1;
-    res.m_channels = 3;
-    res.m_type = PixelType::Float;
-    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
-    float * a = reinterpret_cast<float *>(res.m_pixels.data());
+    res.m_imgBuf.reset(new ImageBuf(spec));
 
-    for (uint64_t i = 0; i < res.m_width; ++i) {
+    uint64_t i = 0;
+    for (ImageBuf::Iterator<float> it(*res.m_imgBuf); !it.done(); ++it, ++i) {
         if (t == RampType::NEUTRAL) {
-            a[i * 3] = 1.0f * i / (res.m_width - 1);
-            a[i * 3 + 1] = 1.0f * i / (res.m_width - 1);
-            a[i * 3 + 2] = 1.0f * i / (res.m_width - 1);
+            it[0] = 1.0f * i / (spec.width - 1);
+            it[1] = 1.0f * i / (spec.width - 1);
+            it[2] = 1.0f * i / (spec.width - 1);
         } else if (t == RampType::RED) {
-            a[i * 3] = 1.0f * i / (res.m_width - 1);
-            a[i * 3 + 1] = 0.0f;
-            a[i * 3 + 2] = 0.0f;
+            it[i * 3] = 1.0f * i / (spec.width - 1);
+            it[1] = 0.0f;
+            it[2] = 0.0f;
         } else if (t == RampType::GREEN) {
-            a[i * 3] = 0.0f;
-            a[i * 3 + 1] = 1.0f * i / (res.m_width - 1);
-            a[i * 3 + 2] = 0.0f;
+            it[i * 3] = 0.0f;
+            it[1] = 1.0f * i / (spec.width - 1);
+            it[2] = 0.0f;
         } else if (t == RampType::BLUE) {
-            a[i * 3] = 0.0f;
-            a[i * 3 + 1] = 0.0f;
-            a[i * 3 + 2] = 1.0f * i / (res.m_width - 1);
+            it[i * 3] = 0.0f;
+            it[1] = 0.0f;
+            it[2] = 1.0f * i / (spec.width - 1);
         }
     }
 
@@ -251,21 +288,22 @@ Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
 
 Image Image::Lattice(uint64_t size, uint32_t maxwidth)
 {
-    uint8_t pixel_depth = 4;
     uint64_t elem_count = size * size * size;
     uint32_t width = elem_count > maxwidth ? maxwidth : elem_count;
     uint32_t height = std::ceil(1.f * elem_count / width);
     qInfo() << "Lattice image for size" << size << ":" << width << "x" << height;
 
+    ImageSpec spec;
+    spec.width = width;
+    spec.height = height;
+    spec.nchannels = 3;
+    spec.set_format(TypeDesc::FLOAT);
+
     Image res;
-    res.m_width = width;
-    res.m_height = height;
-    res.m_channels = 3;
-    res.m_type = PixelType::Float;
-    res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
+    res.m_imgBuf.reset(new ImageBuf(spec));
 
     uint32_t i = 0;
-    float * pix = reinterpret_cast<float *>(res.m_pixels.data());
+    float * pix = reinterpret_cast<float *>(res.pixels_asfloat());
     for (uint32_t b = 0; b < size; ++b) {
         float bnorm = 1.0f * b / (size - 1);
         for (uint32_t g = 0; g < size; ++g) {
@@ -283,75 +321,41 @@ Image Image::Lattice(uint64_t size, uint32_t maxwidth)
     return res;
 }
 
-Image::operator bool() const { return (m_width != 0 && m_height != 0); }
+Image::operator bool() const { return (width() != 0 && height() != 0); }
 
 Image & Image::operator +(const Image & rhs)
 {
-    float * a = pixels_asfloat();
-    float const * b = rhs.pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] + b[i];
-    }
-
+    ImageBufAlgo::add(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return *this;
 }
 
 Image & Image::operator -(const Image & rhs)
 {
-    float * a = pixels_asfloat();
-    float const * b = rhs.pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] - b[i];
-    }
-
+    ImageBufAlgo::sub(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return *this;
 }
 
 Image & Image::operator *(const Image & rhs)
 {
-    float * a = pixels_asfloat();
-    float const * b = rhs.pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] * b[i];
-    }
-
+    ImageBufAlgo::mul(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return *this;
 }
 
 Image & Image::operator *(float v)
 {
-    float * a = pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] * v;
-    }
-
+    ImageBufAlgo::mul(*m_imgBuf, *m_imgBuf, v);
     return *this;
 }
 
 Image Image::operator *(float v) const
 {
     Image res = *this;
-    float * a = res.pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] * v;
-    }
-
+    ImageBufAlgo::mul(*res.m_imgBuf, *m_imgBuf, v);
     return res;
 }
 
 Image & Image::operator /(const Image & rhs)
 {
-    float * a = pixels_asfloat();
-    float const * b = rhs.pixels_asfloat();
-
-    for (uint64_t i = 0; i < count() * channels(); ++i) {
-        a[i] = a[i] / b[i];
-    }
-
+    ImageBufAlgo::div(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return *this;
 }

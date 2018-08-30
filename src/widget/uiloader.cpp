@@ -34,8 +34,8 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         LookBrowserWidget *w = new LookBrowserWidget(parent);
         w->setObjectName(name);
         return w;
-    } else if (className == "LookViewWidget") {
-        LookViewWidget *w = new LookViewWidget(parent);
+    } else if (className == "LookViewTabWidget") {
+        LookViewTabWidget *w = new LookViewTabWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "LookDetailWidget") {

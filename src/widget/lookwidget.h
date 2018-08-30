@@ -6,7 +6,7 @@
 class ImagePipeline;
 class ImageOperatorList;
 class LookBrowserWidget;
-class LookViewWidget;
+class LookViewTabWidget;
 class LookDetailWidget;
 class QLineEdit;
 
@@ -31,6 +31,6 @@ class LookWidget : public QWidget
 
     LookBrowserWidget *m_browserWidget;
     QLineEdit *m_browserSearch;
-    LookViewWidget *m_viewWidget;
+    LookViewTabWidget *m_viewWidget;
     LookDetailWidget *m_detailWidget;
 };

@@ -6,6 +6,78 @@
 #include <QtWidgets/QtWidgets>
 
 
+LookViewTabWidget::LookViewTabWidget(QWidget *parent)
+:   QTabWidget(parent)
+{
+    setTabsClosable(true);
+    setMovable(true);
+
+    QObject::connect(this, &QTabWidget::currentChanged, this, &LookViewTabWidget::tabChanged);
+}
+
+void LookViewTabWidget::showPreview(const QString &path)
+{
+    QFileInfo fileInfo(path);
+    QString dirPath;
+    if (fileInfo.isDir())
+        dirPath = fileInfo.absoluteFilePath();
+    else
+        dirPath = fileInfo.dir().absolutePath();
+
+    QDir rootDir(m_rootPath);
+    QString relPath = rootDir.relativeFilePath(dirPath);
+
+    if (auto [exists, index] = tabExists(relPath); !exists) {
+        LookViewWidget *lookViewWidget = new LookViewWidget();
+        lookViewWidget->setPipeline(m_globalPipeline);
+        lookViewWidget->setOperators(m_operators);
+        lookViewWidget->setLookViewTabWidget(this);
+        lookViewWidget->showPreview(dirPath);
+        addTab(lookViewWidget, relPath);
+        setCurrentIndex(count() - 1);
+    }
+    else {
+        setCurrentIndex(index);
+    }
+}
+
+void LookViewTabWidget::setPipeline(ImagePipeline *pipeline)
+{
+    m_globalPipeline = pipeline;
+}
+
+void LookViewTabWidget::setOperators(ImageOperatorList *list)
+{
+    m_operators = list;
+}
+
+void LookViewTabWidget::setBrowserRootPath(const QString &path)
+{
+    m_rootPath = path;
+}
+
+void LookViewTabWidget::updateSelection(const QString &path)
+{
+    EmitEvent<Select>(path);
+}
+
+void LookViewTabWidget::tabChanged(int index)
+{
+    LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
+    widget->updateSelection();
+}
+
+std::tuple<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
+{
+    for (uint16_t i = 0; i < count(); ++i)
+        if (tabText(i) == name)
+            return { true, i };
+
+    return { false, 0 };
+}
+
+
+
 LookViewWidget::LookViewWidget(QWidget *parent)
 :   QWidget(parent)
 {
@@ -17,6 +89,11 @@ LookViewWidget::LookViewWidget(QWidget *parent)
     vLayout->addWidget(m_lookList);
 
     QObject::connect(m_lookList, &QListWidget::itemSelectionChanged, this, &LookViewWidget::updateSelection);
+}
+
+void LookViewWidget::setLookViewTabWidget(LookViewTabWidget *w)
+{
+    m_lookViewTabWidget = w;
 }
 
 void LookViewWidget::setPipeline(ImagePipeline *pipeline)
@@ -35,10 +112,9 @@ void LookViewWidget::showPreview(const QString &path)
     // Time wasted because with compute full resolution image for thumbnails
     // Need to add resize capabilities to Image class
     m_pipeline->SetInput(m_globalPipeline->GetInput());
-
     m_lookList->clear();
 
-    QDir dir = QFileInfo(path).dir();
+    QDir dir(path);
     for (auto & entry : dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QString entryPath = entry.absoluteFilePath();
         if (QWidget *w = widgetFromLook(entryPath); w) {
@@ -50,6 +126,8 @@ void LookViewWidget::showPreview(const QString &path)
             m_lookList->setItemWidget(item, w);
         }
     }
+
+    m_lookList->setCurrentRow(0);
 }
 
 void LookViewWidget::updateSelection()
@@ -57,7 +135,7 @@ void LookViewWidget::updateSelection()
     QListWidgetItem *item = m_lookList->currentItem();
     if (item) {
         QString path = item->data(Qt::UserRole).toString();
-        EmitEvent<Select>(path);
+        m_lookViewTabWidget->updateSelection(path);
     }
 }
 

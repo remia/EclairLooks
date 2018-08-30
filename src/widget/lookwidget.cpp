@@ -22,7 +22,7 @@ LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget
     setLayout(layout);
 
     m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
-    m_viewWidget = findChild<LookViewWidget*>("lookViewWidget");
+    m_viewWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
 
@@ -44,9 +44,9 @@ LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget
 
     using std::placeholders::_1;
     using LB = LookBrowserWidget;
-    using LV = LookViewWidget;
+    using LV = LookViewTabWidget;
 
-    m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewWidget::showPreview, m_viewWidget, _1));
+    m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showPreview, m_viewWidget, _1));
     m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
 }
 
@@ -68,6 +68,7 @@ void LookWidget::initLookView()
 {
     m_viewWidget->setPipeline(m_pipeline);
     m_viewWidget->setOperators(m_operators);
+    m_viewWidget->setBrowserRootPath("/Users/remi/Desktop/3_LUT");
 }
 
 void LookWidget::initLookDetail()

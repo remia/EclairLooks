@@ -52,7 +52,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="LookViewWidget" name="lookViewWidget" native="true"/>
+      <widget class="LookViewTabWidget" name="lookViewWidget" native="true"/>
       <widget class="LookDetailWidget" name="lookDetailWidget" native="true"/>
      </widget>
     </widget>
@@ -67,7 +67,7 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>LookViewWidget</class>
+   <class>LookViewTabWidget</class>
    <extends>QWidget</extends>
    <header>lookviewwidget.h</header>
    <container>1</container>

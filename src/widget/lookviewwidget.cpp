@@ -79,7 +79,7 @@ std::tuple<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
 
 
 LookViewWidget::LookViewWidget(QWidget *parent)
-:   QWidget(parent)
+:   QWidget(parent), m_thumbSize(256, 256)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
 
@@ -108,10 +108,7 @@ void LookViewWidget::setOperators(ImageOperatorList *list)
 
 void LookViewWidget::showPreview(const QString &path)
 {
-    // NOTE : When the new Image API will be ready
-    // Time wasted because with compute full resolution image for thumbnails
-    // Need to add resize capabilities to Image class
-    m_pipeline->SetInput(m_globalPipeline->GetInput());
+    m_pipeline->SetInput(m_globalPipeline->GetInput().resize(m_thumbSize.width(), m_thumbSize.height()));
     m_lookList->clear();
 
     QDir dir(path);
@@ -146,7 +143,6 @@ QWidget *LookViewWidget::widgetFromLook(const QString &path) const
         m_pipeline->AddOperator(op);
         Image img = m_pipeline->GetOutput().to_type(PixelType::Uint8);
         QImage qImg = QImage(img.pixels(), img.width(), img.height(), img.width() * img.channels() * 1, QImage::Format_RGB888);
-        qImg = qImg.scaled(256, 256, Qt::KeepAspectRatio);
 
         QWidget *widget = new QWidget();
 

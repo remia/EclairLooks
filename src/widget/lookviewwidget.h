@@ -64,4 +64,6 @@ class LookViewWidget : public QWidget
 
     QListWidget *m_lookList;
     LookViewTabWidget *m_lookViewTabWidget;
+
+    QSize m_thumbSize;
 };

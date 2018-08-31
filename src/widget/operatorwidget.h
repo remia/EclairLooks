@@ -1,20 +1,18 @@
 #pragma once
 
+#include <QtWidgets/QWidget>
+
 
 class ImageOperator;
-struct Parameter;
-class QWidget;
 
-class OperatorWidget
+class OperatorWidget : public QWidget
 {
-public:
-    static QWidget * FromOperator(ImageOperator & op);
+  public:
+    OperatorWidget(ImageOperator *op, QWidget *parent = nullptr);
 
-private:
-    static QWidget * _WidgetFromParameter(ImageOperator & op, Parameter & p);
-    static QWidget * _TextWidget(ImageOperator & op, Parameter & p);
-    static QWidget * _SelectWidget(ImageOperator & op, Parameter & p);
-    static QWidget * _FilePathWidget(ImageOperator & op, Parameter & p);
-    static QWidget * _CheckBoxWidget(ImageOperator & op, Parameter & p);
-    static QWidget * _SliderWidget(ImageOperator & op, Parameter & p);
+  private:
+    void setupUi();
+
+  private:
+    ImageOperator *m_operator;
 };

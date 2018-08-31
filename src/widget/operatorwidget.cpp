@@ -1,218 +1,54 @@
 #include "operatorwidget.h"
 #include "../operator/imageoperator.h"
+#include "parameterwidget.h"
 
 #include <QtWidgets/QtWidgets>
-#include <QtCore/QDebug>
+
+using std::placeholders::_1;
+using PW = ParameterWidget;
+using IOP = ImageOperator;
 
 
-QWidget * OperatorWidget::FromOperator(ImageOperator & op)
+OperatorWidget::OperatorWidget(ImageOperator *op, QWidget *parent)
+:   QWidget(parent), m_operator(op)
 {
-    QTabWidget * widget = new QTabWidget();
+    setupUi();
+}
 
-    for (auto &[cat, plist] : op.Categories()) {
-        QWidget * tab = new QWidget();
-        QFormLayout * formLayout = new QFormLayout(tab);
+void OperatorWidget::setupUi()
+{
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    QTabWidget *widget = new QTabWidget();
+    layout->addWidget(widget);
+
+    for (auto &[cat, plist] : m_operator->Categories()) {
+        QWidget *tab = new QWidget();
+        QFormLayout *formLayout = new QFormLayout(tab);
         formLayout->setLabelAlignment(Qt::AlignLeft);
+        formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
         for (auto & name : plist)
-            for (auto & p : op.Parameters())
+            for (auto & p : m_operator->Parameters())
                 if (p->name == name) {
                     QLabel * label = new QLabel(QString::fromStdString(name));
-                    formLayout->addRow(label, _WidgetFromParameter(op, *p));
+                    ParameterWidget *paramWidget = WidgetFromParameter(p.get());
+
+                    paramWidget->Subscribe<PW::Update>(std::bind(&IOP::SetParameter, m_operator, _1));
+                    auto c = m_operator->Subscribe<IOP::UpdateGui>(std::bind(&PW::UpdateUi, paramWidget, _1));
+                    QObject::connect(
+                        paramWidget, &QWidget::destroyed,
+                        [&, c]() {
+                            m_operator->Unsubscribe<IOP::UpdateGui>(c);
+                        }
+                    );
+
+                    formLayout->addRow(label, paramWidget);
                 }
 
         widget->addTab(tab, QString::fromStdString(cat));
 
-        if (cat == op.DefaultCategory())
+        if (cat == m_operator->DefaultCategory())
             widget->tabBar()->moveTab(widget->count() - 1, 0);
     }
-
-    return widget;
-}
-
-QWidget * OperatorWidget::_WidgetFromParameter(ImageOperator & op, Parameter & p)
-{
-    switch (p.type) {
-        case Parameter::Type::Text:
-            return _TextWidget(op, p);
-            break;
-        case Parameter::Type::Select:
-            return _SelectWidget(op, p);
-            break;
-        case Parameter::Type::FilePath:
-            return _FilePathWidget(op, p);
-            break;
-        case Parameter::Type::CheckBox:
-            return _CheckBoxWidget(op, p);
-            break;
-        case Parameter::Type::Slider:
-            return _SliderWidget(op, p);
-            break;
-        default:
-            return new QWidget();
-    }
-}
-
-QWidget * OperatorWidget::_TextWidget(ImageOperator & op, Parameter & p)
-{
-    TextParameter * param = static_cast<TextParameter *>(&p);
-    QTextEdit * te = new QTextEdit();
-
-    te->setText(QString::fromStdString(param->default_value));
-
-    QObject::connect(
-        te, &QTextEdit::textChanged,
-        [&, param, te]() {
-            param->value = te->toPlainText().toStdString();
-            op.SetParameter(*param);
-        }
-    );
-
-    return te;
-}
-
-QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, Parameter & p)
-{
-    SelectParameter * param = static_cast<SelectParameter *>(&p);
-    QComboBox * cb = new QComboBox();
-
-    for (auto & v : param->choices)
-        cb->addItem(QString::fromStdString(v));
-
-    if (!param->value.empty())
-        cb->setCurrentText(QString::fromStdString(param->value));
-    else
-        cb->setCurrentText(QString::fromStdString(param->default_value));
-
-    QObject::connect(
-        cb, QOverload<const QString &>::of(&QComboBox::activated),
-        [&, param](const QString &text) {
-            param->value = text.toStdString();
-            op.SetParameter(*param);
-        }
-    );
-
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
-        const SelectParameter * new_param = static_cast<const SelectParameter *>(&new_p);
-
-        if (new_param->name != param->name)
-            return;
-
-        cb->clear();
-        for (auto & v : new_param->choices)
-            cb->addItem(QString::fromStdString(v));
-
-        if (!new_param->value.empty())
-            cb->setCurrentText(QString::fromStdString(new_param->value));
-        else
-            cb->setCurrentText(QString::fromStdString(new_param->default_value));
-    });
-
-    QObject::connect(
-        cb, &QWidget::destroyed,
-        [&, connect]() {
-            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
-        }
-    );
-
-    return cb;
-}
-
-QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, Parameter & p)
-{
-    FilePathParameter * param = static_cast<FilePathParameter *>(&p);
-    QWidget * widget = new QWidget();
-    QHBoxLayout * layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-
-    QLineEdit * le = new QLineEdit();
-    QToolButton * tb = new QToolButton();
-    tb->setText("...");
-    layout->addWidget(le);
-    layout->addWidget(tb);
-
-    le->setText(QString::fromStdString(param->value));
-
-    QObject::connect(
-        tb, &QToolButton::clicked,
-        [&, param, widget, le]() {
-            QString fileName = QFileDialog::getOpenFileName(
-                widget, QString::fromStdString(param->dialog_title), "",  QString::fromStdString(param->filters));
-
-            if (!fileName.isEmpty()) {
-                param->value = fileName.toStdString();
-                le->setText(QString::fromStdString(param->value));
-                op.SetParameter(*param);
-            }
-        }
-    );
-
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
-        const FilePathParameter * new_param = static_cast<const FilePathParameter *>(&new_p);
-        if (new_param->name != param->name)
-            return;
-
-        le->setText(QString::fromStdString(new_param->value));
-    });
-
-    QObject::connect(
-        tb, &QWidget::destroyed,
-        [&, connect]() {
-            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
-        }
-    );
-
-    return widget;
-}
-
-QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, Parameter & p)
-{
-    CheckBoxParameter * param = static_cast<CheckBoxParameter *>(&p);
-    QCheckBox * cb = new QCheckBox(QString::fromStdString(p.name));
-    cb->setCheckState(param->value ? Qt::Checked : Qt::Unchecked);
-
-    QObject::connect(
-        cb, &QCheckBox::clicked,
-        [&, param, cb]() {
-            param->value = cb->isChecked() ? true : false;
-            op.SetParameter(*param);
-        }
-    );
-
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
-        const CheckBoxParameter * new_param = static_cast<const CheckBoxParameter *>(&new_p);
-        if (new_param->name != param->name)
-            return;
-
-        cb->setCheckState(new_param->value ? Qt::Checked : Qt::Unchecked);
-    });
-
-    QObject::connect(
-        cb, &QWidget::destroyed,
-        [&, connect]() {
-            op.Unsubscribe<ImageOperator::UpdateGui>(connect);
-        }
-    );
-
-    return cb;
-}
-
-QWidget * OperatorWidget::_SliderWidget(ImageOperator & op, Parameter & p)
-{
-    SliderParameter * param = static_cast<SliderParameter *>(&p);
-    QSlider * slider = new QSlider(Qt::Horizontal);
-    slider->setMinimum(param->min);
-    slider->setMaximum(param->max);
-    slider->setSingleStep(param->step);
-    slider->setValue(param->value);
-
-    QObject::connect(
-        slider, QOverload<int>::of(&QSlider::valueChanged),
-        [&, param](int value) {
-            param->value = static_cast<float>(value);
-            op.SetParameter(*param);
-        }
-    );
-
-    return slider;
 }

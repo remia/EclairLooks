@@ -61,6 +61,7 @@ set(SOURCES
     src/widget/lookbrowserwidget.cpp
     src/widget/lookviewwidget.cpp
     src/widget/lookdetailwidget.cpp
+    src/widget/parameterwidget.cpp
     src/operator/imageoperator.cpp
     src/operator/imageoperatorlist.cpp
     src/operator/ociofiletransform_operator.cpp

@@ -19,7 +19,7 @@ class LookWidget : public QWidget
     void filterLooks(const QString &filter);
 
   private:
-    QWidget * setupUi();
+    QWidget* setupUi();
 
     void initLookBrowser();
     void initLookView();

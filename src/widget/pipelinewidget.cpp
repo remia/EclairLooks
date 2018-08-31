@@ -114,7 +114,7 @@ void PipelineWidget::updateSelection(QListWidgetItem *item)
     if (!m_operatorDetailWidget)
         return;
 
-    QWidget *widget = OperatorWidget::FromOperator(m_pipeline->GetOperator(selectedRow));
+    OperatorWidget *widget = new OperatorWidget(&m_pipeline->GetOperator(selectedRow));
     m_operatorDetailWidget->setWidget(widget);
 }
 

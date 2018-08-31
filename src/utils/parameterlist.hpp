@@ -29,7 +29,7 @@ bool ParameterList::Set(const T &op)
 
     for (auto &p : m_params)
         if (p->name == op.name) {
-            T * param = static_cast<T *>(p.get());
+            T *param = static_cast<T*>(p.get());
             *param = op;
         }
 

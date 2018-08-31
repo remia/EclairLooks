@@ -45,7 +45,7 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     bool DeleteParameter(const std::string &name);
 
     template <typename T> T const GetParameter(const std::string &name) const;
-    template <typename T> bool SetParameter(const T &op);
+    bool SetParameter(const Parameter &op);
 
     bool IsIdentity() const;
     void Apply(Image &img);

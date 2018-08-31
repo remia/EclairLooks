@@ -25,6 +25,7 @@ public:
 
   template <typename T> T const Get(const std::string &name) const;
   template <typename T> bool Set(const T &op);
+  bool Set(const Parameter &op);
 
 private:
   bool HasName(const std::string &name) const;

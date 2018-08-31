@@ -49,6 +49,18 @@ bool ImageOperator::DeleteParameter(const std::string &name)
     return m_paramList.Delete(name);
 }
 
+bool ImageOperator::SetParameter(const Parameter &op)
+{
+    if (m_paramList.Set(op)) {
+        EmitEvent<Evt::UpdateOp>(op);
+        EmitEvent<Evt::UpdateGui>(op);
+        EmitEvent<Evt::Update>();
+        return true;
+    }
+
+    return false;
+}
+
 bool ImageOperator::IsIdentity() const
 {
     auto enabled = m_paramList.Get<CheckBoxParameter>("Enabled").value;

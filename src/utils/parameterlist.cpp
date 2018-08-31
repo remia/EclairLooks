@@ -42,3 +42,16 @@ bool ParameterList::Delete(const std::string & name)
 
     return true;
 }
+
+bool ParameterList::Set(const Parameter &op)
+{
+    if (!HasName(op.name))
+        return false;
+
+    for (auto &p : m_params)
+        if (p->name == op.name)
+            *p = op;
+
+
+    return true;
+}

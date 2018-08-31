@@ -79,7 +79,7 @@ std::tuple<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
 
 
 LookViewWidget::LookViewWidget(QWidget *parent)
-:   QWidget(parent), m_thumbSize(256, 256)
+:   QWidget(parent), m_thumbSize(128, 128)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
 

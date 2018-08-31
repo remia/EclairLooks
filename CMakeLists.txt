@@ -49,6 +49,7 @@ set(SOURCES
     src/mainwindow.cpp
     src/image.cpp
     src/imagepipeline.cpp
+    src/settings.cpp
     src/widget/uiloader.cpp
     src/widget/devwidget.cpp
     src/widget/imagewidget.cpp
@@ -62,6 +63,7 @@ set(SOURCES
     src/widget/lookviewwidget.cpp
     src/widget/lookdetailwidget.cpp
     src/widget/parameterwidget.cpp
+    src/widget/settingwidget.cpp
     src/operator/imageoperator.cpp
     src/operator/imageoperatorlist.cpp
     src/operator/ociofiletransform_operator.cpp

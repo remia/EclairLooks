@@ -1,12 +1,16 @@
 #include "lookwidget.h"
 #include "uiloader.h"
-#include "../imagepipeline.h"
 #include "lookbrowserwidget.h"
 #include "lookviewwidget.h"
 #include "lookdetailwidget.h"
+#include "../imagepipeline.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
+
+using std::placeholders::_1;
+using LB = LookBrowserWidget;
+using LV = LookViewTabWidget;
 
 
 LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent)
@@ -42,12 +46,16 @@ LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget
 
     QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
 
-    using std::placeholders::_1;
-    using LB = LookBrowserWidget;
-    using LV = LookViewTabWidget;
 
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showPreview, m_viewWidget, _1));
     m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
+}
+
+void LookWidget::setLookPath(const std::string &path)
+{
+    m_lookPath = QString::fromStdString(path);
+    m_browserWidget->setBrowserRootPath(m_lookPath);
+    m_viewWidget->setBrowserRootPath(m_lookPath);
 }
 
 QWidget * LookWidget::setupUi()
@@ -60,15 +68,13 @@ QWidget * LookWidget::setupUi()
 
 void LookWidget::initLookBrowser()
 {
-    // TODO : temporary
-    m_browserWidget->setBrowserRootPath("/Users/remi/Desktop/3_LUT");
+
 }
 
 void LookWidget::initLookView()
 {
     m_viewWidget->setPipeline(m_pipeline);
     m_viewWidget->setOperators(m_operators);
-    m_viewWidget->setBrowserRootPath("/Users/remi/Desktop/3_LUT");
 }
 
 void LookWidget::initLookDetail()

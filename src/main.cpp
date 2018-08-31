@@ -5,6 +5,7 @@
 
 #include "mainwindow.h"
 #include "imagepipeline.h"
+#include "settings.h"
 #include "operator/imageoperatorlist.h"
 #include "operator/ociomatrix_operator.h"
 #include "operator/ociofiletransform_operator.h"
@@ -27,8 +28,12 @@ int main(int argc, char **argv)
     format.setVersion(3, 2);
     QSurfaceFormat::setDefaultFormat(format);
 
-    // Pipeline
+    // Settings
+    Settings settings;
+
+    // Pipeline & Operators
     ImagePipeline pipeline;
+
     ImageOperatorList operators;
     operators.Register<OCIOMatrix>();
     operators.Register<OCIOFileTransform>();
@@ -45,6 +50,7 @@ int main(int argc, char **argv)
     MainWindow mainWindow;
     mainWindow.setPipeline(&pipeline);
     mainWindow.setOperators(&operators);
+    mainWindow.setSettings(&settings);
     mainWindow.setup();
     mainWindow.show();
 
@@ -55,7 +61,8 @@ int main(int argc, char **argv)
     mainWindow.move(x, y);
 
     // Load default image
-    pipeline.SetInput(Image::FromFile("/Users/remi/ownCloud/Images/stresstest/LUT_Stress_Test_HD_20161224.tif"));
+    std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
+    pipeline.SetInput(Image::FromFile(imgPath));
 
     // NOTE : Waiting for a OpenImageIO release that includes the new IOProxy feature
     // QFile f = QFile(":/images/stresstest.png");

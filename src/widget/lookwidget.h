@@ -16,7 +16,7 @@ class LookWidget : public QWidget
     LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent = nullptr);
 
   public:
-    void filterLooks(const QString &filter);
+    void setLookPath(const std::string &path);
 
   private:
     QWidget* setupUi();
@@ -26,6 +26,7 @@ class LookWidget : public QWidget
     void initLookDetail();
 
   private:
+    QString m_lookPath;
     ImagePipeline *m_pipeline;
     ImageOperatorList *m_operators;
 

@@ -20,7 +20,7 @@ class OCIOColorSpace : public ImageOperator
     std::string OpName() const override;
     void OpApply(Image &img) override;
     bool OpIsIdentity() const override;
-    void OpUpdateParamCallback(const ImageOperatorParameter &op) override;
+    void OpUpdateParamCallback(const Parameter &op) override;
 
     void SetConfig(const std::string &configpath);
 

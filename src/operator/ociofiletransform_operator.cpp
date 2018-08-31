@@ -64,7 +64,7 @@ bool OCIOFileTransform::OpIsIdentity() const
     return m_processor->isNoOp();
 }
 
-void OCIOFileTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
+void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
 {
     try {
         if (op.name == "LUT") {

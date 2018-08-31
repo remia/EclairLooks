@@ -5,13 +5,13 @@
 #include <map>
 
 #include "../utils/event_source.h"
-#include "imageoperatorparameterlist.h"
+#include "../utils/parameterlist.h"
 
 
 typedef EventDesc<
     FuncT<void()>,
-    FuncT<void(const ImageOperatorParameter &op)>,
-    FuncT<void(const ImageOperatorParameter &op)>> IOPEvtDesc;
+    FuncT<void(const Parameter &op)>,
+    FuncT<void(const Parameter &op)>> IOPEvtDesc;
 
 class Image;
 
@@ -32,11 +32,11 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     virtual std::string OpName() const = 0;
     virtual void OpApply(Image &img) = 0;
     virtual bool OpIsIdentity() const { return true; }
-    virtual void OpUpdateParamCallback(const ImageOperatorParameter &op) {}
+    virtual void OpUpdateParamCallback(const Parameter &op) {}
 
   public:
-    ImageOperatorParameterList & Parameters();
-    ImageOperatorParameterList const & Parameters() const;
+    ParameterList & Parameters();
+    ParameterList const & Parameters() const;
 
     std::string DefaultCategory() const;
     CategoryMapT const & Categories() const;
@@ -51,7 +51,7 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     void Apply(Image &img);
 
   private:
-    ImageOperatorParameterList m_paramList;
+    ParameterList m_paramList;
 
     CategoryMapT m_categoryMap;
     static std::string m_defaultCategory;

@@ -19,7 +19,7 @@ class CTLTransform : public ImageOperator
     std::string OpName() const override;
     void OpApply(Image &img) override;
     bool OpIsIdentity() const override;
-    void OpUpdateParamCallback(const ImageOperatorParameter &op) override;
+    void OpUpdateParamCallback(const Parameter &op) override;
 
     void SetBaseFolder(const std::string &baseFolder);
 

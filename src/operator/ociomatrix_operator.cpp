@@ -42,7 +42,7 @@ bool OCIOMatrix::OpIsIdentity() const
     return m_processor->isNoOp();
 }
 
-void OCIOMatrix::OpUpdateParamCallback(const ImageOperatorParameter & op)
+void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
 {
     try {
         if (op.name == "Matrix") {

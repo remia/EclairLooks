@@ -1,15 +1,15 @@
 #pragma once
 
-#include "../utils/generic.h"
-#include "imageoperatorparameter.h"
+#include "generic.h"
+#include "parameter.h"
 
 
-class ImageOperatorParameterList
+class ParameterList
 {
-  using VecT = std::vector<UPtr<ImageOperatorParameter>>;
+  using VecT = std::vector<UPtr<Parameter>>;
 
 public:
-  ImageOperatorParameterList() = default;
+  ParameterList() = default;
 
 public:
   using VecIt  = VecT::iterator;
@@ -33,4 +33,4 @@ private:
   VecT m_params;
 };
 
-#include "imageoperatorparameterlist.hpp"
+#include "parameterlist.hpp"

@@ -63,7 +63,6 @@ set(SOURCES
     src/widget/lookdetailwidget.cpp
     src/operator/imageoperator.cpp
     src/operator/imageoperatorlist.cpp
-    src/operator/imageoperatorparameterlist.cpp
     src/operator/ociofiletransform_operator.cpp
     src/operator/ociocolorspace_operator.cpp
     src/operator/ociomatrix_operator.cpp
@@ -71,6 +70,7 @@ set(SOURCES
     src/operator/ctl_transform.cpp
     src/scope/waveformwidget.cpp
     src/utils/chrono.cpp
+    src/utils/parameterlist.cpp
 )
 
 qt5_add_resources(RESOURCES src/resources/res.qrc)

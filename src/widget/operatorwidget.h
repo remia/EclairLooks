@@ -2,7 +2,7 @@
 
 
 class ImageOperator;
-struct ImageOperatorParameter;
+struct Parameter;
 class QWidget;
 
 class OperatorWidget
@@ -11,10 +11,10 @@ public:
     static QWidget * FromOperator(ImageOperator & op);
 
 private:
-    static QWidget * _WidgetFromParameter(ImageOperator & op, ImageOperatorParameter & p);
-    static QWidget * _TextWidget(ImageOperator & op, ImageOperatorParameter & p);
-    static QWidget * _SelectWidget(ImageOperator & op, ImageOperatorParameter & p);
-    static QWidget * _FilePathWidget(ImageOperator & op, ImageOperatorParameter & p);
-    static QWidget * _CheckBoxWidget(ImageOperator & op, ImageOperatorParameter & p);
-    static QWidget * _SliderWidget(ImageOperator & op, ImageOperatorParameter & p);
+    static QWidget * _WidgetFromParameter(ImageOperator & op, Parameter & p);
+    static QWidget * _TextWidget(ImageOperator & op, Parameter & p);
+    static QWidget * _SelectWidget(ImageOperator & op, Parameter & p);
+    static QWidget * _FilePathWidget(ImageOperator & op, Parameter & p);
+    static QWidget * _CheckBoxWidget(ImageOperator & op, Parameter & p);
+    static QWidget * _SliderWidget(ImageOperator & op, Parameter & p);
 };

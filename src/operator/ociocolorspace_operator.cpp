@@ -58,7 +58,7 @@ bool OCIOColorSpace::OpIsIdentity() const
     return m_processor->isNoOp();
 }
 
-void OCIOColorSpace::OpUpdateParamCallback(const ImageOperatorParameter & op)
+void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
 {
     try {
         if (op.name == "Config File") {

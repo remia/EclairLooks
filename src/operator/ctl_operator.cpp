@@ -87,7 +87,7 @@ bool CTLTransform::OpIsIdentity() const
     return GetParameter<TextParameter>("CTL Transform").value.empty();
 }
 
-void CTLTransform::OpUpdateParamCallback(const ImageOperatorParameter & op)
+void CTLTransform::OpUpdateParamCallback(const Parameter & op)
 {
 
 }

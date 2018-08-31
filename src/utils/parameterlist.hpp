@@ -2,7 +2,7 @@
 
 
 template <typename T>
-bool ImageOperatorParameterList::Add(const T &op)
+bool ParameterList::Add(const T &op)
 {
     if (HasName(op.name))
         return false;
@@ -12,7 +12,7 @@ bool ImageOperatorParameterList::Add(const T &op)
 }
 
 template <typename T>
-T const ImageOperatorParameterList::Get(const std::string &name) const
+T const ParameterList::Get(const std::string &name) const
 {
     for (auto &p : m_params)
         if (p->name == name)
@@ -22,7 +22,7 @@ T const ImageOperatorParameterList::Get(const std::string &name) const
 }
 
 template <typename T>
-bool ImageOperatorParameterList::Set(const T &op)
+bool ParameterList::Set(const T &op)
 {
     if (!HasName(op.name))
         return false;

@@ -23,12 +23,12 @@ ImageOperator::ImageOperator()
     Subscribe<UpdateOp>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
 }
 
-ImageOperatorParameterList & ImageOperator::Parameters()
+ParameterList & ImageOperator::Parameters()
 {
     return m_paramList;
 }
 
-ImageOperatorParameterList const & ImageOperator::Parameters() const
+ParameterList const & ImageOperator::Parameters() const
 {
     return m_paramList;
 }

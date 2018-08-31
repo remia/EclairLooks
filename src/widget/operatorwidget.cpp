@@ -30,22 +30,22 @@ QWidget * OperatorWidget::FromOperator(ImageOperator & op)
     return widget;
 }
 
-QWidget * OperatorWidget::_WidgetFromParameter(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_WidgetFromParameter(ImageOperator & op, Parameter & p)
 {
     switch (p.type) {
-        case ImageOperatorParameter::Type::Text:
+        case Parameter::Type::Text:
             return _TextWidget(op, p);
             break;
-        case ImageOperatorParameter::Type::Select:
+        case Parameter::Type::Select:
             return _SelectWidget(op, p);
             break;
-        case ImageOperatorParameter::Type::FilePath:
+        case Parameter::Type::FilePath:
             return _FilePathWidget(op, p);
             break;
-        case ImageOperatorParameter::Type::CheckBox:
+        case Parameter::Type::CheckBox:
             return _CheckBoxWidget(op, p);
             break;
-        case ImageOperatorParameter::Type::Slider:
+        case Parameter::Type::Slider:
             return _SliderWidget(op, p);
             break;
         default:
@@ -53,7 +53,7 @@ QWidget * OperatorWidget::_WidgetFromParameter(ImageOperator & op, ImageOperator
     }
 }
 
-QWidget * OperatorWidget::_TextWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_TextWidget(ImageOperator & op, Parameter & p)
 {
     TextParameter * param = static_cast<TextParameter *>(&p);
     QTextEdit * te = new QTextEdit();
@@ -71,7 +71,7 @@ QWidget * OperatorWidget::_TextWidget(ImageOperator & op, ImageOperatorParameter
     return te;
 }
 
-QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, Parameter & p)
 {
     SelectParameter * param = static_cast<SelectParameter *>(&p);
     QComboBox * cb = new QComboBox();
@@ -92,7 +92,7 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
         }
     );
 
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
         const SelectParameter * new_param = static_cast<const SelectParameter *>(&new_p);
 
         if (new_param->name != param->name)
@@ -118,7 +118,7 @@ QWidget * OperatorWidget::_SelectWidget(ImageOperator & op, ImageOperatorParamet
     return cb;
 }
 
-QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, Parameter & p)
 {
     FilePathParameter * param = static_cast<FilePathParameter *>(&p);
     QWidget * widget = new QWidget();
@@ -147,7 +147,7 @@ QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParam
         }
     );
 
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
         const FilePathParameter * new_param = static_cast<const FilePathParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
@@ -165,7 +165,7 @@ QWidget * OperatorWidget::_FilePathWidget(ImageOperator & op, ImageOperatorParam
     return widget;
 }
 
-QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, Parameter & p)
 {
     CheckBoxParameter * param = static_cast<CheckBoxParameter *>(&p);
     QCheckBox * cb = new QCheckBox(QString::fromStdString(p.name));
@@ -179,7 +179,7 @@ QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParam
         }
     );
 
-    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const ImageOperatorParameter & new_p) {
+    auto connect = op.Subscribe<ImageOperator::UpdateGui>([=](const Parameter & new_p) {
         const CheckBoxParameter * new_param = static_cast<const CheckBoxParameter *>(&new_p);
         if (new_param->name != param->name)
             return;
@@ -197,7 +197,7 @@ QWidget * OperatorWidget::_CheckBoxWidget(ImageOperator & op, ImageOperatorParam
     return cb;
 }
 
-QWidget * OperatorWidget::_SliderWidget(ImageOperator & op, ImageOperatorParameter & p)
+QWidget * OperatorWidget::_SliderWidget(ImageOperator & op, Parameter & p)
 {
     SliderParameter * param = static_cast<SliderParameter *>(&p);
     QSlider * slider = new QSlider(Qt::Horizontal);

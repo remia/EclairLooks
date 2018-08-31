@@ -19,7 +19,7 @@ public:
     std::string OpName() const override;
     void OpApply(Image & img) override;
     bool OpIsIdentity() const override;
-    void OpUpdateParamCallback(const ImageOperatorParameter & op) override;
+    void OpUpdateParamCallback(const Parameter & op) override;
 
     void SetMatrix(float * mat);
 

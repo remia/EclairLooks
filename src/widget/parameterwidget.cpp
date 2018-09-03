@@ -119,6 +119,14 @@ ParameterFilePathWidget::ParameterFilePathWidget(Parameter *param, QWidget *pare
             }
         }
     );
+
+    QObject::connect(
+        m_lineEdit, &QLineEdit::editingFinished,
+        [&, p = m_filePathParam, le = m_lineEdit]() {
+            p->value = le->text().toStdString();
+            EmitEvent<Update>(*p);
+        }
+    );
 }
 
 void ParameterFilePathWidget::UpdateWidget(const Parameter &p)

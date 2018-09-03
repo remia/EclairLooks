@@ -33,3 +33,6 @@
 
 # MacOS
 .DS_Store
+
+# Folders
+build/

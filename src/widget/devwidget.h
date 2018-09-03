@@ -3,18 +3,17 @@
 #include <QtWidgets/QWidget>
 
 
-class QTabBar;
-class ImagePipeline;
-class ImageOperatorList;
+class MainWindow;
 class ImageWidget;
 class PipelineWidget;
 class WaveformWidget;
 class OperatorListWidget;
+class QTabBar;
 
 class DevWidget : public QWidget
 {
   public:
-    DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent = nullptr);
+    DevWidget(MainWindow *mw, QWidget *parent = nullptr);
 
   private:
     QWidget * setupUi();
@@ -24,8 +23,7 @@ class DevWidget : public QWidget
     void initScopeView();
 
   private:
-    ImagePipeline *m_pipeline;
-    ImageOperatorList *m_operators;
+    MainWindow *m_mainWindow;
 
     ImageWidget *m_imageWidget;
     PipelineWidget *m_pipelineWidget;

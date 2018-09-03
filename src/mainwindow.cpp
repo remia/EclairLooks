@@ -41,8 +41,8 @@ void MainWindow::setup()
     //
 
     m_logWidget = new LogWidget();
-    m_devWidget = new DevWidget(m_pipeline, m_operators);
-    m_lookWidget = new LookWidget(m_pipeline, m_operators);
+    m_devWidget = new DevWidget(this);
+    m_lookWidget = new LookWidget(this);
     m_settingWidget = new SettingWidget(m_settings);
 
     m_tabWidget = new QTabWidget();
@@ -51,9 +51,6 @@ void MainWindow::setup()
     m_tabWidget->addTab(m_settingWidget, "Setting");
     m_tabWidget->addTab(m_logWidget, "Log");
     setCentralWidget(m_tabWidget);
-
-    std::string lookPath = m_settings->GetParameter<FilePathParameter>("Look Base Folder").value;
-    m_lookWidget->setLookPath(lookPath);
 
     //
     // Actions

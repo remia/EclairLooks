@@ -1,4 +1,5 @@
 #include "lookbrowserwidget.h"
+#include "lookwidget.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QtWidgets/QFileSystemModel>
@@ -37,10 +38,10 @@ LookBrowserWidget::LookBrowserWidget(QWidget *parent)
     QObject::connect(this, &LookBrowserWidget::doubleClicked, this, &LookBrowserWidget::updateSelection);
 }
 
-void LookBrowserWidget::setBrowserRootPath(const QString & path)
+void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
 {
-    m_rootPath = path;
-    updateRootPath(m_rootPath);
+    m_lookWidget = lookWidget;
+    updateRootPath(m_lookWidget->rootPath());
 }
 
 void LookBrowserWidget::filterList(const QString &filter)
@@ -49,7 +50,7 @@ void LookBrowserWidget::filterList(const QString &filter)
     m_sortFilterModel->setFilterFixedString(filter);
 
     if (filter.isEmpty() || !rootIndex().isValid()) {
-        updateRootPath(m_rootPath);
+        updateRootPath(m_lookWidget->rootPath());
         collapseAll();
     }
 }

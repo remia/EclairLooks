@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../utils/generic.h"
 #include <QtWidgets/QWidget>
 
 
+class Image;
 class ImagePipeline;
-class ImageOperatorList;
+class MainWindow;
 class LookBrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
@@ -13,25 +15,35 @@ class QLineEdit;
 class LookWidget : public QWidget
 {
   public:
-    LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent = nullptr);
+    LookWidget(MainWindow *mw, QWidget *parent = nullptr);
 
   public:
-    void setLookPath(const std::string &path);
+
+    QString rootPath();
+    QString tonemapPath();
+
+    Image & fullImage();
+    Image & proxyImage();
+
+    TupleT<bool, Image &> lookPreview(const QString &lookPath);
+    TupleT<bool, Image &> lookPreviewProxy(const QString &lookPath);
 
   private:
+    void setupPipeline();
     QWidget* setupUi();
 
-    void initLookBrowser();
-    void initLookView();
-    void initLookDetail();
+    TupleT<bool, Image &> _lookPreview(const QString &lookPath, Image &img);
 
   private:
-    QString m_lookPath;
-    ImagePipeline *m_pipeline;
-    ImageOperatorList *m_operators;
+    MainWindow *m_mainWindow;
 
     LookBrowserWidget *m_browserWidget;
     QLineEdit *m_browserSearch;
     LookViewTabWidget *m_viewWidget;
     LookDetailWidget *m_detailWidget;
+
+    UPtr<Image> m_image;
+    UPtr<Image> m_imageProxy;
+    UPtr<ImagePipeline> m_pipeline;
+    QSize m_proxySize;
 };

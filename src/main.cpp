@@ -1,3 +1,5 @@
+#include <locale>
+
 #include <QtWidgets/QApplication>
 #include <QtGui/QSurfaceFormat>
 #include <QtWidgets/QDesktopWidget>
@@ -33,6 +35,8 @@ int main(int argc, char **argv)
 
     // Pipeline & Operators
     ImagePipeline pipeline;
+    std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
+    pipeline.SetInput(Image::FromFile(imgPath));
 
     ImageOperatorList operators;
     operators.Register<OCIOMatrix>();
@@ -65,9 +69,7 @@ int main(int argc, char **argv)
     int y = (screenGeometry.height() - mainWindow.height()) / 2;
     mainWindow.move(x, y);
 
-    // Load default image
-    std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
-    pipeline.SetInput(Image::FromFile(imgPath));
+    pipeline.Init();
 
     // NOTE : Waiting for a OpenImageIO release that includes the new IOProxy feature
     // QFile f = QFile(":/images/stresstest.png");

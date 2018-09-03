@@ -10,6 +10,7 @@ Settings::Settings()
 
     m_paramList.Add(FilePathParameter("Default Image", "", "Choose an image", ""));
     m_paramList.Add(FilePathParameter("Look Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder));
+    m_paramList.Add(FilePathParameter("Look Tonemap LUT", "", "Choose a LUT", ""));
 
     LoadParameters();
 }

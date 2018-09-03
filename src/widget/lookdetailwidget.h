@@ -5,8 +5,7 @@
 #include <QtWidgets/QWidget>
 
 
-class ImagePipeline;
-class ImageOperatorList;
+class LookWidget;
 class ImageWidget;
 class QOpenGLWidget;
 
@@ -16,16 +15,12 @@ class LookDetailWidget : public QWidget
     LookDetailWidget(QWidget *parent = nullptr);
 
   public:
-    void setPipeline(ImagePipeline *pipeline);
-    void setOperators(ImageOperatorList *list);
+    void setLookWidget(LookWidget *lw);
 
     void showDetail(const QString &path);
 
   private:
-    ImagePipeline *m_globalPipeline;
-    UPtr<ImagePipeline> m_pipeline;
-    ImageOperatorList *m_operators;
-
+    LookWidget *m_lookWidget;
     ImageWidget *m_imageWidget;
     QOpenGLWidget *m_curveWidget;
     QOpenGLWidget *m_cubeWidget;

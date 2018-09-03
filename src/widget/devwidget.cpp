@@ -3,6 +3,7 @@
 #include "pipelinewidget.h"
 #include "imagewidget.h"
 #include "operatorlistwidget.h"
+#include "../mainwindow.h"
 #include "../operator/imageoperatorlist.h"
 #include "../scope/waveformwidget.h"
 #include "../imagepipeline.h"
@@ -11,8 +12,8 @@
 #include <QFile>
 
 
-DevWidget::DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent)
-    : QWidget(parent), m_pipeline(pipeline), m_operators(list)
+DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
+    : QWidget(parent), m_mainWindow(mw)
 {
     //
     // Setup
@@ -49,13 +50,13 @@ DevWidget::DevWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *
     using IP = ImagePipeline;
     using IW = ImageWidget;
 
-    m_pipeline->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
-    m_pipeline->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
-    m_pipeline->Subscribe<IP::NewInput>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_scopeWidget, _1));
 
-    m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_pipeline, _1));
+    m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
 }
 
 QWidget * DevWidget::setupUi()
@@ -70,8 +71,8 @@ void DevWidget::initPipelineView()
 {
     QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
 
-    m_pipelineWidget->setPipeline(m_pipeline);
-    m_pipelineWidget->setOperators(m_operators);
+    m_pipelineWidget->setPipeline(m_mainWindow->pipeline());
+    m_pipelineWidget->setOperators(m_mainWindow->operators());
     m_pipelineWidget->setOperatorDetailWidget(operatorDetail);
 }
 
@@ -98,5 +99,5 @@ void DevWidget::initScopeView()
 
 void DevWidget::initOperatorsView()
 {
-    m_operatorsWidget->setOperators(m_operators);
+    m_operatorsWidget->setOperators(m_mainWindow->operators());
 }

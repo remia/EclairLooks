@@ -5,6 +5,7 @@
 #include <QtWidgets/QTreeView>
 
 
+class LookWidget;
 class LookBrowserModel;
 class QSortFilterProxyModel;
 
@@ -20,15 +21,14 @@ class LookBrowserWidget : public QTreeView, public EventSource<LBEvtDesc>
     LookBrowserWidget(QWidget *parent = nullptr);
 
   public:
-    void setBrowserRootPath(const QString &path);
+    void setLookWidget(LookWidget *lookWidget);
 
     void filterList(const QString &filter);
     void updateSelection(const QModelIndex &index);
     void updateRootPath(const QString &path);
 
   private:
-    QString m_rootPath;
-
+    LookWidget *m_lookWidget;
     LookBrowserModel *m_fileSystemModel;
     QSortFilterProxyModel *m_sortFilterModel;
 };

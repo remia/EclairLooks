@@ -3,7 +3,12 @@
 #include "lookbrowserwidget.h"
 #include "lookviewwidget.h"
 #include "lookdetailwidget.h"
+#include "../settings.h"
+#include "../image.h"
 #include "../imagepipeline.h"
+#include "../mainwindow.h"
+#include "../operator/imageoperatorlist.h"
+#include "../operator/ociofiletransform_operator.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
@@ -13,9 +18,11 @@ using LB = LookBrowserWidget;
 using LV = LookViewTabWidget;
 
 
-LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget *parent)
-    : QWidget(parent), m_pipeline(pipeline), m_operators(list)
+LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
+    : QWidget(parent), m_mainWindow(mw), m_proxySize(160, 160)
 {
+    m_pipeline = std::make_unique<ImagePipeline>();
+
     //
     // Setup
     //
@@ -36,9 +43,11 @@ LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget
     QSplitter *hSplitter = findChild<QSplitter*>("vSplitter");
     hSplitter->setSizes(QList<int>({75000, 25000}));
 
-    initLookBrowser();
-    initLookView();
-    initLookDetail();
+    setupPipeline();
+
+    m_browserWidget->setLookWidget(this);
+    m_viewWidget->setLookWidget(this);
+    m_detailWidget->setLookWidget(this);
 
     //
     // Connections
@@ -46,16 +55,51 @@ LookWidget::LookWidget(ImagePipeline *pipeline, ImageOperatorList *list, QWidget
 
     QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
 
-
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showPreview, m_viewWidget, _1));
     m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
 }
 
-void LookWidget::setLookPath(const std::string &path)
+QString LookWidget::rootPath()
 {
-    m_lookPath = QString::fromStdString(path);
-    m_browserWidget->setBrowserRootPath(m_lookPath);
-    m_viewWidget->setBrowserRootPath(m_lookPath);
+    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Base Folder").value;
+    return QString::fromStdString(val);
+}
+
+QString LookWidget::tonemapPath()
+{
+    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Tonemap LUT").value;
+    return QString::fromStdString(val);
+}
+
+Image & LookWidget::fullImage()
+{
+    return *m_image;
+}
+
+Image & LookWidget::proxyImage()
+{
+    return *m_imageProxy;
+}
+
+TupleT<bool, Image &>LookWidget::lookPreview(const QString &lookPath)
+{
+    return _lookPreview(lookPath, fullImage());
+}
+
+TupleT<bool, Image &> LookWidget::lookPreviewProxy(const QString &lookPath)
+{
+    return _lookPreview(lookPath, proxyImage());
+}
+
+TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)
+{
+    if (auto op = m_mainWindow->operators()->CreateFromPath(lookPath.toStdString()); op != nullptr) {
+        m_pipeline->ReplaceOperator(op, 0);
+        m_pipeline->SetInput(img);
+        return { true, m_pipeline->GetOutput() };
+    }
+
+    return { false, img };
 }
 
 QWidget * LookWidget::setupUi()
@@ -66,19 +110,17 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
-void LookWidget::initLookBrowser()
+void LookWidget::setupPipeline()
 {
+    m_image = std::make_unique<Image>(m_mainWindow->pipeline()->GetInput());
+    m_imageProxy = std::make_unique<Image>(*m_image);
+    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
 
-}
+    m_pipeline->AddOperator<OCIOFileTransform>();
 
-void LookWidget::initLookView()
-{
-    m_viewWidget->setPipeline(m_pipeline);
-    m_viewWidget->setOperators(m_operators);
-}
-
-void LookWidget::initLookDetail()
-{
-    m_detailWidget->setPipeline(m_pipeline);
-    m_detailWidget->setOperators(m_operators);
+    if (!tonemapPath().isEmpty()) {
+        if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString()); op != nullptr) {
+            m_pipeline->AddOperator(op);
+        }
+    }
 }

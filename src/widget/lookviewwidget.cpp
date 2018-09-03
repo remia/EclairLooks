@@ -1,7 +1,7 @@
 #include "lookviewwidget.h"
+#include "lookwidget.h"
 #include "imagewidget.h"
-#include "../imagepipeline.h"
-#include "../operator/imageoperatorlist.h"
+#include "../image.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -15,6 +15,10 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
     QObject::connect(this, &QTabWidget::currentChanged, this, &LookViewTabWidget::tabChanged);
     QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);
 }
+
+void LookViewTabWidget::setLookWidget(LookWidget *lw)
+{
+    m_lookWidget = lw;
 }
 
 void LookViewTabWidget::showPreview(const QString &path)
@@ -26,36 +30,26 @@ void LookViewTabWidget::showPreview(const QString &path)
     else
         dirPath = fileInfo.dir().absolutePath();
 
-    QDir rootDir(m_rootPath);
+    QDir rootDir(m_lookWidget->rootPath());
     QString relPath = rootDir.relativeFilePath(dirPath);
 
     if (auto [exists, index] = tabExists(relPath); !exists) {
         LookViewWidget *lookViewWidget = new LookViewWidget();
-        lookViewWidget->setPipeline(m_globalPipeline);
-        lookViewWidget->setOperators(m_operators);
+        lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->setLookViewTabWidget(this);
         lookViewWidget->showPreview(dirPath);
-        addTab(lookViewWidget, relPath);
-        setCurrentIndex(count() - 1);
+
+        if (lookViewWidget->countLook() >= 1) {
+            addTab(lookViewWidget, relPath);
+            setCurrentIndex(count() - 1);
+        }
+        else {
+            delete lookViewWidget;
+        }
     }
     else {
         setCurrentIndex(index);
     }
-}
-
-void LookViewTabWidget::setPipeline(ImagePipeline *pipeline)
-{
-    m_globalPipeline = pipeline;
-}
-
-void LookViewTabWidget::setOperators(ImageOperatorList *list)
-{
-    m_operators = list;
-}
-
-void LookViewTabWidget::setBrowserRootPath(const QString &path)
-{
-    m_rootPath = path;
 }
 
 void LookViewTabWidget::updateSelection(const QString &path)
@@ -87,10 +81,8 @@ TupleT<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
 
 
 LookViewWidget::LookViewWidget(QWidget *parent)
-:   QWidget(parent), m_thumbSize(128, 128)
+:   QWidget(parent)
 {
-    m_pipeline = std::make_unique<ImagePipeline>();
-
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     vLayout->setContentsMargins(0, 0, 0, 0);
     m_lookList = new QListWidget();
@@ -99,24 +91,23 @@ LookViewWidget::LookViewWidget(QWidget *parent)
     QObject::connect(m_lookList, &QListWidget::itemSelectionChanged, this, &LookViewWidget::updateSelection);
 }
 
+void LookViewWidget::setLookWidget(LookWidget *lw)
+{
+    m_lookWidget = lw;
+}
+
 void LookViewWidget::setLookViewTabWidget(LookViewTabWidget *w)
 {
     m_lookViewTabWidget = w;
 }
 
-void LookViewWidget::setPipeline(ImagePipeline *pipeline)
+uint16_t LookViewWidget::countLook() const
 {
-    m_globalPipeline = pipeline;
-}
-
-void LookViewWidget::setOperators(ImageOperatorList *list)
-{
-    m_operators = list;
+    return m_lookList->count();
 }
 
 void LookViewWidget::showPreview(const QString &path)
 {
-    m_pipeline->SetInput(m_globalPipeline->GetInput().resize(m_thumbSize.width(), m_thumbSize.height()));
     m_lookList->clear();
 
     QDir dir(path);
@@ -146,11 +137,12 @@ void LookViewWidget::updateSelection()
 
 QWidget *LookViewWidget::widgetFromLook(const QString &path) const
 {
-    if (ImageOperator *op = m_operators->CreateFromPath(path.toStdString())) {
-        m_pipeline->Reset();
-        m_pipeline->AddOperator(op);
-        Image img = m_pipeline->GetOutput().to_type(PixelType::Uint8);
-        QImage qImg = QImage(img.pixels(), img.width(), img.height(), img.width() * img.channels() * 1, QImage::Format_RGB888);
+    if (auto [valid, img] = m_lookWidget->lookPreviewProxy(path); valid) {
+        img = img.to_type(PixelType::Uint8);
+        QImage qImg = QImage(
+            img.pixels(), img.width(), img.height(),
+            img.width() * img.channels() * 1,
+            QImage::Format_RGB888);
 
         QWidget *widget = new QWidget();
 

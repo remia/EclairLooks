@@ -34,7 +34,7 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
   private:
     void tabChanged(int index);
     void tabClosed(int index);
-    std::tuple<bool, uint16_t> tabExists(const QString &name);
+    TupleT<bool, uint16_t> tabExists(const QString &name);
 
   private:
     ImagePipeline *m_globalPipeline;

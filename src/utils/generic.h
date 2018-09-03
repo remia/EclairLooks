@@ -5,6 +5,7 @@
 #include <string>
 #include <optional>
 #include <any>
+#include <tuple>
 
 
 template <typename T>
@@ -15,6 +16,9 @@ using FuncT = std::function<T>;
 
 template <typename T>
 using OptT = std::optional<T>;
+
+template <typename ...T>
+using TupleT = std::tuple<T...>;
 
 template <typename T>
 OptT<T> GetAny(const std::any & any) {

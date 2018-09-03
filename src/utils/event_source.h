@@ -1,6 +1,5 @@
 #pragma once
 
-#include <tuple>
 #include <map>
 
 #include "generic.h"
@@ -10,7 +9,7 @@ using ConnectIdT = uint16_t;
 using EventIdT = uint8_t;
 
 template <typename... T>
-using EventDesc = std::tuple<std::map<ConnectIdT, T>...>;
+using EventDesc = TupleT<std::map<ConnectIdT, T>...>;
 
 struct EventProxy
 {

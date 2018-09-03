@@ -75,7 +75,7 @@ void LookViewTabWidget::tabClosed(int index)
     removeTab(index);
 }
 
-std::tuple<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
+TupleT<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)
 {
     for (uint16_t i = 0; i < count(); ++i)
         if (tabText(i) == name)

@@ -14,6 +14,10 @@ typedef EventDesc<
 class ImagePipeline : public EventSource<IPEvtDesc>
 {
   public:
+    using VecT = std::vector<UPtr<ImageOperator>>;
+    using VecIt  = VecT::iterator;
+    using VecCIt = VecT::const_iterator;
+
     enum Evt { NewInput = 0, Update };
 
   public:
@@ -27,20 +31,21 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     uint8_t OperatorCount() const;
     ImageOperator &GetOperator(uint8_t index);
 
-    void AddOperator(ImageOperator * op);
+    void AddOperator(ImageOperator * op, int8_t index = -1);
     template <typename T> T * AddOperator();
+    void ReplaceOperator(ImageOperator * op, int8_t index);
     bool DeleteOperator(uint8_t index);
 
     void Reset();
 
+    void Init();
     void Compute();
     void ExportLUT(const std::string &filename, uint32_t size);
 
   private:
     Image m_inputImg;
     Image m_outputImg;
-
-    std::vector<UPtr<ImageOperator>> m_operators;
+    VecT m_operators;
 };
 
 

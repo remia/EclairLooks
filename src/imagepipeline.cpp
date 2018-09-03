@@ -2,6 +2,7 @@
 #include "utils/generic.h"
 #include "utils/chrono.h"
 
+#include <iterator>
 #include <fstream>
 #include <iomanip>
 
@@ -43,12 +44,29 @@ ImageOperator &ImagePipeline::GetOperator(uint8_t index)
     return *m_operators[index];
 }
 
-void ImagePipeline::AddOperator(ImageOperator * op)
+void ImagePipeline::AddOperator(ImageOperator * op, int8_t index)
 {
-    UPtr<ImageOperator> & optr = m_operators.emplace_back(UPtr<ImageOperator>(op));
+    VecCIt pos = m_operators.end();
+    if (index >= 0) {
+        pos = m_operators.begin();
+        std::advance(pos, index);
+    }
+
+    UPtr<ImageOperator> & optr = *m_operators.emplace(pos, UPtr<ImageOperator>(op));
     optr->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
 
     Compute();
+}
+
+void ImagePipeline::ReplaceOperator(ImageOperator * op, int8_t index)
+{
+    if (index >= m_operators.size()) {
+        qWarning() << "Cannot replace operator at index" << index;
+        return;
+    }
+
+    m_operators[index] = UPtr<ImageOperator>(op);
+    m_operators[index]->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
 }
 
 bool ImagePipeline::DeleteOperator(uint8_t index)
@@ -71,8 +89,17 @@ void ImagePipeline::Reset()
     Compute();
 }
 
+void ImagePipeline::Init()
+{
+    EmitEvent<Evt::NewInput>(m_inputImg);
+    EmitEvent<Evt::Update>(m_outputImg);
+}
+
 void ImagePipeline::Compute()
 {
+    if (!m_inputImg)
+        return;
+
     Chrono c;
     c.start();
 

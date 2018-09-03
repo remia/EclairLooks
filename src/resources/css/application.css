@@ -61,6 +61,11 @@ QTabWidget::tab-bar {
     left: 0px;
 }
 
+QTabBar::close-button {
+    image: url(:/icons/close.png);
+    subcontrol-position: right;
+}
+
 QTabBar {
     border: 1px solid #1e1b18;
 }

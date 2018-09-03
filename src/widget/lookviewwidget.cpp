@@ -13,6 +13,8 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
     setMovable(true);
 
     QObject::connect(this, &QTabWidget::currentChanged, this, &LookViewTabWidget::tabChanged);
+    QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);
+}
 }
 
 void LookViewTabWidget::showPreview(const QString &path)
@@ -64,7 +66,13 @@ void LookViewTabWidget::updateSelection(const QString &path)
 void LookViewTabWidget::tabChanged(int index)
 {
     LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
-    widget->updateSelection();
+    if (widget)
+        widget->updateSelection();
+}
+
+void LookViewTabWidget::tabClosed(int index)
+{
+    removeTab(index);
 }
 
 std::tuple<bool, uint16_t> LookViewTabWidget::tabExists(const QString &name)

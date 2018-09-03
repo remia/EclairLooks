@@ -30,9 +30,10 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
 
     void showPreview(const QString &path);
     void updateSelection(const QString &path);
-    void tabChanged(int index);
 
   private:
+    void tabChanged(int index);
+    void tabClosed(int index);
     std::tuple<bool, uint16_t> tabExists(const QString &name);
 
   private:

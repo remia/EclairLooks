@@ -147,6 +147,11 @@ void ImageWidget::updateImage(const Image &img)
     if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
         return;
 
+    if (m_textureIn.width() != img.width() || m_textureIn.height() != img.height()) {
+        qCritical() << "ImageWidget : Invalid Texture Update\n";
+        return;
+    }    
+
     m_textureOut.setData(pixelFormat, pixelType, img.pixels());
 
     update();

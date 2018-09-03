@@ -151,11 +151,12 @@ QWidget *LookViewWidget::widgetFromLook(const QString &path) const
         thumbnail->setPixmap(QPixmap::fromImage(qImg));
         hLayout->addWidget(thumbnail);
 
+        QFileInfo info(path);
+
         QVBoxLayout *vLayout = new QVBoxLayout();
-        // Name, Lattice size, Date, LUT Format Name (ocio)
         vLayout->addWidget(new QLabel(path));
-        vLayout->addWidget(new QLabel("Metadata 2"));
-        vLayout->addWidget(new QLabel("Metadata 3"));
+        vLayout->addWidget(new QLabel(QString("Last modified : %1").arg(info.lastModified().toString())));
+        vLayout->addStretch(1);
         hLayout->addLayout(vLayout);
 
         hLayout->setSizeConstraint(QLayout::SetFixedSize);

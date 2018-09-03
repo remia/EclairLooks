@@ -34,27 +34,13 @@ QLineEdit {
 
 /*
  * *******************************
- *       Named Widget
- * *******************************
-*/
-
-QWidget#scopeView {
-    border: 1px solid #1e1b18;
-}
-
-QWidget#lookDetailWidget {
-    border: 1px solid #1e1b18;
-}
-
-/*
- * *******************************
  *         Tab Widget
  * *******************************
 */
 
  /* The tab widget frame */
 QTabWidget::pane {
-    border: 1px solid #1e1b18;
+    /* border: 1px solid #1e1b18; */
 }
 
 QTabWidget::tab-bar {
@@ -101,7 +87,7 @@ QTabBar::tab:selected {
 
 QListWidget {
     show-decoration-selected: 0; /* make the selection span the entire width of the view */
-    border: 1px solid #1e1b18;
+    /* border: 1px solid #1e1b18; */
 }
 
 QListWidget::item {
@@ -125,4 +111,31 @@ QListWidget::item:selected:active {
 
 QListWidget::item:hover {
     color: #e0c31e;
+}
+
+
+/*
+ * *******************************
+ *       Named Widget
+ * *******************************
+*/
+
+QWidget#scopeView {
+    border: 1px solid #1e1b18;
+}
+
+QWidget#lookDetailWidget {
+    border: 1px solid #1e1b18;
+}
+
+QTabWidget#lookViewWidget::pane {
+    border: 1px solid #1e1b18;
+}
+
+QListWidget#pipelineWidget {
+    border: 1px solid #1e1b18;
+}
+
+QListWidget#operatorListWidget {
+    border: 1px solid #1e1b18;
 }

@@ -10,18 +10,13 @@ using IOP = ImageOperator;
 
 
 OperatorWidget::OperatorWidget(ImageOperator *op, QWidget *parent)
-:   QWidget(parent), m_operator(op)
+:   QTabWidget(parent), m_operator(op)
 {
     setupUi();
 }
 
 void OperatorWidget::setupUi()
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    QTabWidget *widget = new QTabWidget();
-    layout->addWidget(widget);
-
     for (auto &[cat, plist] : m_operator->Categories()) {
         QWidget *tab = new QWidget();
         QFormLayout *formLayout = new QFormLayout(tab);
@@ -33,6 +28,7 @@ void OperatorWidget::setupUi()
                 if (p->name == name) {
                     QLabel * label = new QLabel(QString::fromStdString(name));
                     ParameterWidget *paramWidget = WidgetFromParameter(p.get());
+                    paramWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
                     paramWidget->Subscribe<PW::Update>(std::bind(&IOP::SetParameter, m_operator, _1));
                     auto c = m_operator->Subscribe<IOP::UpdateGui>(std::bind(&PW::UpdateUi, paramWidget, _1));
@@ -46,9 +42,9 @@ void OperatorWidget::setupUi()
                     formLayout->addRow(label, paramWidget);
                 }
 
-        widget->addTab(tab, QString::fromStdString(cat));
+        addTab(tab, QString::fromStdString(cat));
 
         if (cat == m_operator->DefaultCategory())
-            widget->tabBar()->moveTab(widget->count() - 1, 0);
+            tabBar()->moveTab(count() - 1, 0);
     }
 }

@@ -86,11 +86,6 @@ void PipelineWidget::setDevWidget(DevWidget *w)
     m_devWidget = w;
 }
 
-void PipelineWidget::setOperatorDetailWidget(QScrollArea *w)
-{
-    m_operatorDetailWidget = w;
-}
-
 void PipelineWidget::buildFromPipeline() {}
 
 void PipelineWidget::initTransformationWidget(ImageOperator &op)
@@ -106,11 +101,12 @@ void PipelineWidget::updateSelection(QListWidgetItem *item)
 
     if (selectedRow < 0 || selectedRow >= m_devWidget->pipeline()->OperatorCount())
         return;
-    if (!m_operatorDetailWidget)
+    if (!m_devWidget->operatorArea())
         return;
 
     OperatorWidget *widget = new OperatorWidget(&m_devWidget->pipeline()->GetOperator(selectedRow));
-    m_operatorDetailWidget->setWidget(widget);
+    m_devWidget->operatorArea()->setWidget(widget);
+    m_devWidget->operatorArea()->setWidgetResizable(true);
 }
 
 void PipelineWidget::disableSelection(int selectedRow)
@@ -128,6 +124,6 @@ void PipelineWidget::removeSelection(int selectedRow)
 {
     if (m_devWidget->pipeline()->DeleteOperator(selectedRow)) {
         takeItem(selectedRow);
-        m_operatorDetailWidget->takeWidget();
+        m_devWidget->operatorArea()->takeWidget();
     }
 }

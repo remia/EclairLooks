@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QtWidgets/QWidget>
+#include <QtWidgets/QTabWidget>
 
 
 class ImageOperator;
 
-class OperatorWidget : public QWidget
+class OperatorWidget : public QTabWidget
 {
   public:
     OperatorWidget(ImageOperator *op, QWidget *parent = nullptr);

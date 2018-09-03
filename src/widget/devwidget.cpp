@@ -2,6 +2,7 @@
 #include "uiloader.h"
 #include "pipelinewidget.h"
 #include "imagewidget.h"
+#include "operatorwidget.h"
 #include "operatorlistwidget.h"
 #include "../mainwindow.h"
 #include "../operator/imageoperatorlist.h"
@@ -26,6 +27,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
     m_pipelineWidget = findChild<PipelineWidget*>("pipelineWidget");
+    m_operatorWidget = findChild<QScrollArea*>("operatorDetailWidget");
     m_operatorsWidget = findChild<OperatorListWidget*>("operatorListWidget");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
     m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
@@ -69,7 +71,12 @@ ImageOperatorList *DevWidget::operators()
     return m_mainWindow->operators();
 }
 
-QWidget * DevWidget::setupUi()
+QScrollArea* DevWidget::operatorArea()
+{
+    return m_operatorWidget;
+}
+
+QWidget* DevWidget::setupUi()
 {
     UiLoader loader;
     QFile file(":/ui/devwidget.ui");
@@ -79,10 +86,7 @@ QWidget * DevWidget::setupUi()
 
 void DevWidget::initPipelineView()
 {
-    QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
-
     m_pipelineWidget->setDevWidget(this);
-    m_pipelineWidget->setOperatorDetailWidget(operatorDetail);
 }
 
 void DevWidget::initScopeView()

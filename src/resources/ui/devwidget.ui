@@ -103,7 +103,7 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="OperatorListWidget" name="operatorListWidget" native="true"/>
-      <widget class="QScrollArea" name="operatorDetailWidget"/>
+      <widget class="QScrollArea" name="operatorDetailWidget" native="true"/>
       <widget class="QWidget" name="scopeView" native="true">
        <layout class="QVBoxLayout" name="scopeVLayout">
         <property name="leftMargin">

@@ -11,6 +11,7 @@ class PipelineWidget;
 class WaveformWidget;
 class OperatorListWidget;
 class QTabBar;
+class QScrollArea;
 
 class DevWidget : public QWidget
 {
@@ -20,6 +21,8 @@ class DevWidget : public QWidget
   public:
     ImagePipeline *pipeline();
     ImageOperatorList *operators();
+
+    QScrollArea *operatorArea();
 
   private:
     QWidget * setupUi();
@@ -33,6 +36,7 @@ class DevWidget : public QWidget
 
     ImageWidget *m_imageWidget;
     PipelineWidget *m_pipelineWidget;
+    QScrollArea *m_operatorWidget;
     OperatorListWidget *m_operatorsWidget;
 
     QTabBar *m_scopeTab;

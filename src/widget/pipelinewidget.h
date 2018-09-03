@@ -3,7 +3,6 @@
 #include <QtWidgets/QListWidget>
 
 
-class QScrollArea;
 class DevWidget;
 class ImageOperator;
 
@@ -18,7 +17,6 @@ class PipelineWidget : public QListWidget
     void dropEvent(QDropEvent *event) override;
 
     void setDevWidget(DevWidget *w);
-    void setOperatorDetailWidget(QScrollArea *w);
 
   private:
     void buildFromPipeline();
@@ -30,7 +28,6 @@ class PipelineWidget : public QListWidget
 
   private:
     DevWidget *m_devWidget;
-    QScrollArea *m_operatorDetailWidget;
 
     uint16_t m_currentIndex;
 };

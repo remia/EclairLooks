@@ -4,8 +4,7 @@
 
 
 class QScrollArea;
-class ImagePipeline;
-class ImageOperatorList;
+class DevWidget;
 class ImageOperator;
 
 class PipelineWidget : public QListWidget
@@ -18,8 +17,7 @@ class PipelineWidget : public QListWidget
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    void setPipeline(ImagePipeline *pipeline);
-    void setOperators(ImageOperatorList *list);
+    void setDevWidget(DevWidget *w);
     void setOperatorDetailWidget(QScrollArea *w);
 
   private:
@@ -31,8 +29,7 @@ class PipelineWidget : public QListWidget
     void removeSelection(int selectedRow);
 
   private:
-    ImagePipeline *m_pipeline;
-    ImageOperatorList *m_operators;
+    DevWidget *m_devWidget;
     QScrollArea *m_operatorDetailWidget;
 
     uint16_t m_currentIndex;

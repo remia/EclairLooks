@@ -1,4 +1,5 @@
 #include "operatorlistwidget.h"
+#include "devwidget.h"
 #include "../operator/imageoperatorlist.h"
 
 #include <QtCore/QDebug>
@@ -8,7 +9,7 @@
 
 
 OperatorListWidget::OperatorListWidget(QWidget *parent)
-    : QListWidget(parent), m_operators(nullptr)
+    : QListWidget(parent), m_devWidget(nullptr)
 {
     setSelectionMode(QAbstractItemView::NoSelection);
     setDragEnabled(true);
@@ -29,13 +30,11 @@ void OperatorListWidget::mousePressEvent(QMouseEvent *event)
     drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
 }
 
-void OperatorListWidget::setOperators(ImageOperatorList *list)
+void OperatorListWidget::setDevWidget(DevWidget *w)
 {
-    m_operators = list;
-    if (!m_operators)
-        return;
+    m_devWidget = w;
 
     clear();
-    for (auto &name : m_operators->Operators())
+    for (auto &name : w->operators()->Operators())
         addItem(new QListWidgetItem(QString::fromStdString(name)));
 }

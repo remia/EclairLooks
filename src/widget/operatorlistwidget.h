@@ -3,7 +3,7 @@
 #include <QtWidgets/QListWidget>
 
 
-class ImageOperatorList;
+class DevWidget;
 
 class OperatorListWidget : public QListWidget
 {
@@ -14,8 +14,8 @@ class OperatorListWidget : public QListWidget
     void mousePressEvent(QMouseEvent *event) override;
 
   public:
-    void setOperators(ImageOperatorList *list);
+    void setDevWidget(DevWidget *w);
 
   private:
-    ImageOperatorList *m_operators;
+    DevWidget *m_devWidget;
 };

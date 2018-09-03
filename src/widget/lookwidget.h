@@ -18,7 +18,6 @@ class LookWidget : public QWidget
     LookWidget(MainWindow *mw, QWidget *parent = nullptr);
 
   public:
-
     QString rootPath();
     QString tonemapPath();
 

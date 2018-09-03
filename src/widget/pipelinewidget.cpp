@@ -1,8 +1,9 @@
 #include "pipelinewidget.h"
-#include "../imagepipeline.h"
-#include "../operator/imageoperatorlist.h"
 #include "imagewidget.h"
 #include "operatorwidget.h"
+#include "devwidget.h"
+#include "../imagepipeline.h"
+#include "../operator/imageoperatorlist.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QMimeData>
@@ -11,8 +12,7 @@
 
 
 PipelineWidget::PipelineWidget(QWidget *parent)
-    : QListWidget(parent), m_pipeline(nullptr), m_operators(nullptr),
-      m_operatorDetailWidget(nullptr), m_currentIndex(0)
+    : QListWidget(parent), m_devWidget(nullptr), m_currentIndex(0)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
@@ -20,8 +20,7 @@ PipelineWidget::PipelineWidget(QWidget *parent)
     setDefaultDropAction(Qt::MoveAction);
     setDropIndicatorShown(true);
 
-    QObject::connect(this, &QListWidget::itemClicked, this,
-                     &PipelineWidget::updateSelection);
+    QObject::connect(this, &QListWidget::itemClicked, this, &PipelineWidget::updateSelection);
 }
 
 void PipelineWidget::keyPressEvent(QKeyEvent *event)
@@ -52,44 +51,40 @@ void PipelineWidget::dragEnterEvent(QDragEnterEvent *e)
 
 void PipelineWidget::dropEvent(QDropEvent *e)
 {
-    if (!m_operators)
-        return;
+    std::vector<ImageOperator*> operatorToAdd;
 
     if (e->mimeData()->hasUrls()) {
         foreach (const QUrl &url, e->mimeData()->urls()) {
             QString fileName = url.toLocalFile();
 
-            if (ImageOperator *op = m_operators->CreateFromPath(fileName.toStdString())) {
-                m_pipeline->AddOperator(op);
-                initTransformationWidget(*op);
-                update();
-            }
-            else {
+            if (ImageOperator *op = m_devWidget->operators()->CreateFromPath(fileName.toStdString()))
+                operatorToAdd.push_back(op);
+            else
                 qDebug() << "Dropped file not supported" << fileName << "\n";
-                return;
-            }
-
         }
     }
     else if (e->mimeData()->hasText()) {
         QString text = e->mimeData()->text();
-        if (ImageOperator *op = m_operators->CreateFromName(text.toStdString())) {
-            m_pipeline->AddOperator(op);
-            initTransformationWidget(*op);
-            update();
-        }
-        else {
+        if (ImageOperator *op = m_devWidget->operators()->CreateFromName(text.toStdString()))
+            operatorToAdd.push_back(op);
+        else
             qDebug() << "Dropped text not recognized" << text << "\n";
-            return;
-        }
     }
     else
         QListWidget::dropEvent(e);
+
+    for (auto op : operatorToAdd) {
+       m_devWidget->pipeline()->AddOperator(op);
+       initTransformationWidget(*op);
+       setCurrentRow(count() - 1);
+       updateSelection(currentItem());
+    }
 }
 
-void PipelineWidget::setPipeline(ImagePipeline *pipeline) { m_pipeline = pipeline; }
-
-void PipelineWidget::setOperators(ImageOperatorList *list) { m_operators = list; }
+void PipelineWidget::setDevWidget(DevWidget *w)
+{
+    m_devWidget = w;
+}
 
 void PipelineWidget::setOperatorDetailWidget(QScrollArea *w)
 {
@@ -109,12 +104,12 @@ void PipelineWidget::updateSelection(QListWidgetItem *item)
 {
     int selectedRow = row(item);
 
-    if (selectedRow < 0 || selectedRow >= m_pipeline->OperatorCount())
+    if (selectedRow < 0 || selectedRow >= m_devWidget->pipeline()->OperatorCount())
         return;
     if (!m_operatorDetailWidget)
         return;
 
-    OperatorWidget *widget = new OperatorWidget(&m_pipeline->GetOperator(selectedRow));
+    OperatorWidget *widget = new OperatorWidget(&m_devWidget->pipeline()->GetOperator(selectedRow));
     m_operatorDetailWidget->setWidget(widget);
 }
 
@@ -123,7 +118,7 @@ void PipelineWidget::disableSelection(int selectedRow)
     // NOTE : we should also track the operator state to choose new styles on enable /
     // disable From the CSS would be perfect, I think we have to subclass QListWidgetItem
     // and add new property that will be accessible from the CSS ?
-    auto &op    = m_pipeline->GetOperator(selectedRow);
+    auto &op    = m_devWidget->pipeline()->GetOperator(selectedRow);
     auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
     param.value = !param.value;
     op.SetParameter(param);
@@ -131,7 +126,7 @@ void PipelineWidget::disableSelection(int selectedRow)
 
 void PipelineWidget::removeSelection(int selectedRow)
 {
-    if (m_pipeline->DeleteOperator(selectedRow)) {
+    if (m_devWidget->pipeline()->DeleteOperator(selectedRow)) {
         takeItem(selectedRow);
         m_operatorDetailWidget->takeWidget();
     }

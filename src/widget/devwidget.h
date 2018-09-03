@@ -4,6 +4,8 @@
 
 
 class MainWindow;
+class ImagePipeline;
+class ImageOperatorList;
 class ImageWidget;
 class PipelineWidget;
 class WaveformWidget;
@@ -14,6 +16,10 @@ class DevWidget : public QWidget
 {
   public:
     DevWidget(MainWindow *mw, QWidget *parent = nullptr);
+
+  public:
+    ImagePipeline *pipeline();
+    ImageOperatorList *operators();
 
   private:
     QWidget * setupUi();

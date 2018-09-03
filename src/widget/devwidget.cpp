@@ -59,6 +59,16 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
 }
 
+ImagePipeline *DevWidget::pipeline()
+{
+    return m_mainWindow->pipeline();
+}
+
+ImageOperatorList *DevWidget::operators()
+{
+    return m_mainWindow->operators();
+}
+
 QWidget * DevWidget::setupUi()
 {
     UiLoader loader;
@@ -71,8 +81,7 @@ void DevWidget::initPipelineView()
 {
     QScrollArea *operatorDetail = findChild<QScrollArea*>("operatorDetailWidget");
 
-    m_pipelineWidget->setPipeline(m_mainWindow->pipeline());
-    m_pipelineWidget->setOperators(m_mainWindow->operators());
+    m_pipelineWidget->setDevWidget(this);
     m_pipelineWidget->setOperatorDetailWidget(operatorDetail);
 }
 
@@ -99,5 +108,5 @@ void DevWidget::initScopeView()
 
 void DevWidget::initOperatorsView()
 {
-    m_operatorsWidget->setOperators(m_mainWindow->operators());
+    m_operatorsWidget->setDevWidget(this);
 }

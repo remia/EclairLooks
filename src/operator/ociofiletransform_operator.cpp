@@ -35,7 +35,7 @@ ImageOperator *OCIOFileTransform::OpCreateFromPath(const std::string &filepath) 
     QStringList exts = SupportedExtensions();
 
     QFileInfo file = QFileInfo(QString::fromStdString(filepath));
-    if (exts.contains(file.completeSuffix())) {
+    if (exts.contains(file.suffix())) {
         OCIOFileTransform * ft = new OCIOFileTransform();
         ft->SetFileTransform(filepath);
         return ft;

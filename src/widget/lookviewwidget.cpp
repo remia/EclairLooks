@@ -154,7 +154,7 @@ QWidget *LookViewWidget::widgetFromLook(const QString &path) const
         QFileInfo info(path);
 
         QVBoxLayout *vLayout = new QVBoxLayout();
-        vLayout->addWidget(new QLabel(path));
+        vLayout->addWidget(new QLabel(info.fileName()));
         vLayout->addWidget(new QLabel(QString("Last modified : %1").arg(info.lastModified().toString())));
         vLayout->addStretch(1);
         hLayout->addLayout(vLayout);

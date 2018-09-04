@@ -1,6 +1,7 @@
 #include "ociofiletransform_operator.h"
 #include "../image.h"
 #include "../imagepipeline.h"
+#include "../utils/chrono.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
@@ -98,6 +99,9 @@ QStringList OCIOFileTransform::SupportedExtensions() const
 void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
 {
     try {
+        Chrono c;
+        c.start();
+
         auto m = AutoMute(this, UpdateOp);
 
         auto interp = GetParameter<SelectParameter>("Interpolation");
@@ -108,6 +112,10 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
         m_processor = m_config->getProcessor(m_transform);
 
         SetParameter(FilePathParameter("LUT", lutpath));
+
+        qInfo() << "OCIOFileTransform init - (" << QString::fromStdString(lutpath)
+                << ") : " << fixed << qSetRealNumberPrecision(2)
+                << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }

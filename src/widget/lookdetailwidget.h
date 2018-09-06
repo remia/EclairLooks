@@ -17,6 +17,7 @@ class LookDetailWidget : public QWidget
   public:
     void setLookWidget(LookWidget *lw);
 
+    void resetView();
     void showDetail(const QString &path);
 
   private:

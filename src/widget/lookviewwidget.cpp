@@ -62,6 +62,8 @@ void LookViewTabWidget::tabChanged(int index)
     LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
     if (widget)
         widget->updateSelection();
+    else
+        EmitEvent<Reset>();
 }
 
 void LookViewTabWidget::tabClosed(int index)

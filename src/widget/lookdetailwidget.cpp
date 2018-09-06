@@ -23,6 +23,11 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
     m_lookWidget = lw;
 }
 
+void LookDetailWidget::resetView()
+{
+    m_imageWidget->clearImage();
+}
+
 void LookDetailWidget::showDetail(const QString &path)
 {
     if (auto [valid, img] = m_lookWidget->lookPreview(path); valid) {

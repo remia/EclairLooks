@@ -12,12 +12,14 @@
 class LookWidget;
 class QListWidget;
 
-typedef EventDesc <FuncT<void(const QString &)>> LVEvtDesc;
+typedef EventDesc <
+    FuncT<void(const QString &)>,
+    FuncT<void()>> LVEvtDesc;
 
 class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
 {
   public:
-    enum Evt { Select = 0 };
+    enum Evt { Select = 0, Reset };
 
   public:
     LookViewTabWidget(QWidget *parent = nullptr);

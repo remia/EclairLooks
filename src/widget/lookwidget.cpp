@@ -56,6 +56,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
 
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showPreview, m_viewWidget, _1));
+    m_viewWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget));
     m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
 }
 

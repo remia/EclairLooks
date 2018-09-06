@@ -65,8 +65,8 @@ class Image
   public:
     static Image FromFile(const std::string &path);
     // static Image FromBuffer(void *buffer, size_t size);
-    static Image Ramp1D(uint64_t size, float min = 0.f, float max = 1.f, RampType t = RampType::NEUTRAL);
-    static Image Lattice(uint64_t size, uint32_t maxwidth = 512);
+    static Image Ramp1D(uint16_t size, float min = 0.f, float max = 1.f, RampType t = RampType::NEUTRAL);
+    static Image Lattice(uint16_t size, uint16_t maxwidth = 512);
 
   public:
     explicit operator bool() const;

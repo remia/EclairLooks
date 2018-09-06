@@ -251,7 +251,7 @@ Image Image::FromFile(const std::string &path)
 //     return res;
 // }
 
-Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
+Image Image::Ramp1D(uint16_t size, float min, float max, RampType t)
 {
     ImageSpec spec;
     spec.width = size;
@@ -286,11 +286,11 @@ Image Image::Ramp1D(uint64_t size, float min, float max, RampType t)
     return res;
 }
 
-Image Image::Lattice(uint64_t size, uint32_t maxwidth)
+Image Image::Lattice(uint16_t size, uint16_t maxwidth)
 {
     uint64_t elem_count = size * size * size;
-    uint32_t width = elem_count > maxwidth ? maxwidth : elem_count;
-    uint32_t height = std::ceil(1.f * elem_count / width);
+    uint16_t width = elem_count > maxwidth ? maxwidth : elem_count;
+    uint16_t height = std::ceil(1.f * elem_count / width);
     qInfo() << "Lattice image for size" << size << ":" << width << "x" << height;
 
     ImageSpec spec;

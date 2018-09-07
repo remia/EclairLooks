@@ -19,7 +19,7 @@ using LV = LookViewTabWidget;
 
 
 LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
-    : QWidget(parent), m_mainWindow(mw), m_proxySize(160, 160)
+    : QWidget(parent), m_mainWindow(mw), m_isFullScreen(false), m_proxySize(125, 125)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(65535));
@@ -39,10 +39,10 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
-    QSplitter *vSplitter = findChild<QSplitter*>("hSplitter");
-    vSplitter->setSizes(QList<int>({15000, 85000}));
-    QSplitter *hSplitter = findChild<QSplitter*>("vSplitter");
-    hSplitter->setSizes(QList<int>({75000, 25000}));
+    m_vSplitter = findChild<QSplitter*>("hSplitter");
+    m_vSplitter->setSizes(QList<int>({15000, 85000}));
+    m_hSplitter = findChild<QSplitter*>("vSplitter");
+    m_hSplitter->setSizes(QList<int>({65000, 35000}));
 
     setupPipeline();
 
@@ -59,6 +59,55 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showPreview, m_viewWidget, _1));
     m_viewWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget));
     m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
+}
+
+bool LookWidget::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_Space: {
+                toggleFullScreen();
+                return true;
+            }
+            case Qt::Key_Up:
+            case Qt::Key_Down: {
+                QObject *wantedTarget = m_viewWidget->currentView();
+                if (wantedTarget && obj != wantedTarget) {
+                    QCoreApplication::sendEvent(wantedTarget, event);
+                    return true;
+                }
+                return false;
+            }
+            default:
+                return false;
+        }
+    } else {
+        return QWidget::eventFilter(obj, event);
+    }
+}
+
+LookViewTabWidget * LookWidget::lookViewTabWidget()
+{
+    return m_viewWidget;
+}
+
+void LookWidget::toggleFullScreen()
+{
+    if (!m_isFullScreen) {
+        m_hSplitterState = m_hSplitter->saveState();
+        m_vSplitterState = m_vSplitter->saveState();
+
+        m_vSplitter->setSizes(QList<int>({00000, 100000}));
+        m_hSplitter->setSizes(QList<int>({00000, 100000}));
+
+        m_isFullScreen = true;
+    }
+    else {
+        m_hSplitter->restoreState(m_hSplitterState);
+        m_vSplitter->restoreState(m_vSplitterState);
+        m_isFullScreen = false;
+    }
 }
 
 QString LookWidget::rootPath()

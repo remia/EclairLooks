@@ -20,7 +20,7 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
     hSplitter->addWidget(m_cubeWidget);
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
-    hSplitter->setSizes(QList<int>({33000, 33000, 33000}));
+    hSplitter->setSizes(QList<int>({50000, 50000, 00000}));
 
     vLayout->addWidget(hSplitter);
 }
@@ -28,6 +28,7 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
 void LookDetailWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
+    installEventFilter(m_lookWidget);
 }
 
 void LookDetailWidget::resetView()

@@ -2,6 +2,7 @@
 
 #include "../utils/generic.h"
 #include <QtWidgets/QWidget>
+#include <QtCore/QByteArray>
 
 
 class Image;
@@ -11,6 +12,7 @@ class LookBrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
 class QLineEdit;
+class QSplitter;
 
 class LookWidget : public QWidget
 {
@@ -18,6 +20,13 @@ class LookWidget : public QWidget
     LookWidget(MainWindow *mw, QWidget *parent = nullptr);
 
   public:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+  public:
+    LookViewTabWidget * lookViewTabWidget();
+
+    void toggleFullScreen();
+
     QString rootPath();
     QString tonemapPath();
 
@@ -41,6 +50,12 @@ class LookWidget : public QWidget
     QLineEdit *m_browserSearch;
     LookViewTabWidget *m_viewWidget;
     LookDetailWidget *m_detailWidget;
+
+    bool m_isFullScreen;
+    QSplitter *m_hSplitter;
+    QSplitter *m_vSplitter;
+    QByteArray m_hSplitterState;
+    QByteArray m_vSplitterState;
 
     UPtr<Image> m_image;
     UPtr<Image> m_imageProxy;

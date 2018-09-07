@@ -16,6 +16,14 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
     QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);
 }
 
+QWidget *LookViewTabWidget::currentView()
+{
+    if (LookViewWidget *ptr = static_cast<LookViewWidget*>(currentWidget()))
+        return ptr->lookListWidget();
+
+    return nullptr;
+}
+
 void LookViewTabWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
@@ -93,9 +101,15 @@ LookViewWidget::LookViewWidget(QWidget *parent)
     QObject::connect(m_lookList, &QListWidget::itemSelectionChanged, this, &LookViewWidget::updateSelection);
 }
 
+QListWidget *LookViewWidget::lookListWidget()
+{
+    return m_lookList;
+}
+
 void LookViewWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
+    m_lookList->installEventFilter(m_lookWidget);
 }
 
 void LookViewWidget::setLookViewTabWidget(LookViewTabWidget *w)

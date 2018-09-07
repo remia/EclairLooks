@@ -10,6 +10,7 @@
 
 
 class LookWidget;
+class LookViewWidget;
 class QListWidget;
 
 typedef EventDesc <
@@ -25,6 +26,7 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     LookViewTabWidget(QWidget *parent = nullptr);
 
   public:
+    QWidget *currentView();
     void setLookWidget(LookWidget *lw);
 
     void showPreview(const QString &path);
@@ -45,6 +47,7 @@ class LookViewWidget : public QWidget
     LookViewWidget(QWidget *parent = nullptr);
 
   public:
+    QListWidget *lookListWidget();
     void setLookWidget(LookWidget *lw);
     void setLookViewTabWidget(LookViewTabWidget *w);
 

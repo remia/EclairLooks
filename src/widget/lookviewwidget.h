@@ -29,7 +29,7 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     QWidget *currentView();
     void setLookWidget(LookWidget *lw);
 
-    void showPreview(const QString &path);
+    void showFolder(const QString &path);
     void updateSelection(const QString &path);
 
   private:
@@ -53,7 +53,7 @@ class LookViewWidget : public QWidget
 
     uint16_t countLook() const;
 
-    void showPreview(const QString &path);
+    void showFolder(const QString &path);
     void updateSelection();
 
   private:

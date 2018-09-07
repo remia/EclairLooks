@@ -29,7 +29,7 @@ void LookViewTabWidget::setLookWidget(LookWidget *lw)
     m_lookWidget = lw;
 }
 
-void LookViewTabWidget::showPreview(const QString &path)
+void LookViewTabWidget::showFolder(const QString &path)
 {
     QFileInfo fileInfo(path);
     QString dirPath;
@@ -45,7 +45,7 @@ void LookViewTabWidget::showPreview(const QString &path)
         LookViewWidget *lookViewWidget = new LookViewWidget();
         lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->setLookViewTabWidget(this);
-        lookViewWidget->showPreview(dirPath);
+        lookViewWidget->showFolder(dirPath);
 
         if (lookViewWidget->countLook() >= 1) {
             addTab(lookViewWidget, relPath);
@@ -122,7 +122,7 @@ uint16_t LookViewWidget::countLook() const
     return m_lookList->count();
 }
 
-void LookViewWidget::showPreview(const QString &path)
+void LookViewWidget::showFolder(const QString &path)
 {
     m_lookList->clear();
 

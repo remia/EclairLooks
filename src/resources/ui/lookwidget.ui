@@ -52,7 +52,13 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="LookViewTabWidget" name="lookViewWidget" native="true"/>
+      <widget class="QSplitter" name="hSplitterView">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="LookViewTabWidget" name="lookViewWidget" native="true"/>
+       <widget class="LookSelectionWidget" name="lookSelectionWidget" native="true"/>
+      </widget>
       <widget class="LookDetailWidget" name="lookDetailWidget" native="true"/>
      </widget>
     </widget>

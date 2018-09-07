@@ -43,6 +43,8 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_vSplitter->setSizes(QList<int>({15000, 85000}));
     m_hSplitter = findChild<QSplitter*>("vSplitter");
     m_hSplitter->setSizes(QList<int>({65000, 35000}));
+    m_hSplitterView = findChild<QSplitter*>("hSplitterView");
+    m_hSplitterView->setSizes(QList<int>({80000, 20000}));
 
     setupPipeline();
 

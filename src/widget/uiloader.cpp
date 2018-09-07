@@ -6,6 +6,7 @@
 #include "lookbrowserwidget.h"
 #include "lookviewtabwidget.h"
 #include "lookdetailwidget.h"
+#include "lookselectionwidget.h"
 #include "../scope/waveformwidget.h"
 
 
@@ -40,6 +41,10 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         return w;
     } else if (className == "LookDetailWidget") {
         LookDetailWidget *w = new LookDetailWidget(parent);
+        w->setObjectName(name);
+        return w;
+    } else if (className == "LookSelectionWidget") {
+        LookSelectionWidget *w = new LookSelectionWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "QTabBar") {

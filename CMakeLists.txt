@@ -63,6 +63,7 @@ set(SOURCES
     src/widget/lookviewtabwidget.cpp
     src/widget/lookviewwidget.cpp
     src/widget/lookdetailwidget.cpp
+    src/widget/lookselectionwidget.cpp
     src/widget/parameterwidget.cpp
     src/widget/settingwidget.cpp
     src/operator/imageoperator.cpp

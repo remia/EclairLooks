@@ -54,6 +54,7 @@ class LookWidget : public QWidget
     bool m_isFullScreen;
     QSplitter *m_hSplitter;
     QSplitter *m_vSplitter;
+    QSplitter *m_hSplitterView;
     QByteArray m_hSplitterState;
     QByteArray m_vSplitterState;
 

@@ -31,7 +31,6 @@ QLineEdit {
     border: 1px solid #1e1b18;
 }
 
-
 /*
  * *******************************
  *         Tab Widget
@@ -137,5 +136,9 @@ QListWidget#pipelineWidget {
 }
 
 QListWidget#operatorListWidget {
+    border: 1px solid #1e1b18;
+}
+
+QWidget#lookSelectionWidget {
     border: 1px solid #1e1b18;
 }

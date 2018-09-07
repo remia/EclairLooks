@@ -1,6 +1,7 @@
 #include "lookdetailwidget.h"
 #include "lookwidget.h"
 #include "imagewidget.h"
+#include "../scope/curvewidget.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -8,14 +9,20 @@
 LookDetailWidget::LookDetailWidget(QWidget *parent)
 :   QWidget(parent)
 {
-    QHBoxLayout *hLayout = new QHBoxLayout(this);
+    QVBoxLayout *vLayout = new QVBoxLayout(this);
+
+    QSplitter *hSplitter = new QSplitter(Qt::Horizontal);
     m_imageWidget = new ImageWidget();
-    m_imageWidget->setMinimumSize(0, 0);
-    hLayout->addWidget(m_imageWidget);
-    m_curveWidget = new QOpenGLWidget();
-    hLayout->addWidget(m_curveWidget);
+    hSplitter->addWidget(m_imageWidget);
+    m_curveWidget = new CurveWidget();
+    hSplitter->addWidget(m_curveWidget);
     m_cubeWidget = new QOpenGLWidget();
-    hLayout->addWidget(m_cubeWidget);
+    hSplitter->addWidget(m_cubeWidget);
+
+    // NOTE : see https://stackoverflow.com/a/43835396/4814046
+    hSplitter->setSizes(QList<int>({33000, 33000, 33000}));
+
+    vLayout->addWidget(hSplitter);
 }
 
 void LookDetailWidget::setLookWidget(LookWidget *lw)
@@ -26,6 +33,7 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
 void LookDetailWidget::resetView()
 {
     m_imageWidget->clearImage();
+    m_curveWidget->clearView();
 }
 
 void LookDetailWidget::showDetail(const QString &path)
@@ -33,5 +41,8 @@ void LookDetailWidget::showDetail(const QString &path)
     if (auto [valid, img] = m_lookWidget->lookPreview(path); valid) {
         m_imageWidget->setImage(m_lookWidget->fullImage());
         m_imageWidget->updateImage(img);
+    }
+    if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
+        m_curveWidget->drawCurves(img);
     }
 }

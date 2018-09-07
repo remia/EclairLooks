@@ -71,6 +71,7 @@ set(SOURCES
     src/operator/ociomatrix_operator.cpp
     src/operator/ctl_operator.cpp
     src/operator/ctl_transform.cpp
+    src/scope/curvewidget.cpp
     src/scope/waveformwidget.cpp
     src/utils/chrono.cpp
     src/utils/parameterlist.cpp

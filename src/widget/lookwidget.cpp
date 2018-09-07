@@ -22,6 +22,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     : QWidget(parent), m_mainWindow(mw), m_proxySize(160, 160)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
+    m_imageRamp = std::make_unique<Image>(Image::Ramp1D(65535));
 
     //
     // Setup
@@ -90,6 +91,11 @@ TupleT<bool, Image &>LookWidget::lookPreview(const QString &lookPath)
 TupleT<bool, Image &> LookWidget::lookPreviewProxy(const QString &lookPath)
 {
     return _lookPreview(lookPath, proxyImage());
+}
+
+TupleT<bool, Image &> LookWidget::lookPreviewRamp(const QString &lookPath)
+{
+    return _lookPreview(lookPath, *m_imageRamp);
 }
 
 TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)

@@ -60,6 +60,7 @@ set(SOURCES
     src/widget/operatorwidget.cpp
     src/widget/lookwidget.cpp
     src/widget/lookbrowserwidget.cpp
+    src/widget/lookviewtabwidget.cpp
     src/widget/lookviewwidget.cpp
     src/widget/lookdetailwidget.cpp
     src/widget/parameterwidget.cpp

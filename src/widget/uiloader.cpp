@@ -4,7 +4,7 @@
 #include "pipelinewidget.h"
 #include "operatorlistwidget.h"
 #include "lookbrowserwidget.h"
-#include "lookviewwidget.h"
+#include "lookviewtabwidget.h"
 #include "lookdetailwidget.h"
 #include "../scope/waveformwidget.h"
 

@@ -1,7 +1,7 @@
 #include "lookwidget.h"
 #include "uiloader.h"
 #include "lookbrowserwidget.h"
-#include "lookviewwidget.h"
+#include "lookviewtabwidget.h"
 #include "lookdetailwidget.h"
 #include "../settings.h"
 #include "../image.h"

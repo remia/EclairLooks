@@ -48,7 +48,7 @@ class LookWidget : public QWidget
 
     LookBrowserWidget *m_browserWidget;
     QLineEdit *m_browserSearch;
-    LookViewTabWidget *m_viewWidget;
+    LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
 
     bool m_isFullScreen;

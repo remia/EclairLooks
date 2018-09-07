@@ -34,7 +34,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     setLayout(layout);
 
     m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
-    m_viewWidget = findChild<LookViewTabWidget*>("lookViewWidget");
+    m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
 
@@ -47,7 +47,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     setupPipeline();
 
     m_browserWidget->setLookWidget(this);
-    m_viewWidget->setLookWidget(this);
+    m_viewTabWidget->setLookWidget(this);
     m_detailWidget->setLookWidget(this);
 
     //
@@ -57,8 +57,8 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
 
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showFolder, m_viewTabWidget, _1));
-    m_viewWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget));
-    m_viewWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)
@@ -72,7 +72,7 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
             }
             case Qt::Key_Up:
             case Qt::Key_Down: {
-                QObject *wantedTarget = m_viewWidget->currentView();
+                QObject *wantedTarget = m_viewTabWidget->currentView();
                 if (wantedTarget && obj != wantedTarget) {
                     QCoreApplication::sendEvent(wantedTarget, event);
                     return true;
@@ -89,7 +89,7 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
 
 LookViewTabWidget * LookWidget::lookViewTabWidget()
 {
-    return m_viewWidget;
+    return m_viewTabWidget;
 }
 
 void LookWidget::toggleFullScreen()

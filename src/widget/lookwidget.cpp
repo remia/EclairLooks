@@ -154,7 +154,7 @@ TupleT<bool, Image &> LookWidget::lookPreviewRamp(const QString &lookPath)
 
 TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)
 {
-    if (auto op = m_mainWindow->operators()->CreateFromPath(lookPath.toStdString()); op != nullptr) {
+    if (auto op = m_mainWindow->operators()->CreateFromPath(lookPath.toStdString())) {
         m_pipeline->ReplaceOperator(op, 0);
         m_pipeline->SetInput(img);
         return { true, m_pipeline->GetOutput() };

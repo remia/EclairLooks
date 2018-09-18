@@ -58,7 +58,7 @@ void CurveWidget::drawCurves(const Image &img)
     const float * pix = img.pixels_asfloat();
     for (uint8_t c = 0; c < 3; ++c) {
         QPainterPath path;
-        path.moveTo(0, grid_height);
+        path.moveTo(0, grid_height - (grid_height * pix[c]));
 
         for (uint32_t i = 0; i < img.width(); ++i) {
             path.lineTo(
@@ -113,17 +113,23 @@ void CurveWidget::initCursor()
 void CurveWidget::drawCursor(uint16_t x, uint16_t y)
 {
     QPointF scenePos = mapToScene(x, y);
-    QLineF vLine(scenePos.x(), 0, scenePos.x(), grid_height);
-    QLineF hLineR(0, scenePos.y(), grid_width, scenePos.y());
-    QLineF hLineG(0, scenePos.y(), grid_width, scenePos.y());
-    QLineF hLineB(0, scenePos.y(), grid_width, scenePos.y());
 
     float inX = scenePos.x() / grid_width;
+    inX = std::clamp(inX, 0.0f, 1.0f);
+    scenePos.setX(inX * grid_width);
+
     float outR, outG, outB;
     outR = outG = outB = inX;
 
+    QLineF vLine(scenePos.x(), 0, scenePos.x(), grid_height);
+    QLineF hLineR(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
+    QLineF hLineG(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
+    QLineF hLineB(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
+
     if (m_img) {
-        uint16_t inXInt = std::clamp((uint16_t) (inX * m_img->width()), (uint16_t) 0, (uint16_t) m_img->width());
+        uint16_t inXInt = std::clamp(
+            (int) (inX * m_img->width()), 0, m_img->width() - 1);
+
         const float * pix = m_img->pixels_asfloat();
         outR = pix[inXInt * 3];
         outG = pix[inXInt * 3 + 1];

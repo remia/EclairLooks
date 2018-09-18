@@ -17,8 +17,8 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
 
 QWidget *LookViewTabWidget::currentView()
 {
-    if (LookViewWidget *ptr = static_cast<LookViewWidget*>(currentWidget()))
-        return ptr->lookListWidget();
+    if (LookViewWidget *w = static_cast<LookViewWidget*>(currentWidget()))
+        return w;
 
     return nullptr;
 }
@@ -44,7 +44,7 @@ void LookViewTabWidget::showFolder(const QString &path)
         LookViewWidget *lookViewWidget = new LookViewWidget();
         lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->setLookViewTabWidget(this);
-        lookViewWidget->showFolder(dirPath);
+        lookViewWidget->appendFolder(dirPath);
 
         if (lookViewWidget->countLook() >= 1) {
             addTab(lookViewWidget, relPath);

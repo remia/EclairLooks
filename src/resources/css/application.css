@@ -92,7 +92,7 @@ QListWidget {
 QListWidget::item {
     border: 1px solid #1e1b18;
     border-radius: 5px;
-    margin: 5px;
+    margin: 3px;
     padding: 2px;
 }
 
@@ -106,6 +106,10 @@ QListWidget::item:selected:!active {
 
 QListWidget::item:selected:active {
     color: #e0c31e;
+}
+
+QListWidget::item:selected:focus {
+    border: 1px solid #89f442;
 }
 
 QListWidget::item:hover {

@@ -33,6 +33,9 @@ class MainWindow : public QMainWindow
     Settings *settings();
 
   private:
+    void setupHelp();
+
+  private:
     ImagePipeline *m_pipeline;
     ImageOperatorList *m_operators;
     Settings *m_settings;

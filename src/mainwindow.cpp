@@ -52,6 +52,8 @@ void MainWindow::setup()
     m_tabWidget->addTab(m_logWidget, "Log");
     setCentralWidget(m_tabWidget);
 
+    setupHelp();
+
     //
     // Actions
     //
@@ -102,4 +104,20 @@ void MainWindow::setSettings(Settings *s)
 Settings *MainWindow::settings()
 {
     return m_settings;
+}
+
+void MainWindow::setupHelp()
+{
+    QString html;
+    QFile f = QFile(":/html/help.html");
+    if (f.open(QIODevice::ReadOnly)) {
+        QTextStream in(&f);
+        html = in.readAll();
+    }
+
+    QTextEdit * helpWidget = new QTextEdit();
+    helpWidget->setHtml(html);
+    helpWidget->setReadOnly(true);
+
+    m_tabWidget->addTab(helpWidget, "Help");
 }

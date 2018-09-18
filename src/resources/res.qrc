@@ -6,5 +6,6 @@
         <file>ui/devwidget.ui</file>
         <file>ui/lookwidget.ui</file>
         <file>images/stresstest.png</file>
+        <file>html/help.html</file>
     </qresource>
 </RCC>

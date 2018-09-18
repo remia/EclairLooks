@@ -36,7 +36,8 @@ void PipelineWidget::keyPressEvent(QKeyEvent *event)
             default:
                 QListWidget::keyPressEvent(event);
         }
-    } else {
+    }
+    else {
         QListWidget::keyPressEvent(event);
     }
 }
@@ -85,8 +86,6 @@ void PipelineWidget::setDevWidget(DevWidget *w)
 {
     m_devWidget = w;
 }
-
-void PipelineWidget::buildFromPipeline() {}
 
 void PipelineWidget::initTransformationWidget(ImageOperator &op)
 {

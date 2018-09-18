@@ -19,7 +19,6 @@ class PipelineWidget : public QListWidget
     void setDevWidget(DevWidget *w);
 
   private:
-    void buildFromPipeline();
     void initTransformationWidget(ImageOperator &op);
 
     void updateSelection(QListWidgetItem * item);

@@ -28,7 +28,8 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
 void LookDetailWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
-    installEventFilter(m_lookWidget);
+    installEventFilter(this);
+    m_curveWidget->installEventFilter(m_lookWidget);
 }
 
 void LookDetailWidget::resetView()

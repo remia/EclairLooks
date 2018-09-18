@@ -3,6 +3,7 @@
 #include "lookbrowserwidget.h"
 #include "lookviewtabwidget.h"
 #include "lookdetailwidget.h"
+#include "lookselectionwidget.h"
 #include "../settings.h"
 #include "../image.h"
 #include "../imagepipeline.h"
@@ -36,6 +37,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
+    m_selectWidget = findChild<LookSelectionWidget*>("lookSelectionWidget");
     m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
@@ -51,6 +53,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_browserWidget->setLookWidget(this);
     m_viewTabWidget->setLookWidget(this);
     m_detailWidget->setLookWidget(this);
+    m_selectWidget->setLookWidget(this);
 
     //
     // Connections

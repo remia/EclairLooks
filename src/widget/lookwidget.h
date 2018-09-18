@@ -11,6 +11,7 @@ class MainWindow;
 class LookBrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
+class LookSelectionWidget;
 class QLineEdit;
 class QSplitter;
 
@@ -47,9 +48,10 @@ class LookWidget : public QWidget
     MainWindow *m_mainWindow;
 
     LookBrowserWidget *m_browserWidget;
-    QLineEdit *m_browserSearch;
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
+    LookSelectionWidget *m_selectWidget;
+    QLineEdit *m_browserSearch;
 
     bool m_isFullScreen;
     QSplitter *m_hSplitter;

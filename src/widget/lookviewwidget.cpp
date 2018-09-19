@@ -146,6 +146,7 @@ void LookViewWidget::removeSelection(int selectedRow)
 
     takeItem(selectedRow);
 }
+
 void LookViewWidget::addLook(const QString &path)
 {
     if (!m_lookWidget)
@@ -200,7 +201,7 @@ QImage LookViewWidget::computeThumbnail(const QString &path)
 // ----------------------------------------------------------------------------
 
 LookViewItemWidget::LookViewItemWidget(QListWidgetItem * item, QWidget * parent)
-: QWidget(parent), m_item(item), m_compRef(false)
+: QWidget(parent), m_item(item)
 {
 
 }

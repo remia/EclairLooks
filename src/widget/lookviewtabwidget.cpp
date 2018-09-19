@@ -61,7 +61,10 @@ void LookViewTabWidget::showFolder(const QString &path)
 
 void LookViewTabWidget::updateSelection(const QString &path)
 {
-    EmitEvent<Select>(path);
+    if (path.isEmpty())
+        EmitEvent<Reset>();
+    else
+        EmitEvent<Select>(path);
 }
 
 void LookViewTabWidget::tabChanged(int index)

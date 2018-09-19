@@ -22,6 +22,7 @@ class LookViewWidget : public QListWidget
     LookViewWidget(QWidget *parent = nullptr);
 
   public:
+    void mousePressEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void startDrag(Qt::DropActions supportedActions) override;
 

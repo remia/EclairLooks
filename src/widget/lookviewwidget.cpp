@@ -13,11 +13,20 @@ LookViewWidget::LookViewWidget(QWidget *parent)
     : QListWidget(parent), m_lookWidget(nullptr), m_lookViewTabWidget(nullptr),
       m_displayMode(DisplayMode::Normal), m_readOnly(true)
 {
-    // setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
+    setSelectionMode(QAbstractItemView::SingleSelection);
 
     QObject::connect(this, &QListWidget::itemSelectionChanged, this, &LookViewWidget::updateSelection);
+}
+
+void LookViewWidget::mousePressEvent(QMouseEvent *event)
+{
+    QListWidgetItem * item = itemAt(event->pos());
+    if (!item)
+        clearSelection();
+
+    QListWidget::mousePressEvent(event);
 }
 
 void LookViewWidget::keyPressEvent(QKeyEvent *event)
@@ -119,10 +128,14 @@ void LookViewWidget::updateSelection()
     if (!m_lookViewTabWidget)
         return;
 
-    QListWidgetItem *item = currentItem();
-    if (item) {
+    QList<QListWidgetItem *> items = selectedItems();
+    if (!items.isEmpty()) {
+        QListWidgetItem * item = items[0];
         QString path = item->data(Qt::UserRole).toString();
         m_lookViewTabWidget->updateSelection(path);
+    }
+    else {
+        m_lookViewTabWidget->updateSelection("");
     }
 }
 

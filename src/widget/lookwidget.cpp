@@ -2,6 +2,7 @@
 #include "uiloader.h"
 #include "lookbrowserwidget.h"
 #include "lookviewtabwidget.h"
+#include "lookviewwidget.h"
 #include "lookdetailwidget.h"
 #include "lookselectionwidget.h"
 #include "../settings.h"
@@ -78,6 +79,9 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
             case Qt::Key_Up:
             case Qt::Key_Down: {
                 QObject *wantedTarget = m_viewTabWidget->currentView();
+                if (keyEvent->modifiers() & Qt::ShiftModifier)
+                    wantedTarget = m_selectWidget->viewWidget();
+
                 if (wantedTarget && obj != wantedTarget) {
                     QCoreApplication::sendEvent(wantedTarget, event);
                     return true;

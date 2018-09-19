@@ -68,6 +68,11 @@ void LookSelectionWidget::setLookWidget(LookWidget *lw)
     m_viewWidget->setLookViewTabWidget(m_lookWidget->lookViewTabWidget());
 }
 
+LookViewWidget * LookSelectionWidget::viewWidget()
+{
+    return m_viewWidget;
+}
+
 void LookSelectionWidget::clearSelection()
 {
     m_viewWidget->clear();

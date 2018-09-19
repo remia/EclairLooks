@@ -19,6 +19,8 @@ class LookSelectionWidget : public QWidget
   public:
     void setLookWidget(LookWidget *lw);
 
+    LookViewWidget * viewWidget();
+
     void clearSelection();
     void saveSelection();
     void loadSelection();

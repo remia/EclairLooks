@@ -41,6 +41,7 @@ LookSelectionWidget::LookSelectionWidget(QWidget *parent)
 
     vLayout->addLayout(hLayout);
 
+    QObject::connect(m_viewWidget, &QListWidget::itemSelectionChanged, this, &LookSelectionWidget::updateSelection);
     QObject::connect(m_clearBtn, &QToolButton::clicked, this, &LookSelectionWidget::clearSelection);
     QObject::connect(m_saveBtn, &QToolButton::clicked, this, &LookSelectionWidget::saveSelection);
     QObject::connect(m_loadBtn, &QToolButton::clicked, this, &LookSelectionWidget::loadSelection);
@@ -65,12 +66,23 @@ void LookSelectionWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
     m_viewWidget->setLookWidget(m_lookWidget);
-    m_viewWidget->setLookViewTabWidget(m_lookWidget->lookViewTabWidget());
 }
 
 LookViewWidget * LookSelectionWidget::viewWidget()
 {
     return m_viewWidget;
+}
+
+void LookSelectionWidget::updateSelection()
+{
+    QList<QListWidgetItem *> items = m_viewWidget->selectedItems();
+    if (!items.isEmpty()) {
+        QString path = items[0]->data(Qt::UserRole).toString();
+        EmitEvent<Select>(path);
+    }
+    else {
+        EmitEvent<Reset>();
+    }
 }
 
 void LookSelectionWidget::clearSelection()

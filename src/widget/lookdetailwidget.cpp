@@ -28,23 +28,23 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
 void LookDetailWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
-    installEventFilter(this);
+    installEventFilter(m_lookWidget);
     m_curveWidget->installEventFilter(m_lookWidget);
 }
 
-void LookDetailWidget::resetView()
+void LookDetailWidget::resetView(uint8_t id)
 {
     m_imageWidget->clearImage();
-    m_curveWidget->clearView();
+    m_curveWidget->clearCurve(id);
 }
 
-void LookDetailWidget::showDetail(const QString &path)
+void LookDetailWidget::showDetail(const QString &path, uint8_t id)
 {
     if (auto [valid, img] = m_lookWidget->lookPreview(path); valid) {
         m_imageWidget->setImage(m_lookWidget->fullImage());
         m_imageWidget->updateImage(img);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
-        m_curveWidget->drawCurves(img);
+        m_curveWidget->drawCurve(id, img);
     }
 }

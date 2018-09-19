@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../utils/generic.h"
+#include "../image.h"
 
 #include <vector>
+#include <map>
 
 #include <QtWidgets/QGraphicsView>
 
@@ -13,6 +15,16 @@ class QGraphicsView;
 class QGraphicsItem;
 class QGraphicsLineItem;
 class QGraphicsTextItem;
+class QGraphicsPathItem;
+class QVector3D;
+
+struct CurveItems {
+    Image image;
+    QGraphicsPathItem *curve[3];
+    QGraphicsLineItem *cursorHLine[3];
+    QGraphicsLineItem *cursorVLine;
+    QGraphicsTextItem *cursorText;
+};
 
 class CurveWidget : public QGraphicsView
 {
@@ -25,21 +37,18 @@ class CurveWidget : public QGraphicsView
 
   public:
     void clearView();
-    void drawCurves(const Image &img);
+
+    void drawCurve(uint8_t id, const Image &img);
+    void clearCurve(uint8_t id);
 
   private:
+    CurveItems initCurve(uint8_t id, const Image &img);
+
     void drawGrid();
-    void initCursor();
+    void drawCurve(const CurveItems &items);
     void drawCursor(uint16_t x, uint16_t y);
 
   private:
-    UPtr<Image> m_img;
-
     QGraphicsScene *m_scene;
-    std::vector<QGraphicsItem*> m_curveItems;
-    QGraphicsLineItem *m_cursorVLine;
-    QGraphicsLineItem *m_cursorHLineR;
-    QGraphicsLineItem *m_cursorHLineG;
-    QGraphicsLineItem *m_cursorHLineB;
-    QGraphicsTextItem *m_cursorText;
+    std::map<uint8_t, CurveItems> m_curves;
 };

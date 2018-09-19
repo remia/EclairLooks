@@ -63,8 +63,12 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
 
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showFolder, m_viewTabWidget, _1));
-    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget));
-    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1));
+
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 0));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 0));
+
+    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 1));
+    m_selectWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 1));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)

@@ -23,8 +23,6 @@ CurveWidget::CurveWidget(QWidget *parent)
     setScene(m_scene);
 
     drawGrid();
-    initCursor();
-    drawCursor(width() / 2, height() / 2);
 }
 
 void CurveWidget::resizeEvent(QResizeEvent *event)
@@ -39,38 +37,69 @@ void CurveWidget::mouseMoveEvent(QMouseEvent *event)
 
 void CurveWidget::clearView()
 {
-    for (auto item : m_curveItems)
-        m_scene->removeItem(item);
-    m_curveItems.clear();
+    for (auto& [k, v] : m_curves)
+        clearCurve(k);
 
-    m_img.reset();
+    m_curves.clear();
 }
 
-void CurveWidget::drawCurves(const Image &img)
+void CurveWidget::drawCurve(uint8_t id, const Image &img)
 {
-    clearView();
-    m_img.reset(new Image(img));
-
-    // Draw R, G, B curves
-    QPen pen;
-    QColor color[3] = { Qt::red, Qt::green, Qt::blue };
-
-    const float * pix = img.pixels_asfloat();
-    for (uint8_t c = 0; c < 3; ++c) {
-        QPainterPath path;
-        path.moveTo(0, grid_height - (grid_height * pix[c]));
-
-        for (uint32_t i = 0; i < img.width(); ++i) {
-            path.lineTo(
-                (1.0 * i / img.width()) * grid_width,
-                grid_height - (grid_height * pix[i * 3 + c]));
-        }
-
-        pen.setColor(color[c]);
-        QGraphicsPathItem *pathItem = m_scene->addPath(path, pen);
-        pathItem->setBrush(QColor(0, 0, 0, 0));
-        m_curveItems.push_back(pathItem);
+    CurveItems curveItems;
+    if (auto c = m_curves.find(id); c == m_curves.end()) {
+        m_curves[id] = initCurve(id, img);
+        curveItems = m_curves[id];
     }
+    else {
+        m_curves[id].image = img;
+        curveItems = m_curves[id];
+    }
+
+    drawCurve(curveItems);
+}
+
+void CurveWidget::clearCurve(uint8_t id)
+{
+    if (auto c = m_curves.find(id); c != m_curves.end()) {
+        CurveItems & items = c->second;
+
+        m_scene->removeItem(items.curve[0]);
+        m_scene->removeItem(items.curve[1]);
+        m_scene->removeItem(items.curve[2]);
+
+        m_scene->removeItem(items.cursorHLine[0]);
+        m_scene->removeItem(items.cursorHLine[1]);
+        m_scene->removeItem(items.cursorHLine[2]);
+
+        m_scene->removeItem(items.cursorVLine);
+        m_scene->removeItem(items.cursorText);
+        m_curves.erase(id);
+    }
+}
+
+CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
+{
+    CurveItems items;
+    QColor colors[3] = { Qt::red, Qt::green, Qt::blue };
+
+    QPen pen;
+    if (id == 1)
+        pen.setStyle(Qt::DashLine);
+
+    // Curves & Cursor
+    for (uint8_t i = 0; i < 3; ++i) {
+        pen.setColor(colors[i]);
+        items.curve[i] = m_scene->addPath(QPainterPath(), pen);
+        items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
+    }
+
+    pen.setColor(QColor(25, 25, 25));
+    items.cursorVLine = m_scene->addLine(QLineF(), pen);
+    items.cursorText = m_scene->addText("");
+
+    items.image = img;
+
+    return items;
 }
 
 void CurveWidget::drawGrid()
@@ -93,74 +122,70 @@ void CurveWidget::drawGrid()
     m_scene->addLine(0.0, grid_height, grid_width, 0.0, pen);
 }
 
-void CurveWidget::initCursor()
+void CurveWidget::drawCurve(const CurveItems &items)
 {
-    QPen pen;
+    const float * pix = items.image.pixels_asfloat();
 
-    pen.setColor(QColor(25, 25, 25));
-    m_cursorVLine = m_scene->addLine(QLineF(), pen);
+    for (uint8_t c = 0; c < 3; ++c) {
+        QPainterPath path;
+        path.moveTo(0, grid_height - (grid_height * pix[c]));
 
-    pen.setColor(QColor(255, 0, 0));
-    m_cursorHLineR = m_scene->addLine(QLineF(), pen);
-    pen.setColor(QColor(0, 255, 0));
-    m_cursorHLineG = m_scene->addLine(QLineF(), pen);
-    pen.setColor(QColor(0, 0, 255));
-    m_cursorHLineB = m_scene->addLine(QLineF(), pen);
+        for (uint32_t i = 0; i < items.image.width(); ++i) {
+            path.lineTo(
+                (1.0 * i / items.image.width()) * grid_width,
+                grid_height - (grid_height * pix[i * 3 + c]));
+        }
 
-    m_cursorText = m_scene->addText("");
+        items.curve[c]->setPath(path);
+    }
 }
 
 void CurveWidget::drawCursor(uint16_t x, uint16_t y)
 {
     QPointF scenePos = mapToScene(x, y);
 
+    // Clamp at normalized 0..1 range
     float inX = scenePos.x() / grid_width;
     inX = std::clamp(inX, 0.0f, 1.0f);
     scenePos.setX(inX * grid_width);
 
-    float outR, outG, outB;
-    outR = outG = outB = inX;
+    // Draw a cursor for each transforms
+    uint8_t count = 0;
+    for (auto& [name, items] : m_curves) {
 
-    QLineF vLine(scenePos.x(), 0, scenePos.x(), grid_height);
-    QLineF hLineR(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
-    QLineF hLineG(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
-    QLineF hLineB(0, grid_height - scenePos.x(), grid_width, grid_height - scenePos.x());
+        uint16_t inXInt = std::clamp((int) (inX * items.image.width()), 0, items.image.width() - 1);
+        const float * pix = items.image.pixels_asfloat();
 
-    if (m_img) {
-        uint16_t inXInt = std::clamp(
-            (int) (inX * m_img->width()), 0, m_img->width() - 1);
+        float out[3];
+        for (uint8_t i = 0; i < 3; ++i) {
+            out[i] = pix[inXInt * 3 + i];
+            items.cursorHLine[i]->setLine(QLineF(
+                0, grid_height - (out[i] * grid_height),
+                grid_width, grid_height - (out[i] * grid_height)));
+        }
 
-        const float * pix = m_img->pixels_asfloat();
-        outR = pix[inXInt * 3];
-        outG = pix[inXInt * 3 + 1];
-        outB = pix[inXInt * 3 + 2];
+        items.cursorVLine->setLine(QLineF(
+            scenePos.x(), 0, scenePos.x(), grid_height));
 
-        hLineR = QLineF(0, grid_height - (outR * grid_height), grid_width, grid_height - (outR * grid_height));
-        hLineG = QLineF(0, grid_height - (outG * grid_height), grid_width, grid_height - (outG * grid_height));
-        hLineB = QLineF(0, grid_height - (outB * grid_height), grid_width, grid_height - (outB * grid_height));
+        items.cursorText->setHtml(
+            QString(
+                "<font color=\"red\">%1</font>, "
+                "<font color=\"green\">%2</font>, "
+                "<font color=\"blue\">%3</font> "
+                "->"
+                "<font color=\"red\">%4</font>, "
+                "<font color=\"green\">%5</font>, "
+                "<font color=\"blue\">%6</font> ")
+                .arg(QString::number(inX, 'f', 5))
+                .arg(QString::number(inX, 'f', 5))
+                .arg(QString::number(inX, 'f', 5))
+                .arg(QString::number(out[0], 'f', 5))
+                .arg(QString::number(out[1], 'f', 5))
+                .arg(QString::number(out[2], 'f', 5))
+            );
+
+        items.cursorText->setPos(25, grid_height - 25 - count * 25);
+
+        count++;
     }
-
-    m_cursorVLine->setLine(vLine);
-    m_cursorHLineR->setLine(hLineR);
-    m_cursorHLineG->setLine(hLineG);
-    m_cursorHLineB->setLine(hLineB);
-
-    m_cursorText->setHtml(
-        QString(
-            "<font color=\"red\">%1</font>, "
-            "<font color=\"green\">%2</font>, "
-            "<font color=\"blue\">%3</font> "
-            "->"
-            "<font color=\"red\">%4</font>, "
-            "<font color=\"green\">%5</font>, "
-            "<font color=\"blue\">%6</font> ")
-            .arg(QString::number(inX, 'f', 5))
-            .arg(QString::number(inX, 'f', 5))
-            .arg(QString::number(inX, 'f', 5))
-            .arg(QString::number(outR, 'f', 5))
-            .arg(QString::number(outG, 'f', 5))
-            .arg(QString::number(outB, 'f', 5))
-        );
-
-    m_cursorText->setPos(25, grid_height - 25);
 }

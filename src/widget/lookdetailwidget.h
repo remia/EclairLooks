@@ -18,8 +18,8 @@ class LookDetailWidget : public QWidget
   public:
     void setLookWidget(LookWidget *lw);
 
-    void resetView();
-    void showDetail(const QString &path);
+    void resetView(uint8_t id);
+    void showDetail(const QString &path, uint8_t id);
 
   private:
     LookWidget *m_lookWidget;

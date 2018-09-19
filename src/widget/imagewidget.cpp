@@ -150,11 +150,9 @@ void ImageWidget::updateImage(const Image &img)
     if (m_textureIn.width() != img.width() || m_textureIn.height() != img.height()) {
         qCritical() << "ImageWidget : Invalid Texture Update\n";
         return;
-    }    
+    }
 
     m_textureOut.setData(pixelFormat, pixelType, img.pixels());
-
-    update();
 
     EmitEvent<Evt::Update>(m_textureOut);
 }
@@ -162,11 +160,8 @@ void ImageWidget::updateImage(const Image &img)
 void ImageWidget::clearImage()
 {
     makeCurrent();
-
     m_textureIn.destroy();
     m_textureOut.destroy();
-
-    update();
 }
 
 QMatrix4x4 ImageWidget::setupMVP() const
@@ -193,7 +188,6 @@ QMatrix4x4 ImageWidget::setupMVP() const
 
     // 3. Projection
     QMatrix4x4 projection;
-    // projection.ortho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 
     return projection * view * model;
 }

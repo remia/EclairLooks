@@ -100,12 +100,12 @@ void WaveformWidget::keyPressEvent(QKeyEvent *event)
 {
   switch (event->key()) {
       case Qt::Key_Plus:
-        m_alpha *= 1.05f;
+        m_alpha *= 1.2f;
         m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
         update();
         break;
       case Qt::Key_Minus:
-        m_alpha *= 0.95f;
+        m_alpha *= 0.8f;
         m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
         update();
         break;

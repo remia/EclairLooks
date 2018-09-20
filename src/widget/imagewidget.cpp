@@ -154,6 +154,8 @@ void ImageWidget::updateImage(const Image &img)
 
     m_textureOut.setData(pixelFormat, pixelType, img.pixels());
 
+    update();
+
     EmitEvent<Evt::Update>(m_textureOut);
 }
 
@@ -162,6 +164,7 @@ void ImageWidget::clearImage()
     makeCurrent();
     m_textureIn.destroy();
     m_textureOut.destroy();
+    update();
 }
 
 QMatrix4x4 ImageWidget::setupMVP() const

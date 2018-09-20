@@ -43,12 +43,13 @@ void LookViewTabWidget::showFolder(const QString &path)
     if (auto [exists, index] = tabExists(relPath); !exists) {
         LookViewWidget *lookViewWidget = new LookViewWidget();
         lookViewWidget->setLookWidget(m_lookWidget);
-        lookViewWidget->setLookViewTabWidget(this);
         lookViewWidget->appendFolder(dirPath);
 
         if (lookViewWidget->countLook() >= 1) {
             addTab(lookViewWidget, relPath);
             setCurrentIndex(count() - 1);
+
+            QObject::connect(lookViewWidget, &QListWidget::itemSelectionChanged, this, &LookViewTabWidget::selectionChanged);
         }
         else {
             delete lookViewWidget;
@@ -59,21 +60,23 @@ void LookViewTabWidget::showFolder(const QString &path)
     }
 }
 
-void LookViewTabWidget::updateSelection(const QString &path)
+void LookViewTabWidget::selectionChanged()
 {
-    if (path.isEmpty())
-        EmitEvent<Reset>();
-    else
-        EmitEvent<Select>(path);
+    LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
+    if (widget) {
+        QString path = widget->currentLook();
+        if (!path.isEmpty()) {
+            EmitEvent<Select>(path);
+            return;
+        }
+    }
+
+    EmitEvent<Reset>();
 }
 
 void LookViewTabWidget::tabChanged(int index)
 {
-    LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
-    if (widget)
-        widget->updateSelection();
-    else
-        EmitEvent<Reset>();
+    selectionChanged();
 }
 
 void LookViewTabWidget::tabClosed(int index)

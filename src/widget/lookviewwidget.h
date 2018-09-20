@@ -4,7 +4,6 @@
 
 
 class LookWidget;
-class LookViewTabWidget;
 class LookViewItemWidget;
 class QListWidget;
 class QListWidgetItem;
@@ -28,11 +27,11 @@ class LookViewWidget : public QListWidget
 
   public:
     void setLookWidget(LookWidget *lw);
-    void setLookViewTabWidget(LookViewTabWidget *w);
     void setDisplayMode(DisplayMode m);
     void setReadOnly(bool ro);
 
     uint16_t countLook() const;
+    QString currentLook() const;
     QStringList allLook() const;
     int indexLook(const QString &path) const;
 
@@ -40,7 +39,6 @@ class LookViewWidget : public QListWidget
     void appendFolder(const QString &path);
     void appendLook(const QString &path);
 
-    void updateSelection();
     void removeSelection(int selectedRow);
 
   private:
@@ -49,8 +47,6 @@ class LookViewWidget : public QListWidget
 
   private:
     LookWidget *m_lookWidget;
-    LookViewTabWidget *m_lookViewTabWidget;
-
     DisplayMode m_displayMode;
     bool m_readOnly;
 };

@@ -1,5 +1,4 @@
 #include "lookviewwidget.h"
-#include "lookviewtabwidget.h"
 #include "lookwidget.h"
 #include "imagewidget.h"
 #include "../image.h"
@@ -10,14 +9,12 @@
 // ----------------------------------------------------------------------------
 
 LookViewWidget::LookViewWidget(QWidget *parent)
-    : QListWidget(parent), m_lookWidget(nullptr), m_lookViewTabWidget(nullptr),
+    : QListWidget(parent), m_lookWidget(nullptr),
       m_displayMode(DisplayMode::Normal), m_readOnly(true)
 {
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
     setSelectionMode(QAbstractItemView::SingleSelection);
-
-    QObject::connect(this, &QListWidget::itemSelectionChanged, this, &LookViewWidget::updateSelection);
 }
 
 void LookViewWidget::mousePressEvent(QMouseEvent *event)
@@ -65,11 +62,6 @@ void LookViewWidget::setLookWidget(LookWidget *lw)
     installEventFilter(m_lookWidget);
 }
 
-void LookViewWidget::setLookViewTabWidget(LookViewTabWidget *w)
-{
-    m_lookViewTabWidget = w;
-}
-
 void LookViewWidget::setDisplayMode(DisplayMode m)
 {
     m_displayMode = m;
@@ -83,6 +75,15 @@ void LookViewWidget::setReadOnly(bool ro)
 uint16_t LookViewWidget::countLook() const
 {
     return count();
+}
+
+QString LookViewWidget::currentLook() const
+{
+    QListWidgetItem * item = currentItem();
+    if (item)
+        return item->data(Qt::UserRole).toString();
+
+    return "";
 }
 
 QStringList LookViewWidget::allLook() const
@@ -121,22 +122,6 @@ void LookViewWidget::appendFolder(const QString &path)
 void LookViewWidget::appendLook(const QString &path)
 {
     addLook(path);
-}
-
-void LookViewWidget::updateSelection()
-{
-    if (!m_lookViewTabWidget)
-        return;
-
-    QList<QListWidgetItem *> items = selectedItems();
-    if (!items.isEmpty()) {
-        QListWidgetItem * item = items[0];
-        QString path = item->data(Qt::UserRole).toString();
-        m_lookViewTabWidget->updateSelection(path);
-    }
-    else {
-        m_lookViewTabWidget->updateSelection("");
-    }
 }
 
 void LookViewWidget::removeSelection(int selectedRow)

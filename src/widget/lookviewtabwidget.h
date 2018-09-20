@@ -25,9 +25,9 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     void setLookWidget(LookWidget *lw);
 
     void showFolder(const QString &path);
-    void updateSelection(const QString &path);
 
   private:
+    void selectionChanged();
     void tabChanged(int index);
     void tabClosed(int index);
     TupleT<bool, uint16_t> tabExists(const QString &name);

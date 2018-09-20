@@ -145,7 +145,7 @@ void LookViewWidget::addLook(const QString &path)
     QListWidgetItem *item = new QListWidgetItem();
 
     if (m_displayMode != DisplayMode::Minimized) {
-        LookViewItemWidget *widget = new LookViewItemWidget(item);
+        LookViewItemWidget *widget = new LookViewItemWidget();
         widget->setPath(path);
         widget->setImage(QPixmap::fromImage(computeThumbnail(path)));
         widget->setup();
@@ -185,8 +185,8 @@ QImage LookViewWidget::computeThumbnail(const QString &path)
 
 // ----------------------------------------------------------------------------
 
-LookViewItemWidget::LookViewItemWidget(QListWidgetItem * item, QWidget * parent)
-: QWidget(parent), m_item(item)
+LookViewItemWidget::LookViewItemWidget(QWidget * parent)
+: QWidget(parent)
 {
 
 }

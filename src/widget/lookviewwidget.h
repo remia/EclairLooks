@@ -54,7 +54,7 @@ class LookViewWidget : public QListWidget
 class LookViewItemWidget : public QWidget
 {
   public:
-    LookViewItemWidget(QListWidgetItem *item, QWidget *parent = nullptr);
+    LookViewItemWidget(QWidget *parent = nullptr);
 
   public:
     QString path() const;
@@ -66,7 +66,6 @@ class LookViewItemWidget : public QWidget
     void setup();
 
   private:
-    QListWidgetItem * m_item;
     QLabel * m_thumbnail;
     QLabel * m_name;
     QLabel * m_date;

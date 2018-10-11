@@ -10,70 +10,41 @@
 #include <QtGui/QKeyEvent>
 
 
-static std::string geometryShaderSource = R"(
+std::string vertexShaderSource = R"(
     #version 410 core
-    layout (points) in;
-    layout (points, max_vertices = <p_max_vertices>) out;
-    layout (invocations = <p_invocations>) in;
+    out vec3 color;
 
-    out vec4 gColor;
-
-    uniform mat4 gMatrix;
-    uniform sampler2D imgTex;
-    uniform int drawMode; // 0 : R, 1 : G, 2 : B, 3 : RGB
+    uniform mat4 matrix;
+    uniform sampler2D v_tex;
+    uniform int width;
+    uniform int height;
+    uniform int channel;
 
     void main() {
-        int primitive_count = <p_max_vertices> / 3;
-        float start_offset = gl_InvocationID / (1.f * <p_invocations>);
+        int x = gl_VertexID % width;
+        int y = gl_VertexID / width;
+        vec2 pix = vec2(x, y) / vec2(width, height);
 
-        for (int i = 0; i < primitive_count; ++i) {
-            // Sample colour
+        float col = texture(v_tex, vec2(pix.x, 1.0f - pix.y))[channel];
+        gl_Position = vec4(pix.x, col, 0.0, 1.0);
+        gl_Position.xyz = (gl_Position.xyz * 2.0) - 1.;
+        gl_Position.y *= -1.;
+        gl_Position = matrix * gl_Position;
 
-            float x = (gl_in[0].gl_Position.x + 1.0) / 2.0f;
-            float y = start_offset + (i / (primitive_count - 1.f)) * (1.f / <p_invocations>);
-            vec4 colour = texture(imgTex, vec2(x, 1.0f - y));
-
-            // Emit points according to colour
-
-            if (drawMode == 0 || drawMode == 3) {
-                gl_Position = gl_in[0].gl_Position;
-                gl_Position.y = -1.f * ((colour.r * 2.0f) - 1.0f);
-                gl_Position = gMatrix * gl_Position;
-                gColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-                EmitVertex();
-                EndPrimitive();
-            }
-
-            if (drawMode == 1 || drawMode == 3) {
-                gl_Position = gl_in[0].gl_Position;
-                gl_Position.y = -1.f * ((colour.g * 2.0f) - 1.0f);
-                gl_Position = gMatrix * gl_Position;
-                gColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-                EmitVertex();
-                EndPrimitive();
-            }
-
-            if (drawMode == 2 || drawMode == 3) {
-                gl_Position = gl_in[0].gl_Position;
-                gl_Position.y = -1.f * ((colour.b * 2.0f) - 1.0f);
-                gl_Position = gMatrix * gl_Position;
-                gColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-                EmitVertex();
-                EndPrimitive();
-            }
-        }
+        color = vec3(0.0, 0.0, 0.0);
+        color[channel] = 1.0;
     }
 )";
 
 static std::string fragmentShaderSource = R"(
     #version 410 core
-    in vec4 gColor;
+    in vec3 color;
     layout(location = 0) out vec4 fragColor;
 
     uniform float alpha;
 
     void main() {
-       fragColor = vec4(gColor.rgb, alpha);
+       fragColor = vec4(color.rgb, alpha);
        fragColor.rgb = pow(fragColor.rgb, vec3(1./2.4));
     }
 )";
@@ -93,7 +64,7 @@ static std::string fragmentShaderSolidSource = R"(
 WaveformWidget::WaveformWidget(QWidget *parent)
     : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform"), m_textureSrc(nullptr)
 {
-    setDefaultScale(0.9);
+    setDefaultScale(1.0f);
 }
 
 void WaveformWidget::keyPressEvent(QKeyEvent *event)
@@ -129,11 +100,13 @@ void WaveformWidget::paintGL()
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
     GL_CHECK(glEnable(GL_BLEND));
-    GL_CHECK(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 
     if (m_scopeType == "Waveform") {
-        drawGraph(viewMatrix(), 3);
+        drawGraph(viewMatrix(), 0);
+        drawGraph(viewMatrix(), 1);
+        drawGraph(viewMatrix(), 2);
     }
     else if (m_scopeType == "Parade") {
         QMatrix4x4 m = viewMatrix();
@@ -221,50 +194,23 @@ void WaveformWidget::initScope(uint16_t w, uint16_t h)
 {
     makeCurrent();
 
-    GLint gl_max_vertices, gl_max_invocations;
-    glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &gl_max_vertices);
-    glGetIntegerv(GL_MAX_GEOMETRY_SHADER_INVOCATIONS, &gl_max_invocations);
-
-    int max_vertices = 240;
-    assert(max_vertices % 3 == 0);
-    assert(max_vertices < gl_max_vertices);
-    int invocations = std::ceil(h / (max_vertices / 3.f));
-    assert(invocations < gl_max_invocations);
-    qInfo() << "Waveform using" << invocations << " invocations with" << max_vertices << "vertices each !\n";
-
-    boost::replace_all(geometryShaderSource, "<p_max_vertices>", std::to_string(max_vertices));
-    boost::replace_all(geometryShaderSource, "<p_invocations>", std::to_string(invocations));
-
     m_programScope.removeAllShaders();
-    m_programScope.addShaderFromSourceCode(QOpenGLShader::Vertex, defaultVertexShader());
-    m_programScope.addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShaderSource.c_str());
+    m_programScope.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
     m_programScope.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
     m_programScope.link();
     if (!m_programScope.isLinked())
         qWarning() << m_programScope.log() << "\n";
 
-    GL_CHECK(m_scopeTextureUniform = m_programScope.uniformLocation("imgTex"));
+    GL_CHECK(m_scopeTextureUniform = m_programScope.uniformLocation("v_tex"));
     GL_CHECK(m_scopeAlphaUniform = m_programScope.uniformLocation("alpha"));
     GL_CHECK(m_scopeMatrixUniform = m_programScope.uniformLocation("matrix"));
-    GL_CHECK(m_scopegMatrixUniform = m_programScope.uniformLocation("gMatrix"));
-    GL_CHECK(m_scopeDrawModeUniform = m_programScope.uniformLocation("drawMode"));
+    GL_CHECK(m_scopeResolutionWUniform = m_programScope.uniformLocation("width"));
+    GL_CHECK(m_scopeResolutionHUniform = m_programScope.uniformLocation("height"));
+    GL_CHECK(m_scopeChannelUniform = m_programScope.uniformLocation("channel"));
 
     GL_CHECK(m_vaoScope.destroy());
     GL_CHECK(m_vaoScope.create());
     GL_CHECK(m_vaoScope.bind());
-
-    GLfloat vertices[w * 2];
-    for (int i = 0; i < w; ++i) {
-        vertices[i*2] = 2.0f * i / (w - 1.0f) - 1.0f;
-        vertices[i*2+1] = -1.0f;
-    };
-
-    GL_CHECK(m_verticesScope.destroy());
-    GL_CHECK(m_verticesScope.create());
-    GL_CHECK(m_verticesScope.bind());
-    GL_CHECK(m_verticesScope.allocate(vertices, sizeof(vertices)));
-    GL_CHECK(glEnableVertexAttribArray(AttributeLocation::Position));
-    GL_CHECK(glVertexAttribPointer(AttributeLocation::Position, 2, GL_FLOAT, GL_FALSE, 0, 0));
 
     GL_CHECK(m_vaoScope.release());
 }
@@ -277,7 +223,7 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
 
         GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
         GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
-        GL_CHECK(glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat)));
+        GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
 
     m_programLegend.release();
     m_vaoLegend.release();
@@ -288,18 +234,18 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
         return;
 
     float alpha = m_alpha;
-    if (mode != 3)
-        alpha /= 3.f;
+    alpha /= 3.f;
 
     GL_CHECK(m_vaoScope.bind());
     GL_CHECK(m_programScope.bind());
     GL_CHECK(m_textureSrc->bind());
 
-        GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, QMatrix4x4()));
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
-        GL_CHECK(m_programScope.setUniformValue(m_scopegMatrixUniform, m));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeDrawModeUniform, mode));
-        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_verticesScope.size() / sizeof(GLfloat)));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSrc->width()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSrc->height()));
+        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSrc->width() * m_textureSrc->height()));
 
     GL_CHECK(m_textureSrc->release());
     GL_CHECK(m_programScope.release());

@@ -41,12 +41,12 @@ class WaveformWidget : public TextureView
 
     QOpenGLShaderProgram m_programScope;
     QOpenGLVertexArrayObject m_vaoScope;
-    QOpenGLBuffer m_verticesScope;
     GLuint m_scopeAlphaUniform;
     GLuint m_scopeMatrixUniform;
-    GLuint m_scopegMatrixUniform;
     GLuint m_scopeTextureUniform;
-    GLuint m_scopeDrawModeUniform;
+    GLuint m_scopeChannelUniform;
+    GLuint m_scopeResolutionWUniform;
+    GLuint m_scopeResolutionHUniform;
 
     QOpenGLShaderProgram m_programLegend;
     QOpenGLVertexArrayObject m_vaoLegend;

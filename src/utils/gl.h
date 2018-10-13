@@ -12,9 +12,30 @@ inline void checkOpenGLError(const std::string &stmt, const std::string &file, i
 {
     QOpenGLFunctions glFuncs(QOpenGLContext::currentContext());
     GLenum err;
+
     while ((err = glFuncs.glGetError()) != GL_NO_ERROR) {
-        qCritical() << "OpenGL error " << err << " at " << QString::fromStdString(file)
-                    << ":" << line << " for " << QString::fromStdString(stmt) << "\n";
+        QString errorType;
+        switch (err) {
+            case GL_INVALID_OPERATION:
+                errorType = "INVALID_OPERATION";
+                break;
+            case GL_INVALID_ENUM:
+                errorType = "INVALID_ENUM";
+                break;
+            case GL_INVALID_VALUE:
+                errorType = "INVALID_VALUE";
+                break;
+            case GL_OUT_OF_MEMORY:
+                errorType = "OUT_OF_MEMORY";
+                break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+                errorType = "INVALID_FRAMEBUFFER_OPERATION";
+                break;
+        }
+
+        qCritical() << "OpenGL error" << errorType << "(" << err << ") at "
+                    << QString::fromStdString(file) << ":" << line << " for "
+                    << QString::fromStdString(stmt) << "\n";
     }
 }
 

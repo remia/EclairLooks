@@ -100,6 +100,7 @@ void ImageWidget::initializeGL()
 
 void ImageWidget::paintGL()
 {
+    GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
     bool texComplete = m_textureIn.isStorageAllocated();
@@ -119,7 +120,7 @@ void ImageWidget::paintGL()
     GL_CHECK(m_program.setUniformValue(m_textureUniformIn, 0));
     GL_CHECK(m_program.setUniformValue(m_textureUniformOut, 1));
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
 
     if (texComplete && m_textureIn.isBound()) {
         m_textureIn.release();

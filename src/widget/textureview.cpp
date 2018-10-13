@@ -192,19 +192,14 @@ QString TextureView::defaultFragmentShader() const
         layout(location = 0) out vec4 fragColor;
 
         uniform sampler2D imgTex;
-        uniform bool imgTexComplete;
 
         void main() {
-           if (!imgTexComplete)
-               fragColor = col;
-           else
-               fragColor = texture(imgTex, texCoord);
+           fragColor = texture(imgTex, texCoord);
         }
     )";
 
     return QString::fromStdString(source);
 }
-
 
 void TextureView::resetView()
 {

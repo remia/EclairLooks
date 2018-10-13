@@ -4,13 +4,12 @@
 
 #include <cassert>
 #include <cmath>
-#include <boost/algorithm/string/replace.hpp>
 
 #include <QtCore/QDebug>
 #include <QtGui/QKeyEvent>
 
 
-std::string vertexShaderSource = R"(
+static std::string vertexShaderSource = R"(
     #version 410 core
     out vec3 color;
 
@@ -27,7 +26,7 @@ std::string vertexShaderSource = R"(
 
         float col = texture(v_tex, vec2(pix.x, 1.0f - pix.y))[channel];
         gl_Position = vec4(pix.x, col, 0.0, 1.0);
-        gl_Position.xyz = (gl_Position.xyz * 2.0) - 1.;
+        gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
         gl_Position.y *= -1.;
         gl_Position = matrix * gl_Position;
 
@@ -64,7 +63,7 @@ static std::string fragmentShaderSolidSource = R"(
 WaveformWidget::WaveformWidget(QWidget *parent)
     : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform"), m_textureSrc(nullptr)
 {
-    setDefaultScale(1.0f);
+
 }
 
 void WaveformWidget::keyPressEvent(QKeyEvent *event)
@@ -92,6 +91,7 @@ void WaveformWidget::initializeGL()
     initializeOpenGLFunctions();
 
     initLegend();
+    initScope();
 }
 
 void WaveformWidget::paintGL()
@@ -102,11 +102,9 @@ void WaveformWidget::paintGL()
     GL_CHECK(glEnable(GL_BLEND));
     GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-
     if (m_scopeType == "Waveform") {
-        drawGraph(viewMatrix(), 0);
-        drawGraph(viewMatrix(), 1);
-        drawGraph(viewMatrix(), 2);
+        for (uint8_t i = 0; i < 3; ++i)
+            drawGraph(viewMatrix(), i);
     }
     else if (m_scopeType == "Parade") {
         QMatrix4x4 m = viewMatrix();
@@ -118,11 +116,6 @@ void WaveformWidget::paintGL()
             drawGraph(subm, i);
         }
     }
-}
-
-void WaveformWidget::resetTexture(const Image & img)
-{
-    initScope(img.width(), img.height());
 }
 
 void WaveformWidget::updateTexture(QOpenGLTexture & tex)
@@ -190,10 +183,8 @@ void WaveformWidget::initLegend()
     GL_CHECK(m_vaoLegend.release());
 }
 
-void WaveformWidget::initScope(uint16_t w, uint16_t h)
+void WaveformWidget::initScope()
 {
-    makeCurrent();
-
     m_programScope.removeAllShaders();
     m_programScope.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource.c_str());
     m_programScope.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
@@ -210,23 +201,20 @@ void WaveformWidget::initScope(uint16_t w, uint16_t h)
 
     GL_CHECK(m_vaoScope.destroy());
     GL_CHECK(m_vaoScope.create());
-    GL_CHECK(m_vaoScope.bind());
-
-    GL_CHECK(m_vaoScope.release());
 }
 
 void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
 {
     // Draw legend
-    m_vaoLegend.bind();
-    m_programLegend.bind();
+    GL_CHECK(m_vaoLegend.bind());
+    GL_CHECK(m_programLegend.bind());
 
         GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
         GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
         GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
 
-    m_programLegend.release();
-    m_vaoLegend.release();
+    GL_CHECK(m_programLegend.release());
+    GL_CHECK(m_vaoLegend.release());
 
     // Fill in waveform
     bool texComplete = m_textureSrc && m_textureSrc->isStorageAllocated();

@@ -22,14 +22,13 @@ class WaveformWidget : public TextureView
     void initializeGL() override;
     void paintGL() override;
 
-    void resetTexture(const Image & img);
     void updateTexture(QOpenGLTexture &tex);
 
     void setScopeType(const std::string &type);
 
   private:
     void initLegend();
-    void initScope(uint16_t w, uint16_t h);
+    void initScope();
 
     void drawGraph(const QMatrix4x4 &m, uint8_t mode);
 

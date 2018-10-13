@@ -55,7 +55,6 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
 
-    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&WaveformWidget::resetTexture, m_scopeWidget, _1));
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_scopeWidget, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));

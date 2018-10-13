@@ -4,6 +4,7 @@
 
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
+#include <OpenImageIO/filesystem.h>
 
 using namespace OIIO;
 
@@ -191,6 +192,9 @@ Image Image::resize(uint16_t in_width, uint16_t in_height, bool keepAspectRatio)
 
 bool Image::read(const std::string &path)
 {
+    if (path.empty())
+        return false;
+        
     m_imgBuf.reset(new ImageBuf(path));
     if (!m_imgBuf->read(0, 0, true, TypeDesc::FLOAT)) {
         qWarning() << "Could not open image !";
@@ -218,38 +222,34 @@ Image Image::FromFile(const std::string &path)
     return res;
 }
 
-// Image Image::FromBuffer(void * buffer, size_t size)
-// {
-//     ImageSpec config;
-//     Filesystem::IOMemReader memreader(buffer, size);
-//     void *ptr = &memreader;
-//     config.attribute("oiio:ioproxy", TypeDesc::PTR, &ptr);
-//
-//     ImageSpec spec;
-//     ImageInput *in = ImageInput::open("in.png", spec, &config);
-//     TypeDesc pixel_type = TypeDesc::FLOAT;
-//
-//     Image res;
-//     res.m_width = spec.width;
-//     res.m_height = spec.height;
-//     res.m_channels = spec.nchannels;
-//     res.m_type = PixelType::Float;
-//
-//     if (res.m_channels == 1)
-//         res.m_format = PixelFormat::GRAY;
-//     if (res.m_channels == 3)
-//         res.m_format = PixelFormat::RGB;
-//     else if (res.m_channels == 4)
-//         res.m_format = PixelFormat::RGBA;
-//
-//     res.m_pixels = std::vector<uint8_t>(res.m_width * res.m_height * res.m_channels * pixel_depth);
-//
-//     in->read_image(pixel_type, res.m_pixels.data());
-//     in->close();
-//
-//     ImageInput::destroy(in);
-//     return res;
-// }
+Image Image::FromBuffer(void * buffer, size_t size)
+{
+    ImageSpec config;
+    Filesystem::IOMemReader memreader(buffer, size);
+    void *ptr = &memreader;
+    config.attribute("oiio:ioproxy", TypeDesc::PTR, &ptr);
+
+    auto in = ImageInput::open("in.exr", &config);
+    if (! in) {
+        qWarning() << "Could not open image !";
+        return Image();
+    }
+    
+    ImageSpec spec = in->spec();
+    spec.set_format(TypeDesc::FLOAT);
+    PrintImageMetadata("Embeded", spec);
+    
+    Image res;
+    res.m_imgBuf.reset(new ImageBuf(spec));
+    in->read_image(
+        TypeDesc::FLOAT,
+        res.m_imgBuf->localpixels(),
+        res.m_imgBuf->pixel_stride(),
+        res.m_imgBuf->scanline_stride(),
+        res.m_imgBuf->z_stride());
+
+    return res;
+}
 
 Image Image::Ramp1D(uint16_t size, float min, float max, RampType t)
 {

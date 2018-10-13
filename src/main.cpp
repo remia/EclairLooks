@@ -35,8 +35,22 @@ int main(int argc, char **argv)
 
     // Pipeline & Operators
     ImagePipeline pipeline;
+    
+    // First try to load image from application settings
+    // If this fails, use default embeded image
     std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
-    pipeline.SetInput(Image::FromFile(imgPath));
+    Image img = Image::FromFile(imgPath);
+    
+    if (!img) {
+        QFile f = QFile(":/images/stresstest.exr");
+        if (f.open(QIODevice::ReadOnly)) {
+            QByteArray blob = f.readAll();
+            img = Image::FromBuffer((void *) blob.data(), blob.count());
+        }
+    }
+
+    if (img)
+        pipeline.SetInput(img);
 
     ImageOperatorList operators;
     operators.Register<OCIOMatrix>();
@@ -70,13 +84,6 @@ int main(int argc, char **argv)
     mainWindow.move(x, y);
 
     pipeline.Init();
-
-    // NOTE : Waiting for a OpenImageIO release that includes the new IOProxy feature
-    // QFile f = QFile(":/images/stresstest.png");
-    // if (f.open(QIODevice::ReadOnly)) {
-    //     QByteArray blob = f.readAll();
-    //     p.SetInput(Image::FromBuffer((void *) blob.data(), blob.count()));
-    // }
 
     return app.exec();
 }

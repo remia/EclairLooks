@@ -29,7 +29,7 @@ enum class RampType
     BLUE
 };
 
-namespace OpenImageIO_v1_8 { class ImageBuf; }
+namespace OpenImageIO_v1_9 { class ImageBuf; }
 
 class Image
 {
@@ -64,7 +64,7 @@ class Image
 
   public:
     static Image FromFile(const std::string &path);
-    // static Image FromBuffer(void *buffer, size_t size);
+    static Image FromBuffer(void *buffer, size_t size);
     static Image Ramp1D(uint16_t size, float min = 0.f, float max = 1.f, RampType t = RampType::NEUTRAL);
     static Image Lattice(uint16_t size, uint16_t maxwidth = 512);
 
@@ -83,5 +83,5 @@ class Image
     Image &operator/(const Image &rhs);
 
   private:
-    UPtr<OpenImageIO_v1_8::ImageBuf> m_imgBuf;
+    UPtr<OpenImageIO_v1_9::ImageBuf> m_imgBuf;
 };

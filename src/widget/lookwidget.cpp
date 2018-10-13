@@ -181,6 +181,9 @@ QWidget * LookWidget::setupUi()
 
 void LookWidget::setupPipeline()
 {
+    if (!m_mainWindow->pipeline()->GetInput())
+        return;
+
     m_image = std::make_unique<Image>(m_mainWindow->pipeline()->GetInput());
     m_imageProxy = std::make_unique<Image>(*m_image);
     *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());

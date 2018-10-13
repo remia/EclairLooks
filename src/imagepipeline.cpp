@@ -16,6 +16,9 @@ ImagePipeline::ImagePipeline()
 
 void ImagePipeline::SetInput(const Image & img)
 {
+    if (!img)
+        return;
+
     m_inputImg = img;
     m_outputImg = img;
 

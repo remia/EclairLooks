@@ -21,6 +21,7 @@ int main(int argc, char **argv)
     QCoreApplication::setOrganizationName("Ymagis");
     QCoreApplication::setOrganizationDomain("ymagis.com");
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 
     QSurfaceFormat format;
     format.setSamples(16);

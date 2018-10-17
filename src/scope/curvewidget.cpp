@@ -7,8 +7,16 @@
 #include <QtWidgets/QtWidgets>
 
 
-uint16_t grid_width = 400;
+uint16_t grid_width = 640;
 uint16_t grid_height = 400;
+
+QColor backgroundColor = QColor(39, 39, 44);
+QColor gridSmallColor = QColor(55, 56, 61);
+QColor gridLargeColor = QColor(69, 72, 77);
+QColor lineYColor = QColor(200, 200, 200);
+QColor lineRColor = QColor(200, 25, 25);
+QColor lineGColor = QColor(25, 200, 25);
+QColor lineBColor = QColor(25, 25, 200);
 
 CurveWidget::CurveWidget(QWidget *parent)
 : QGraphicsView(parent)
@@ -18,7 +26,7 @@ CurveWidget::CurveWidget(QWidget *parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewport(new QOpenGLWidget());
-    setBackgroundBrush(QBrush(QColor(Qt::white)));
+    setBackgroundBrush(QBrush(backgroundColor));
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     setScene(m_scene);
 
@@ -27,7 +35,7 @@ CurveWidget::CurveWidget(QWidget *parent)
 
 void CurveWidget::resizeEvent(QResizeEvent *event)
 {
-    fitInView(m_scene->itemsBoundingRect());
+    fitInView(m_scene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
 void CurveWidget::mouseMoveEvent(QMouseEvent *event)
@@ -80,7 +88,7 @@ void CurveWidget::clearCurve(uint8_t id)
 CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
 {
     CurveItems items;
-    QColor colors[3] = { Qt::red, Qt::green, Qt::blue };
+    QColor colors[3] = { lineRColor, lineGColor, lineBColor };
 
     QPen pen;
     if (id == 1)
@@ -93,7 +101,7 @@ CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
         items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
     }
 
-    pen.setColor(QColor(25, 25, 25));
+    pen.setColor(lineYColor);
     items.cursorVLine = m_scene->addLine(QLineF(), pen);
     items.cursorText = m_scene->addText("");
 
@@ -105,17 +113,27 @@ CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
 void CurveWidget::drawGrid()
 {
     QPen pen;
-    pen.setColor(QColor(125, 125, 125));
     pen.setWidth(1);
 
-    uint16_t grid_count = 17;
+    uint16_t grid_count = 5;
 
     // Draw Grid
     for (uint16_t i = 0; i <= grid_count; ++i) {
-        uint16_t x = i * (1.0 * grid_width / grid_count);
-        uint16_t y = i * (1.0 * grid_height / grid_count);
-        m_scene->addLine(x, 0, x, grid_width, pen);
-        m_scene->addLine(0, y, grid_height, y, pen);
+        pen.setColor(gridLargeColor);
+        uint16_t xi = i * (1.0 * grid_width / grid_count);
+        uint16_t yi = i * (1.0 * grid_height / grid_count);
+        m_scene->addLine(xi, 0, xi, grid_height, pen);
+        m_scene->addLine(0, yi, grid_width, yi, pen);
+
+        if (i < grid_count) {
+            pen.setColor(gridSmallColor);
+            for (uint16_t j = 1; j < grid_count; ++j) {
+                uint16_t xj = xi + j * (1.0 * grid_width / (grid_count * grid_count));
+                uint16_t yj = yi + j * (1.0 * grid_height / (grid_count * grid_count));
+                m_scene->addLine(xj, 0, xj, grid_height, pen);
+                m_scene->addLine(0, yj, grid_width, yj, pen);
+            }
+        }
     }
 
     // Draw identity curve
@@ -169,15 +187,12 @@ void CurveWidget::drawCursor(uint16_t x, uint16_t y)
 
         items.cursorText->setHtml(
             QString(
-                "<font color=\"red\">%1</font>, "
-                "<font color=\"green\">%2</font>, "
-                "<font color=\"blue\">%3</font> "
-                "->"
-                "<font color=\"red\">%4</font>, "
-                "<font color=\"green\">%5</font>, "
-                "<font color=\"blue\">%6</font> ")
-                .arg(QString::number(inX, 'f', 5))
-                .arg(QString::number(inX, 'f', 5))
+                "%1 - %2"
+                "=> "
+                "<font color=\"red\">%3</font> "
+                "<font color=\"green\">%4</font> "
+                "<font color=\"blue\">%5</font> ")
+                .arg(name)
                 .arg(QString::number(inX, 'f', 5))
                 .arg(QString::number(out[0], 'f', 5))
                 .arg(QString::number(out[1], 'f', 5))

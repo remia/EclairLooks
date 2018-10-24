@@ -46,7 +46,7 @@ ImageWidget::ImageWidget(QWidget *parent)
 
 void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+    if (QGuiApplication::keyboardModifiers() == Qt::NoModifier) {
         setMouseTracking(true);
         m_sliderPosition = widgetToNorm(event->localPos()).x();
     }
@@ -56,7 +56,7 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+    if (QGuiApplication::keyboardModifiers() == Qt::NoModifier) {
         m_sliderPosition = widgetToNorm(event->localPos()).x();
     }
 

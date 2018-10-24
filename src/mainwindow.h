@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
     MainWindow(QWidget *parent = nullptr);
 
   public:
+    void closeEvent(QCloseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     QSize sizeHint() const override;
 

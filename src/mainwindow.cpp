@@ -13,6 +13,27 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_pipeline(nullptr), m_operators(nullptr), m_settings(nullptr)
 {
     setWindowTitle("Eclair Look");
+
+    QSettings settings;
+    restoreGeometry(settings.value("mw/geometry").toByteArray());
+    restoreState(settings.value("mw/windowState").toByteArray());
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (QMessageBox::Yes == QMessageBox::question(
+        this, "Close Confirmation", "Are you sure to quit ?",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes)) {
+        QSettings settings;
+        settings.setValue("mw/geometry", saveGeometry());
+        settings.setValue("mw/windowState", saveState());
+        QMainWindow::closeEvent(event);
+
+        event->accept();
+        return;
+    }
+
+    event->ignore();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

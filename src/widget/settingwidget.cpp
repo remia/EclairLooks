@@ -12,6 +12,7 @@ SettingWidget::SettingWidget(Settings *settings, QWidget *parent)
 :   QWidget(parent), m_settings(settings)
 {
     QFormLayout *fLayout = new QFormLayout(this);
+    fLayout->setContentsMargins(4, 4, 4, 4);
     fLayout->setLabelAlignment(Qt::AlignLeft);
     fLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 

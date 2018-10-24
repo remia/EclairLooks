@@ -32,6 +32,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
 
     QWidget * w = setupUi();
     QVBoxLayout *layout = new QVBoxLayout();
+    layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
     setLayout(layout);
 

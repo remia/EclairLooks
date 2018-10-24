@@ -176,6 +176,7 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
     m_sliderParam = static_cast<SliderParameter*>(param);
 
     m_slider = new QSlider(Qt::Horizontal);
+    m_slider->setTickPosition(QSlider::TicksBelow);
     m_layout->addWidget(m_slider);
 
     UpdateWidget(*param);

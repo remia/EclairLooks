@@ -31,6 +31,11 @@ QLineEdit {
     border: 1px solid #1e1b18;
 }
 
+QComboBox {
+    border: 1px solid #1e1b18;
+    padding: 1px;
+}
+
 /*
  * *******************************
  *         Tab Widget
@@ -39,7 +44,7 @@ QLineEdit {
 
  /* The tab widget frame */
 QTabWidget::pane {
-    /* border: 1px solid #1e1b18; */
+    padding: 0px;
 }
 
 QTabWidget::tab-bar {
@@ -61,7 +66,7 @@ QTabBar::tab {
                                 stop: 0.5 #35322f, stop: 1.0 #5d5b59);
     border: 1px solid #1e1b18;
     border-bottom-color: #1e1b18;
-    min-width: 7ex;
+    min-width: 4ex;
     padding-top: 2px;
     padding-bottom: 2px;
     padding-left: 4px;
@@ -140,6 +145,10 @@ QListWidget#pipelineWidget {
 }
 
 QListWidget#operatorListWidget {
+    border: 1px solid #1e1b18;
+}
+
+QStackedWidget#operatorDetailWidget {
     border: 1px solid #1e1b18;
 }
 

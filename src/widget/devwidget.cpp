@@ -22,6 +22,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     QWidget * w = setupUi();
     QVBoxLayout *layout = new QVBoxLayout();
+    layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
     setLayout(layout);
 
@@ -34,11 +35,11 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
-    vSplitter->setSizes(QList<int>({75000, 25000}));
+    vSplitter->setSizes(QList<int>({65000, 35000}));
     QSplitter *hSplitterTop = findChild<QSplitter*>("hSplitterTop");
     hSplitterTop->setSizes(QList<int>({15000, 15000, 70000}));
     QSplitter *hSplitterBottom = findChild<QSplitter*>("hSplitterBottom");
-    hSplitterBottom->setSizes(QList<int>({15000, 45000, 40000}));
+    hSplitterBottom->setSizes(QList<int>({15000, 55000, 30000}));
 
     initPipelineView();
     initScopeView();

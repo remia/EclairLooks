@@ -103,18 +103,23 @@ void ImagePipeline::Compute()
     if (!m_inputImg)
         return;
 
+    m_outputImg = m_inputImg;
+    ComputeImage(m_outputImg);
+
+    EmitEvent<Evt::Update>(m_outputImg);
+}
+
+void ImagePipeline::ComputeImage(Image & img)
+{
     Chrono c;
     c.start();
 
-    m_outputImg = m_inputImg;
     for (auto & t : m_operators)
         if (!t->IsIdentity())
-            t->Apply(m_outputImg);
+            t->Apply(img);
 
     qInfo() << "Compute Pipeline in : " << fixed << qSetRealNumberPrecision(2)
             << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
-
-    EmitEvent<Evt::Update>(m_outputImg);
 }
 
 void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)
@@ -123,9 +128,7 @@ void ImagePipeline::ExportLUT(const std::string & filename, uint32_t size)
     Image lattice = Image::Lattice(size);
 
     // Run pipeline
-    for (auto & t : m_operators)
-        if (!t->IsIdentity())
-            t->Apply(lattice);
+    ComputeImage(lattice);
 
     // Extract lattice image to lut
     std::ofstream ofs(filename);

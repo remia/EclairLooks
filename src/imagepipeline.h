@@ -40,6 +40,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
 
     void Init();
     void Compute();
+    void ComputeImage(Image & img);
     void ExportLUT(const std::string &filename, uint32_t size);
 
   private:

@@ -1,5 +1,5 @@
 #include "parameterwidget.h"
-#include "../utils/parameter.h"
+#include "../parameter/parameter.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>

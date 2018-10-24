@@ -77,7 +77,7 @@ set(SOURCES
     src/scope/neutralwidget.cpp
     src/scope/waveformwidget.cpp
     src/utils/chrono.cpp
-    src/utils/parameterlist.cpp
+    src/parameter/parameterlist.cpp
 )
 
 qt5_add_resources(RESOURCES src/resources/res.qrc)

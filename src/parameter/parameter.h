@@ -3,11 +3,18 @@
 #include <string>
 #include <vector>
 
+#include "../utils/generic.h"
+#include "../utils/types.h"
+
+
+// TODO : Parameter are identified by the name field but it's also used for display
+// Need a proper identifier and an optional display name
 
 class Parameter
 {
   public:
     enum class Type {
+        Unknown,
         Text,
         Select,
         FilePath,
@@ -15,6 +22,7 @@ class Parameter
         CheckBox,
         Slider,
         Matrix4x4,
+        Curve,
     };
 
   public:
@@ -170,4 +178,37 @@ class Matrix4x4Parameter : public Parameter
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
+};
+
+class CurveParameter : public Parameter
+{
+  public:
+    CurveParameter() = default;
+    CurveParameter(const std::string &name) : Parameter(name, Type::Curve) {}
+    CurveParameter& operator=(const Parameter &rhs) override
+    {
+        *this = *static_cast<const CurveParameter*>(&rhs);
+        return *this;
+    }
+
+  public:
+    using ColorCallback = FuncT<ColorRGBA8(float x, float y)>;
+
+    struct CurveTool {
+        std::string name;
+
+        CoordinateSystem coordinate_system;
+        CurveInterpolation interpolation_method;
+
+        std::string axis_legend[2];
+        float axis_x_range[2];
+        float axis_y_range[2];
+
+        ColorRGBA8 background_color;
+        ColorCallback background_color_cb;
+
+        std::vector<Curve> curves;
+    };
+
+    std::vector<CurveTool> tools;
 };

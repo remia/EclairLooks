@@ -60,15 +60,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdynamic-exception-spec"
-#pragma clang diagnostic ignored "-Wregister"
-    #include <CtlRcPtr.h>
-    #include <CtlFunctionCall.h>
-    #include <CtlSimdInterpreter.h>
-    #include <CtlStdType.h>
-    #include <Iex.h>
-#pragma clang diagnostic pop
+#include <CtlRcPtr.h>
+#include <CtlFunctionCall.h>
+#include <CtlSimdInterpreter.h>
+#include <CtlStdType.h>
+#include <Iex.h>
 
 static int verbosity = 10;
 
@@ -330,7 +326,7 @@ void run_ctl_transform(const ctl_operation_t &ctl_operation, CTLResults *ctl_res
 	Ctl::SimdInterpreter interpreter;
 	Ctl::FunctionCallPtr fn;
 	Ctl::FunctionArgPtr arg;
-	CTLResults::iterator results_iter;
+	[[maybe_unused]] CTLResults::iterator results_iter;
 	char *name = NULL;
 	char *module;
 	char *slash;

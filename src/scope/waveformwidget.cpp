@@ -1,5 +1,6 @@
 #include "waveformwidget.h"
 #include "../image.h"
+#include "../utils/generic.h"
 #include "../utils/gl.h"
 
 #include <cassert>
@@ -177,8 +178,9 @@ void WaveformWidget::initLegend()
     GL_CHECK(m_verticesLegend.create());
     GL_CHECK(m_verticesLegend.bind());
     GL_CHECK(m_verticesLegend.allocate(vertices.data(), vertices.size() * sizeof(GLfloat)));
-    GL_CHECK(glEnableVertexAttribArray(AttributeLocation::Position));
-    GL_CHECK(glVertexAttribPointer(AttributeLocation::Position, 2, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(UnderlyingT(AttributeLocation::Position)));
+    GL_CHECK(glVertexAttribPointer(
+        UnderlyingT(AttributeLocation::Position), 2, GL_FLOAT, GL_FALSE, 0, 0));
 
     GL_CHECK(m_vaoLegend.release());
 }

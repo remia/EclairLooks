@@ -1,4 +1,5 @@
 #include "textureview.h"
+#include "../utils/generic.h"
 #include "../utils/gl.h"
 
 #include <cstdlib>
@@ -108,8 +109,9 @@ void TextureView::initializeGL()
     GL_CHECK(m_vertices.create());
     GL_CHECK(m_vertices.bind());
     GL_CHECK(m_vertices.allocate(vertices, sizeof(vertices)));
-    GL_CHECK(glEnableVertexAttribArray(AttributeLocation::Position));
-    GL_CHECK(glVertexAttribPointer(AttributeLocation::Position, 2, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(UnderlyingT(AttributeLocation::Position)));
+    GL_CHECK(glVertexAttribPointer(
+        UnderlyingT(AttributeLocation::Position), 2, GL_FLOAT, GL_FALSE, 0, 0));
 
     GLfloat colors[] = {
         1.0f, 0.0f, 0.0f,
@@ -123,8 +125,9 @@ void TextureView::initializeGL()
     GL_CHECK(m_colors.create());
     GL_CHECK(m_colors.bind());
     GL_CHECK(m_colors.allocate(colors, sizeof(colors)));
-    GL_CHECK(glEnableVertexAttribArray(AttributeLocation::Color));
-    GL_CHECK(glVertexAttribPointer(AttributeLocation::Color, 3, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(UnderlyingT(AttributeLocation::Color)));
+    GL_CHECK(glVertexAttribPointer(
+        UnderlyingT(AttributeLocation::Color), 3, GL_FLOAT, GL_FALSE, 0, 0));
 
     GLfloat texCoords[] = {
         0.0f, 0.0f,
@@ -138,8 +141,9 @@ void TextureView::initializeGL()
     GL_CHECK(m_texCoords.create());
     GL_CHECK(m_texCoords.bind());
     GL_CHECK(m_texCoords.allocate(texCoords, sizeof(texCoords)));
-    GL_CHECK(glEnableVertexAttribArray(AttributeLocation::TextureCoord));
-    GL_CHECK(glVertexAttribPointer(AttributeLocation::TextureCoord, 2, GL_FLOAT, GL_FALSE, 0, 0));
+    GL_CHECK(glEnableVertexAttribArray(UnderlyingT(AttributeLocation::TextureCoord)));
+    GL_CHECK(glVertexAttribPointer(
+        UnderlyingT(AttributeLocation::TextureCoord), 2, GL_FLOAT, GL_FALSE, 0, 0));
 
     GL_CHECK(m_vao.release());
 

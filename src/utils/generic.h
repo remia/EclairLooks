@@ -6,6 +6,7 @@
 #include <optional>
 #include <any>
 #include <tuple>
+#include <type_traits>
 
 
 template <typename T>
@@ -29,6 +30,13 @@ OptT<T> GetAny(const std::any & any) {
     }
 
     return OptT<T>();
+}
+
+template <typename T>
+auto UnderlyingT(T val)
+{
+    static_assert(std::is_enum<T>::value, "UnderlyingT requires an enum argument");
+    return static_cast<typename std::underlying_type<T>::type>(val);
 }
 
 template <class T> constexpr std::string_view type_name()

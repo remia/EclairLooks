@@ -15,7 +15,6 @@ class NeutralWidget;
 class OperatorListWidget;
 class QTabBar;
 class QStackedWidget;
-class QScrollArea;
 
 class DevWidget : public QWidget
 {
@@ -26,7 +25,7 @@ class DevWidget : public QWidget
     ImagePipeline *pipeline();
     ImageOperatorList *operators();
 
-    QScrollArea *operatorArea();
+    QStackedWidget *operatorArea();
 
   private:
     QWidget * setupUi();
@@ -42,7 +41,7 @@ class DevWidget : public QWidget
 
     ImageWidget *m_imageWidget;
     PipelineWidget *m_pipelineWidget;
-    QScrollArea *m_operatorWidget;
+    QStackedWidget *m_operatorWidget;
     OperatorListWidget *m_operatorsWidget;
 
     QStackedWidget *m_scopeStack;

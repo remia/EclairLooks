@@ -32,7 +32,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     m_imageWidget = findChild<ImageWidget*>("imageWidget");
     m_pipelineWidget = findChild<PipelineWidget*>("pipelineWidget");
-    m_operatorWidget = findChild<QScrollArea*>("operatorDetailWidget");
+    m_operatorWidget = findChild<QStackedWidget*>("operatorDetailWidget");
     m_operatorsWidget = findChild<OperatorListWidget*>("operatorListWidget");
     m_scopeStack = findChild<QStackedWidget*>("scopeStack");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
@@ -79,7 +79,7 @@ ImageOperatorList *DevWidget::operators()
     return m_mainWindow->operators();
 }
 
-QScrollArea* DevWidget::operatorArea()
+QStackedWidget* DevWidget::operatorArea()
 {
     return m_operatorWidget;
 }

@@ -77,6 +77,10 @@ void PipelineWidget::dropEvent(QDropEvent *e)
     for (auto op : operatorToAdd) {
        m_devWidget->pipeline()->AddOperator(op);
        initTransformationWidget(*op);
+
+       OperatorWidget *widget = new OperatorWidget(op);
+       m_devWidget->operatorArea()->insertWidget(count() - 1, widget);
+
        setCurrentRow(count() - 1);
        updateSelection(currentItem());
     }
@@ -102,10 +106,10 @@ void PipelineWidget::updateSelection(QListWidgetItem *item)
         return;
     if (!m_devWidget->operatorArea())
         return;
+    if (!m_devWidget->operatorArea()->widget(selectedRow))
+        return;
 
-    OperatorWidget *widget = new OperatorWidget(&m_devWidget->pipeline()->GetOperator(selectedRow));
-    m_devWidget->operatorArea()->setWidget(widget);
-    m_devWidget->operatorArea()->setWidgetResizable(true);
+    m_devWidget->operatorArea()->setCurrentIndex(selectedRow);
 }
 
 void PipelineWidget::disableSelection(int selectedRow)
@@ -121,8 +125,12 @@ void PipelineWidget::disableSelection(int selectedRow)
 
 void PipelineWidget::removeSelection(int selectedRow)
 {
-    if (m_devWidget->pipeline()->DeleteOperator(selectedRow)) {
+    if (selectedRow <= m_devWidget->pipeline()->OperatorCount()) {
         takeItem(selectedRow);
-        m_devWidget->operatorArea()->takeWidget();
+        QWidget *widget = m_devWidget->operatorArea()->widget(selectedRow);
+        m_devWidget->operatorArea()->removeWidget(widget);
+        delete widget;
+
+        m_devWidget->pipeline()->DeleteOperator(selectedRow);
     }
 }

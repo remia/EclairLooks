@@ -109,9 +109,12 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="OperatorListWidget" name="operatorListWidget" native="true"/>
-      <widget class="QScrollArea" name="operatorDetailWidget" native="true"/>
+      <widget class="QStackedWidget" name="operatorDetailWidget"/>
       <widget class="QWidget" name="scopeView" native="true">
        <layout class="QVBoxLayout" name="scopeVLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>

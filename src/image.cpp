@@ -81,19 +81,32 @@ TypeDesc PixelTypeToTypeDesc(PixelType type)
 // ----------------------------------------------------------------------------
 
 Image::Image()
+: m_imgBuf(std::make_unique<ImageBuf>())
 {
-    m_imgBuf = std::make_unique<ImageBuf>();
+
 }
 
 Image::Image(const Image &src)
+: m_imgBuf(std::make_unique<ImageBuf>())
 {
-    m_imgBuf = std::make_unique<ImageBuf>();
     m_imgBuf->copy(*src.m_imgBuf);
+}
+
+Image::Image(Image &&src)
+: m_imgBuf(std::move(src.m_imgBuf))
+{
+
 }
 
 Image& Image::operator=(const Image &src)
 {
     m_imgBuf->copy(*src.m_imgBuf);
+    return *this;
+}
+
+Image& Image::operator=(Image &&src)
+{
+    m_imgBuf = std::move(src.m_imgBuf);
     return *this;
 }
 

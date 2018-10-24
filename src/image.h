@@ -36,7 +36,9 @@ class Image
   public:
     Image();
     Image(const Image &src);
+    Image(Image &&src);
     Image & operator=(const Image &src);
+    Image & operator=(Image &&src);
     ~Image();
 
   public:

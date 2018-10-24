@@ -52,12 +52,18 @@ std::string OCIOFileTransform::OpName() const
 
 void OCIOFileTransform::OpApply(Image & img)
 {
+    Chrono c;
+    c.start();
+
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
         m_processor->apply(imgDesc);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Process Error: " << exception.what() << "\n";
     }
+
+    qInfo() << "OCIOFileTransform apply - " << fixed << qSetRealNumberPrecision(2)
+            << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
 }
 
 bool OCIOFileTransform::OpIsIdentity() const

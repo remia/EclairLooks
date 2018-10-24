@@ -37,8 +37,8 @@ void OperatorWidget::setupUi()
                     auto c = m_operator->Subscribe<IOP::UpdateGui>(std::bind(&PW::UpdateUi, paramWidget, _1));
                     QObject::connect(
                         paramWidget, &QWidget::destroyed,
-                        [&, c]() {
-                            m_operator->Unsubscribe<IOP::UpdateGui>(c);
+                        [&, op = m_operator, c]() {
+                            op->Unsubscribe<IOP::UpdateGui>(c);
                         }
                     );
 

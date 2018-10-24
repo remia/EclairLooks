@@ -71,16 +71,15 @@ class Image
   public:
     explicit operator bool() const;
 
-    Image &operator+(const Image &rhs);
+    Image operator+(const Image &rhs);
 
-    Image &operator-(const Image &rhs);
+    Image operator-(const Image &rhs);
 
-    Image &operator*(const Image &rhs);
+    Image operator*(const Image &rhs);
 
-    Image &operator*(float v);
     Image operator*(float v) const;
 
-    Image &operator/(const Image &rhs);
+    Image operator/(const Image &rhs);
 
   private:
     UPtr<OpenImageIO_v1_9::ImageBuf> m_imgBuf;

@@ -323,28 +323,25 @@ Image Image::Lattice(uint16_t size, uint16_t maxwidth)
 
 Image::operator bool() const { return (width() != 0 && height() != 0); }
 
-Image & Image::operator +(const Image & rhs)
+Image Image::operator +(const Image & rhs)
 {
-    ImageBufAlgo::add(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
-    return *this;
+    Image res = *this;
+    ImageBufAlgo::add(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
+    return res;
 }
 
-Image & Image::operator -(const Image & rhs)
+Image Image::operator -(const Image & rhs)
 {
-    ImageBufAlgo::sub(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
-    return *this;
+    Image res = *this;
+    ImageBufAlgo::sub(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
+    return res;
 }
 
-Image & Image::operator *(const Image & rhs)
+Image Image::operator *(const Image & rhs)
 {
-    ImageBufAlgo::mul(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
-    return *this;
-}
-
-Image & Image::operator *(float v)
-{
-    ImageBufAlgo::mul(*m_imgBuf, *m_imgBuf, v);
-    return *this;
+    Image res = *this;
+    ImageBufAlgo::mul(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
+    return res;
 }
 
 Image Image::operator *(float v) const
@@ -354,8 +351,9 @@ Image Image::operator *(float v) const
     return res;
 }
 
-Image & Image::operator /(const Image & rhs)
+Image Image::operator /(const Image & rhs)
 {
-    ImageBufAlgo::div(*m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
-    return *this;
+    Image res = *this;
+    ImageBufAlgo::div(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
+    return res;
 }

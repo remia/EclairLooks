@@ -7,7 +7,7 @@
 
 class LookWidget;
 class ImageWidget;
-class CurveWidget;
+class NeutralWidget;
 class QOpenGLWidget;
 
 class LookDetailWidget : public QWidget
@@ -24,6 +24,6 @@ class LookDetailWidget : public QWidget
   private:
     LookWidget *m_lookWidget;
     ImageWidget *m_imageWidget;
-    CurveWidget *m_curveWidget;
+    NeutralWidget *m_neutralsWidget;
     QOpenGLWidget *m_cubeWidget;
 };

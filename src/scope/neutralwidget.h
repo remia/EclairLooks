@@ -16,7 +16,6 @@ class QGraphicsItem;
 class QGraphicsLineItem;
 class QGraphicsTextItem;
 class QGraphicsPathItem;
-class QVector3D;
 
 struct CurveItems {
     Image image;
@@ -26,10 +25,10 @@ struct CurveItems {
     QGraphicsTextItem *cursorText;
 };
 
-class CurveWidget : public QGraphicsView
+class NeutralWidget : public QGraphicsView
 {
   public:
-    CurveWidget(QWidget *parent = nullptr);
+    NeutralWidget(QWidget *parent = nullptr);
 
   public:
     void resizeEvent(QResizeEvent *event) override;

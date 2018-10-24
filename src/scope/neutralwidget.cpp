@@ -1,4 +1,4 @@
-#include "curvewidget.h"
+#include "neutralwidget.h"
 #include "../utils/gl.h"
 #include "../image.h"
 
@@ -18,7 +18,7 @@ QColor lineRColor = QColor(200, 25, 25);
 QColor lineGColor = QColor(25, 200, 25);
 QColor lineBColor = QColor(25, 25, 200);
 
-CurveWidget::CurveWidget(QWidget *parent)
+NeutralWidget::NeutralWidget(QWidget *parent)
 : QGraphicsView(parent)
 {
     m_scene = new QGraphicsScene();
@@ -33,17 +33,17 @@ CurveWidget::CurveWidget(QWidget *parent)
     drawGrid();
 }
 
-void CurveWidget::resizeEvent(QResizeEvent *event)
+void NeutralWidget::resizeEvent(QResizeEvent *event)
 {
     fitInView(m_scene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
-void CurveWidget::mouseMoveEvent(QMouseEvent *event)
+void NeutralWidget::mouseMoveEvent(QMouseEvent *event)
 {
     drawCursor(event->x(), event->y());
 }
 
-void CurveWidget::clearView()
+void NeutralWidget::clearView()
 {
     for (auto& [k, v] : m_curves)
         clearCurve(k);
@@ -51,7 +51,7 @@ void CurveWidget::clearView()
     m_curves.clear();
 }
 
-void CurveWidget::drawCurve(uint8_t id, const Image &img)
+void NeutralWidget::drawCurve(uint8_t id, const Image &img)
 {
     CurveItems curveItems;
     if (auto c = m_curves.find(id); c == m_curves.end()) {
@@ -66,7 +66,7 @@ void CurveWidget::drawCurve(uint8_t id, const Image &img)
     drawCurve(curveItems);
 }
 
-void CurveWidget::clearCurve(uint8_t id)
+void NeutralWidget::clearCurve(uint8_t id)
 {
     if (auto c = m_curves.find(id); c != m_curves.end()) {
         CurveItems & items = c->second;
@@ -85,12 +85,13 @@ void CurveWidget::clearCurve(uint8_t id)
     }
 }
 
-CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
+CurveItems NeutralWidget::initCurve(uint8_t id, const Image &img)
 {
     CurveItems items;
     QColor colors[3] = { lineRColor, lineGColor, lineBColor };
 
     QPen pen;
+    pen.setWidth(2);
     if (id == 1)
         pen.setStyle(Qt::DashLine);
 
@@ -110,7 +111,7 @@ CurveItems CurveWidget::initCurve(uint8_t id, const Image &img)
     return items;
 }
 
-void CurveWidget::drawGrid()
+void NeutralWidget::drawGrid()
 {
     QPen pen;
     pen.setWidth(1);
@@ -140,7 +141,7 @@ void CurveWidget::drawGrid()
     m_scene->addLine(0.0, grid_height, grid_width, 0.0, pen);
 }
 
-void CurveWidget::drawCurve(const CurveItems &items)
+void NeutralWidget::drawCurve(const CurveItems &items)
 {
     const float * pix = items.image.pixels_asfloat();
 
@@ -158,7 +159,7 @@ void CurveWidget::drawCurve(const CurveItems &items)
     }
 }
 
-void CurveWidget::drawCursor(uint16_t x, uint16_t y)
+void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
 {
     QPointF scenePos = mapToScene(x, y);
 

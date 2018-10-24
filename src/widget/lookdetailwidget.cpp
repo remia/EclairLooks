@@ -1,7 +1,7 @@
 #include "lookdetailwidget.h"
 #include "lookwidget.h"
 #include "imagewidget.h"
-#include "../scope/curvewidget.h"
+#include "../scope/neutralwidget.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -10,12 +10,13 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
 :   QWidget(parent)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
+    vLayout->setContentsMargins(0, 0, 0, 0);
 
     QSplitter *hSplitter = new QSplitter(Qt::Horizontal);
     m_imageWidget = new ImageWidget();
     hSplitter->addWidget(m_imageWidget);
-    m_curveWidget = new CurveWidget();
-    hSplitter->addWidget(m_curveWidget);
+    m_neutralsWidget = new NeutralWidget();
+    hSplitter->addWidget(m_neutralsWidget);
     m_cubeWidget = new QOpenGLWidget();
     hSplitter->addWidget(m_cubeWidget);
 
@@ -29,13 +30,13 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
 {
     m_lookWidget = lw;
     installEventFilter(m_lookWidget);
-    m_curveWidget->installEventFilter(m_lookWidget);
+    m_neutralsWidget->installEventFilter(m_lookWidget);
 }
 
 void LookDetailWidget::resetView(uint8_t id)
 {
     m_imageWidget->clearImage();
-    m_curveWidget->clearCurve(id);
+    m_neutralsWidget->clearCurve(id);
 }
 
 void LookDetailWidget::showDetail(const QString &path, uint8_t id)
@@ -45,6 +46,6 @@ void LookDetailWidget::showDetail(const QString &path, uint8_t id)
         m_imageWidget->updateImage(img);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
-        m_curveWidget->drawCurve(id, img);
+        m_neutralsWidget->drawCurve(id, img);
     }
 }

@@ -2,15 +2,19 @@
 
 #include <QtWidgets/QWidget>
 
+#include "../utils/generic.h"
 
 class MainWindow;
 class ImagePipeline;
+class Image;
 class ImageOperatorList;
 class ImageWidget;
 class PipelineWidget;
 class WaveformWidget;
+class NeutralWidget;
 class OperatorListWidget;
 class QTabBar;
+class QStackedWidget;
 class QScrollArea;
 
 class DevWidget : public QWidget
@@ -31,6 +35,8 @@ class DevWidget : public QWidget
     void initOperatorsView();
     void initScopeView();
 
+    void updateCurve(const Image &img);
+
   private:
     MainWindow *m_mainWindow;
 
@@ -39,6 +45,11 @@ class DevWidget : public QWidget
     QScrollArea *m_operatorWidget;
     OperatorListWidget *m_operatorsWidget;
 
+    QStackedWidget *m_scopeStack;
     QTabBar *m_scopeTab;
-    WaveformWidget *m_scopeWidget;
+    WaveformWidget *m_waveformWidget;
+    NeutralWidget *m_neutralsWidget;
+
+    UPtr<Image> m_imageRamp;
+    UPtr<Image> m_imageCompute;
 };

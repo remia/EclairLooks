@@ -139,7 +139,13 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QTabBar" name="scopeBar" native="true"/>
+           <widget class="QTabBar" name="scopeBar" native="true">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer">
@@ -157,7 +163,9 @@
          </layout>
         </item>
         <item>
-         <widget class="WaveformWidget" name="scopeWidget" native="true"/>
+         <widget class="QStackedWidget" name="scopeStack">
+          <widget class="QWidget" name="scopeWidgetPage1"/>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -171,12 +179,6 @@
    <class>ImageWidget</class>
    <extends>QWidget</extends>
    <header>imagewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>WaveformWidget</class>
-   <extends>QWidget</extends>
-   <header>waveformwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

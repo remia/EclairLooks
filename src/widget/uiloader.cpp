@@ -27,10 +27,6 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         OperatorListWidget *w = new OperatorListWidget(parent);
         w->setObjectName(name);
         return w;
-    } else if (className == "WaveformWidget") {
-        WaveformWidget *w = new WaveformWidget(parent);
-        w->setObjectName(name);
-        return w;
     } else if (className == "LookBrowserWidget") {
         LookBrowserWidget *w = new LookBrowserWidget(parent);
         w->setObjectName(name);

@@ -5,9 +5,10 @@
 #include "operatorwidget.h"
 #include "operatorlistwidget.h"
 #include "../mainwindow.h"
+#include "../imagepipeline.h"
 #include "../operator/imageoperatorlist.h"
 #include "../scope/waveformwidget.h"
-#include "../imagepipeline.h"
+#include "../scope/neutralwidget.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
@@ -16,6 +17,9 @@
 DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     : QWidget(parent), m_mainWindow(mw)
 {
+    m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
+    m_imageCompute = std::make_unique<Image>(*m_imageRamp);
+
     //
     // Setup
     //
@@ -30,8 +34,11 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     m_pipelineWidget = findChild<PipelineWidget*>("pipelineWidget");
     m_operatorWidget = findChild<QScrollArea*>("operatorDetailWidget");
     m_operatorsWidget = findChild<OperatorListWidget*>("operatorListWidget");
+    m_scopeStack = findChild<QStackedWidget*>("scopeStack");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
-    m_scopeWidget = findChild<WaveformWidget*>("scopeWidget");
+
+    m_waveformWidget = new WaveformWidget();
+    m_neutralsWidget = new NeutralWidget();
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
@@ -55,8 +62,9 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateCurve, this, _1));
 
-    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_scopeWidget, _1));
+    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
 }
@@ -91,21 +99,33 @@ void DevWidget::initPipelineView()
 
 void DevWidget::initScopeView()
 {
+    m_scopeStack->addWidget(m_waveformWidget);
+    m_scopeStack->addWidget(m_neutralsWidget);
+    m_scopeStack->setCurrentWidget(m_waveformWidget);
+
     // NOTE : ideally we should make no assomptions of what scope mode are
     // available and discover them from the ScopeWidget class directly.
     m_scopeTab->setExpanding(false);
     m_scopeTab->addTab("W");
     m_scopeTab->addTab("P");
+    m_scopeTab->addTab("N");
 
     QObject::connect(
         m_scopeTab, &QTabBar::tabBarClicked,
         [&, this](int index) {
             QString tabText = this->m_scopeTab->tabText(index);
 
-            if (tabText == "W")
-                this->m_scopeWidget->setScopeType("Waveform");
-            else if (tabText == "P")
-                this->m_scopeWidget->setScopeType("Parade");
+            if (tabText == "W") {
+                this->m_scopeStack->setCurrentWidget(m_waveformWidget);
+                this->m_waveformWidget->setScopeType("Waveform");
+            }
+            else if (tabText == "P") {
+                this->m_scopeStack->setCurrentWidget(m_waveformWidget);
+                this->m_waveformWidget->setScopeType("Parade");
+            }
+            else if (tabText == "N") {
+                this->m_scopeStack->setCurrentWidget(m_neutralsWidget);
+            }
         }
     );
 }
@@ -113,4 +133,11 @@ void DevWidget::initScopeView()
 void DevWidget::initOperatorsView()
 {
     m_operatorsWidget->setDevWidget(this);
+}
+
+void DevWidget::updateCurve(const Image &img)
+{
+    *m_imageCompute = *m_imageRamp;
+    pipeline()->ComputeImage(*m_imageCompute);
+    m_neutralsWidget->drawCurve(0, *m_imageCompute);
 }

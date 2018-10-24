@@ -154,7 +154,6 @@ uint64_t Image::count() const
     return width() * height();
 }
 
-
 uint8_t const *Image::pixels() const
 {
     return static_cast<uint8_t*>(m_imgBuf->localpixels());
@@ -207,7 +206,7 @@ bool Image::read(const std::string &path)
 {
     if (path.empty())
         return false;
-        
+
     m_imgBuf.reset(new ImageBuf(path));
     if (!m_imgBuf->read(0, 0, true, TypeDesc::FLOAT)) {
         qWarning() << "Could not open image !";
@@ -247,11 +246,11 @@ Image Image::FromBuffer(void * buffer, size_t size)
         qWarning() << "Could not open image !";
         return Image();
     }
-    
+
     ImageSpec spec = in->spec();
     spec.set_format(TypeDesc::FLOAT);
     PrintImageMetadata("Embeded", spec);
-    
+
     Image res;
     res.m_imgBuf.reset(new ImageBuf(spec));
     in->read_image(

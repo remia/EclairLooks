@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
+#include <QSlider>
 
 #include "../utils/generic.h"
 #include "../utils/event_source.h"
@@ -13,6 +14,7 @@ class FilePathParameter;
 class CheckBoxParameter;
 class SliderParameter;
 class QVBoxLayout;
+class QHBoxLayout;
 class QTextEdit;
 class QComboBox;
 class QLineEdit;
@@ -92,6 +94,33 @@ class ParameterCheckBoxWidget : public ParameterWidget
     QCheckBox *m_checkBox;
 };
 
+class CustomSlider : public QSlider
+{
+    Q_OBJECT
+
+  public:
+    // : QSlider();
+    CustomSlider(QWidget *parent = 0);
+    CustomSlider(Qt::Orientation orientation, QWidget *parent = 0);
+    void SetLogSlider(bool);
+    bool isLogSlider();
+    void SetLogScaleFactor(double, double);
+    double GetLogScaleFactor();
+    double SliderToDisplayValue(double position);
+    double DisplayToSliderValue(double value);
+
+  protected:
+    void paintEvent(QPaintEvent *event);
+
+  private:
+    double m_logscaleFactor;
+    double m_minv;
+    double m_maxv;
+    double m_minp;
+    double m_maxp;
+    bool m_islogSlider;
+};
+
 class ParameterSliderWidget : public ParameterWidget
 {
   public:
@@ -102,7 +131,9 @@ class ParameterSliderWidget : public ParameterWidget
 
   private:
     SliderParameter *m_sliderParam;
-    QSlider *m_slider;
+    QHBoxLayout *m_sliderLayout;
+    CustomSlider *m_slider;
+    QLineEdit *m_ledit;
 };
 
 ParameterWidget* WidgetFromParameter(Parameter *p);

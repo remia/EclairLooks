@@ -144,7 +144,7 @@ class SliderParameter : public Parameter
 {
   public:
     SliderParameter() = default;
-    SliderParameter(const std::string &name, float value, float min, float max, float step) : Parameter(name, Type::Slider), value(value), default_value(value), min(min), max(max), step(step) {}
+    SliderParameter(const std::string &name, float value, float min, float max, float step, bool isLog) : Parameter(name, Type::Slider), value(value), default_value(value), min(min), max(max), step(step), isLog(isLog) {}
     SliderParameter& operator=(const Parameter &rhs) override
     {
         *this = *static_cast<const SliderParameter*>(&rhs);
@@ -157,6 +157,7 @@ class SliderParameter : public Parameter
     float min;
     float max;
     float step;
+    bool isLog; /*Specify if the slider is log based*/
 };
 
 class Matrix4x4Parameter : public Parameter

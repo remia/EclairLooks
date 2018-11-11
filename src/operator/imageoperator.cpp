@@ -15,9 +15,10 @@ std::string ImageOperator::m_defaultCategory = "Global";
 ImageOperator::ImageOperator()
 {
     AddParameter(CheckBoxParameter{ "Enabled", true });
-    AddParameter(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f });
-    AddParameter(SliderParameter{ "Contrast", 100.0f, 0.0f, 100.0f, 1.0f });
-    AddParameter(SliderParameter{ "Color", 100.0f, 0.0f, 100.0f, 1.0f });
+    AddParameter(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f ,false});
+    AddParameter(SliderParameter{ "Contrast", 100.0f, 0.0f, 100.0f, 1.0f , false});
+    AddParameter(SliderParameter{ "Color", 100.0f, 0.0f, 100.0f, 1.0f, false });
+    AddParameter(SliderParameter{ "DummyLogParam", 100.0f, 1.0f, 10000.0f, 1.0f, true });
 
     using std::placeholders::_1;
     Subscribe<UpdateOp>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));

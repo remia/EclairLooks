@@ -268,7 +268,7 @@ Image Image::Ramp1D(uint16_t size, float min, float max, RampType t)
     ImageSpec spec;
     spec.width = size;
     spec.height = 1;
-    spec.nchannels = 3;
+    spec.nchannels = t == RampType::GRAY ? 1 : 3;
     spec.set_format(TypeDesc::FLOAT);
 
     Image res;
@@ -276,20 +276,22 @@ Image Image::Ramp1D(uint16_t size, float min, float max, RampType t)
 
     uint64_t i = 0;
     for (ImageBuf::Iterator<float> it(*res.m_imgBuf); !it.done(); ++it, ++i) {
-        if (t == RampType::NEUTRAL) {
+        if (t == RampType::GRAY) {
+            it[0] = 1.0f * i / (spec.width - 1);
+        } else if (t == RampType::NEUTRAL) {
             it[0] = 1.0f * i / (spec.width - 1);
             it[1] = 1.0f * i / (spec.width - 1);
             it[2] = 1.0f * i / (spec.width - 1);
         } else if (t == RampType::RED) {
-            it[i * 3] = 1.0f * i / (spec.width - 1);
+            it[0] = 1.0f * i / (spec.width - 1);
             it[1] = 0.0f;
             it[2] = 0.0f;
         } else if (t == RampType::GREEN) {
-            it[i * 3] = 0.0f;
+            it[0] = 0.0f;
             it[1] = 1.0f * i / (spec.width - 1);
             it[2] = 0.0f;
         } else if (t == RampType::BLUE) {
-            it[i * 3] = 0.0f;
+            it[0] = 0.0f;
             it[1] = 0.0f;
             it[2] = 1.0f * i / (spec.width - 1);
         }

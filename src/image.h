@@ -23,6 +23,7 @@ enum class PixelFormat
 
 enum class RampType
 {
+    GRAY,
     NEUTRAL,
     RED,
     GREEN,

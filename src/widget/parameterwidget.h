@@ -96,14 +96,10 @@ class ParameterCheckBoxWidget : public ParameterWidget
 
 class CustomSlider : public QSlider
 {
-    Q_OBJECT
-
   public:
-    // : QSlider();
-    CustomSlider(QWidget *parent = 0);
-    CustomSlider(Qt::Orientation orientation, QWidget *parent = 0);
-    void SetLogSlider(bool);
-    bool isLogSlider();
+    using QSlider::QSlider;
+    CustomSlider(Qt::Orientation orientation, QWidget *parent = 0): QSlider(orientation, parent), m_isLogSlider(false){} 
+    void SetLogSlider();
     void SetLogScaleFactor(double, double);
     double GetLogScaleFactor();
     double SliderToDisplayValue(double position);
@@ -118,7 +114,7 @@ class CustomSlider : public QSlider
     double m_maxv;
     double m_minp;
     double m_maxp;
-    bool m_islogSlider;
+    bool m_isLogSlider;
 };
 
 class ParameterSliderWidget : public ParameterWidget

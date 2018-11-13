@@ -2,6 +2,8 @@
 
 #include "utils/generic.h"
 
+#include <OpenImageIO/oiioversion.h>
+
 
 enum class PixelType
 {
@@ -30,7 +32,7 @@ enum class RampType
     BLUE
 };
 
-namespace OpenImageIO_v1_9 { class ImageBuf; }
+namespace OIIO_NAMESPACE { class ImageBuf; }
 
 class Image
 {
@@ -85,5 +87,5 @@ class Image
     Image operator/(const Image &rhs);
 
   private:
-    UPtr<OpenImageIO_v1_9::ImageBuf> m_imgBuf;
+    UPtr<OIIO::ImageBuf> m_imgBuf;
 };

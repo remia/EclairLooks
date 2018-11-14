@@ -98,7 +98,7 @@ class CustomSlider : public QSlider
 {
   public:
     using QSlider::QSlider;
-    CustomSlider(Qt::Orientation orientation, QWidget *parent = 0): QSlider(orientation, parent), m_isLogSlider(false){} 
+    CustomSlider(Qt::Orientation orientation, QWidget *parent = 0): QSlider(orientation, parent){} 
     void SetLogSlider();
     void SetLogScaleFactor(double, double);
     double GetLogScaleFactor();
@@ -114,7 +114,7 @@ class CustomSlider : public QSlider
     double m_maxv;
     double m_minp;
     double m_maxp;
-    bool m_isLogSlider;
+    bool m_isLogSlider = false;
 };
 
 class ParameterSliderWidget : public ParameterWidget

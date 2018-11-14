@@ -140,11 +140,18 @@ class CheckBoxParameter : public Parameter
     bool default_value;
 };
 
+
+
+
 class SliderParameter : public Parameter
 {
   public:
+    enum SliderScale {
+        Linear,
+        Log,
+    };
     SliderParameter() = default;
-    SliderParameter(const std::string &name, float value, float min, float max, float step) : Parameter(name, Type::Slider), value(value), default_value(value), min(min), max(max), step(step) {}
+    SliderParameter(const std::string &name, float value, float min, float max, float step, SliderScale scale) : Parameter(name, Type::Slider), value(value), default_value(value), min(min), max(max), step(step), scale(scale) {}
     SliderParameter& operator=(const Parameter &rhs) override
     {
         *this = *static_cast<const SliderParameter*>(&rhs);
@@ -157,6 +164,7 @@ class SliderParameter : public Parameter
     float min;
     float max;
     float step;
+    SliderScale scale; 
 };
 
 class Matrix4x4Parameter : public Parameter

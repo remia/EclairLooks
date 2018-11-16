@@ -2,6 +2,7 @@
 #include "lookwidget.h"
 #include "imagewidget.h"
 #include "../scope/neutralwidget.h"
+#include "../scope/cubewidget.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -17,11 +18,11 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
     hSplitter->addWidget(m_imageWidget);
     m_neutralsWidget = new NeutralWidget();
     hSplitter->addWidget(m_neutralsWidget);
-    m_cubeWidget = new QOpenGLWidget();
+    m_cubeWidget = new CubeWidget();
     hSplitter->addWidget(m_cubeWidget);
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
-    hSplitter->setSizes(QList<int>({58000, 42000, 00000}));
+    hSplitter->setSizes(QList<int>({33333, 33333, 33333}));
 
     vLayout->addWidget(hSplitter);
 }
@@ -47,5 +48,8 @@ void LookDetailWidget::showDetail(const QString &path, uint8_t id)
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
         m_neutralsWidget->drawCurve(id, img);
+    }
+    if (auto [valid, img] = m_lookWidget->lookPreviewLattice(path); valid) {
+        m_cubeWidget->drawCube(img);
     }
 }

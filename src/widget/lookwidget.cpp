@@ -25,6 +25,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
+    m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
 
     //
     // Setup
@@ -159,6 +160,11 @@ TupleT<bool, Image &> LookWidget::lookPreviewProxy(const QString &lookPath)
 TupleT<bool, Image &> LookWidget::lookPreviewRamp(const QString &lookPath)
 {
     return _lookPreview(lookPath, *m_imageRamp);
+}
+
+TupleT<bool, Image &> LookWidget::lookPreviewLattice(const QString &lookPath)
+{
+    return _lookPreview(lookPath, *m_imageLattice);
 }
 
 TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)

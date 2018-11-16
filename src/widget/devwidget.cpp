@@ -9,6 +9,7 @@
 #include "../operator/imageoperatorlist.h"
 #include "../scope/waveformwidget.h"
 #include "../scope/neutralwidget.h"
+#include "../scope/cubewidget.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
@@ -18,6 +19,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     : QWidget(parent), m_mainWindow(mw)
 {
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
+    m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
     m_imageCompute = std::make_unique<Image>(*m_imageRamp);
 
     //
@@ -39,6 +41,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 
     m_waveformWidget = new WaveformWidget();
     m_neutralsWidget = new NeutralWidget();
+    m_cubeWidget = new CubeWidget();
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
@@ -63,6 +66,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateCurve, this, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateCube, this, _1));
 
     m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
 
@@ -101,6 +105,7 @@ void DevWidget::initScopeView()
 {
     m_scopeStack->addWidget(m_waveformWidget);
     m_scopeStack->addWidget(m_neutralsWidget);
+    m_scopeStack->addWidget(m_cubeWidget);
     m_scopeStack->setCurrentWidget(m_waveformWidget);
 
     // NOTE : ideally we should make no assomptions of what scope mode are
@@ -109,6 +114,7 @@ void DevWidget::initScopeView()
     m_scopeTab->addTab("W");
     m_scopeTab->addTab("P");
     m_scopeTab->addTab("N");
+    m_scopeTab->addTab("C");
 
     QObject::connect(
         m_scopeTab, &QTabBar::tabBarClicked,
@@ -126,6 +132,9 @@ void DevWidget::initScopeView()
             else if (tabText == "N") {
                 this->m_scopeStack->setCurrentWidget(m_neutralsWidget);
             }
+            else if (tabText == "C") {
+                this->m_scopeStack->setCurrentWidget(m_cubeWidget);
+            }
         }
     );
 }
@@ -140,4 +149,11 @@ void DevWidget::updateCurve(const Image &img)
     *m_imageCompute = *m_imageRamp;
     pipeline()->ComputeImage(*m_imageCompute);
     m_neutralsWidget->drawCurve(0, *m_imageCompute);
+}
+
+void DevWidget::updateCube(const Image &img)
+{
+    *m_imageCompute = *m_imageLattice;
+    pipeline()->ComputeImage(*m_imageCompute);
+    m_cubeWidget->drawCube(*m_imageCompute);
 }

@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     format.setSwapBehavior(QSurfaceFormat::TripleBuffer);
     format.setSwapInterval(1);
     format.setVersion(3, 2);
+    format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 
     // Settings

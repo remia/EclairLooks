@@ -12,6 +12,7 @@ class ImageWidget;
 class PipelineWidget;
 class WaveformWidget;
 class NeutralWidget;
+class CubeWidget;
 class OperatorListWidget;
 class QTabBar;
 class QStackedWidget;
@@ -35,6 +36,7 @@ class DevWidget : public QWidget
     void initScopeView();
 
     void updateCurve(const Image &img);
+    void updateCube(const Image &img);
 
   private:
     MainWindow *m_mainWindow;
@@ -48,7 +50,9 @@ class DevWidget : public QWidget
     QTabBar *m_scopeTab;
     WaveformWidget *m_waveformWidget;
     NeutralWidget *m_neutralsWidget;
+    CubeWidget *m_cubeWidget;
 
     UPtr<Image> m_imageRamp;
+    UPtr<Image> m_imageLattice;
     UPtr<Image> m_imageCompute;
 };

@@ -37,6 +37,7 @@ class LookWidget : public QWidget
     TupleT<bool, Image &> lookPreview(const QString &lookPath);
     TupleT<bool, Image &> lookPreviewProxy(const QString &lookPath);
     TupleT<bool, Image &> lookPreviewRamp(const QString &lookPath);
+    TupleT<bool, Image &> lookPreviewLattice(const QString &lookPath);
 
   private:
     void setupPipeline();
@@ -63,6 +64,7 @@ class LookWidget : public QWidget
     UPtr<Image> m_image;
     UPtr<Image> m_imageProxy;
     UPtr<Image> m_imageRamp;
+    UPtr<Image> m_imageLattice;
     UPtr<ImagePipeline> m_pipeline;
     QSize m_proxySize;
 };

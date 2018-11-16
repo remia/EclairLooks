@@ -203,7 +203,7 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
                          p2->setValue(m_slider->DisplayToSliderValue(p3->text().toInt()));
                          EmitEvent<Update>(*p1);
                      });
-} 
+}
 
 
 void ParameterSliderWidget::UpdateWidget(const Parameter &p)
@@ -211,7 +211,7 @@ void ParameterSliderWidget::UpdateWidget(const Parameter &p)
     const SliderParameter *sp = static_cast<const SliderParameter*>(&p);
 
     if (sp->scale==SliderParameter::SliderScale::Log) {
-        /*In case of log slider, we map 0 -> 100 values to exp values*/ 
+        /*In case of log slider, we map 0 -> 100 values to exp values*/
         m_slider->setMinimum(0);
         m_slider->setMaximum(100);
         m_slider->setSingleStep(sp->step);
@@ -293,27 +293,29 @@ double CustomSlider::GetLogScaleFactor()
 void CustomSlider::paintEvent(QPaintEvent *event)
 {
     QSlider::paintEvent(event);
-    QStyle *st = style();
+
     QPainter p(this);
-    int v = this->minimum();
+    QFont font = p.font() ;
+    font.setPointSize(font.pointSize() - 3);
+    p.setFont(font);
+
+    QStyle *st = style();
     QStyleOptionSlider slider;
     slider.initFrom(this);
-    int len = st->pixelMetric(QStyle::PM_SliderLength, &slider, this);
     int available = st->pixelMetric(QStyle::PM_SliderSpaceAvailable, &slider, this);
     int tickStep  = (this->tickInterval() == 0) ? (this->maximum() / 4 ) : this->tickInterval();
+
     QRect r;
     p.drawText(rect(), Qt::TextDontPrint, QString::number(9999), &r);
 
+
+    int v = this->minimum();
     while (v < this->maximum()) {
         QString vs = QString::number(v);
 
         int left = QStyle::sliderPositionFromValue(minimum(), maximum(), v, available);
-        int left_next = QStyle::sliderPositionFromValue(minimum(), maximum(),
-                                                        v + tickInterval(), available);
-        
 
         QPoint pos(left, rect().bottom());
-        int right = left + r.width();
         p.drawText(pos, QString::number(this->SliderToDisplayValue(v)));
         v += tickStep;
     }

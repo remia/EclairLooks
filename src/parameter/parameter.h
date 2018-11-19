@@ -67,7 +67,7 @@ class SelectParameter : public Parameter
             value = default_value = choices[0];
     }
     SelectParameter(const std::string &name, std::vector<std::string> choices, const std::string &default_value)
-    : Parameter(name, Type::Select), default_value(default_value), choices(choices)
+    : Parameter(name, Type::Select), value(default_value), default_value(default_value), choices(choices)
     {
 
     }

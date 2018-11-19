@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     // Make sure we use C locale to parse float
     // This need to be placed right after QApplication initialization
     // See : http://doc.qt.io/qt-5/qcoreapplication.html#locale-settings
-    setlocale(LC_NUMERIC,"C");
+    QLocale::setDefault(QLocale("C"));
 
     QFile cssFile(":/css/application.css");
     cssFile.open(QFile::ReadOnly);

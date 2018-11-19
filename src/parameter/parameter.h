@@ -164,7 +164,7 @@ class SliderParameter : public Parameter
     float min;
     float max;
     float step;
-    SliderScale scale; 
+    SliderScale scale;
 };
 
 class Matrix4x4Parameter : public Parameter

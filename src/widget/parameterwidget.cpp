@@ -1,6 +1,7 @@
 #include "parameterwidget.h"
+#include "common/slider.h"
 #include "../parameter/parameter.h"
-#include <cmath>
+
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
@@ -177,30 +178,35 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
     m_sliderParam = static_cast<SliderParameter*>(param);
 
     m_sliderLayout = new QHBoxLayout;
-    m_slider       = new CustomSlider(Qt::Horizontal);
-    m_slider->setTickPosition(QSlider::TicksBelow);
-    m_slider->setTickInterval(25);
+    m_slider = new Slider(Qt::Horizontal);
     m_sliderLayout->addWidget(m_slider);
 
     m_ledit = new QLineEdit(QString("%1").arg(m_sliderParam->value));
-    m_ledit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    m_sliderLayout->addWidget(m_ledit);
+    m_ledit->setAlignment(Qt::AlignCenter);
+    m_ledit->setFixedWidth(85);
 
+    QDoubleValidator *dv = new QDoubleValidator();
+    dv->setRange(m_sliderParam->min, m_sliderParam->max);
+    dv->setDecimals(5);
+    dv->setNotation(QDoubleValidator::StandardNotation);
+    m_ledit->setValidator(dv);
+
+    m_sliderLayout->addWidget(m_ledit);
     m_layout->addLayout(m_sliderLayout);
 
     UpdateWidget(*param);
 
     QObject::connect(m_slider, QOverload<int>::of(&QSlider::valueChanged),
-                     [&, p = m_sliderParam, p2 = m_ledit](int value) {
-                         p->value = m_slider->SliderToDisplayValue(static_cast<float>(value));
-                         p2->setText(QString("%1").arg(p->value));
+                     [&, p = m_sliderParam, le = m_ledit](int value) {
+                         p->value = m_slider->value();
+                         le->setText(QString::number(p->value, 'G', 5));
                          EmitEvent<Update>(*p);
                      });
 
     QObject::connect(m_ledit, QOverload<>::of(&QLineEdit::returnPressed),
-                     [&, p1 = m_sliderParam, p2 = m_slider, p3 = m_ledit]() {
-                         p1->value = p3->text().toInt();
-                         p2->setValue(m_slider->DisplayToSliderValue(p3->text().toInt()));
+                     [&, p1 = m_sliderParam, s = m_slider, le = m_ledit]() {
+                         p1->value = le->text().toFloat();
+                         s->setValue(le->text().toFloat());
                          EmitEvent<Update>(*p1);
                      });
 }
@@ -210,20 +216,20 @@ void ParameterSliderWidget::UpdateWidget(const Parameter &p)
 {
     const SliderParameter *sp = static_cast<const SliderParameter*>(&p);
 
-    if (sp->scale==SliderParameter::SliderScale::Log) {
-        /*In case of log slider, we map 0 -> 100 values to exp values*/
-        m_slider->setMinimum(0);
-        m_slider->setMaximum(100);
-        m_slider->setSingleStep(sp->step);
-        m_slider->SetLogScaleFactor(sp->min, sp->max);
-        m_slider->SetLogSlider();
-        m_slider->setValue(m_slider->DisplayToSliderValue(sp->value));
-    } else {
-        m_slider->setMinimum(sp->min);
-        m_slider->setMaximum(sp->max);
-        m_slider->setSingleStep(sp->step);
-        m_slider->setValue(sp->value);
+    m_slider->setMinimum(sp->min);
+    m_slider->setMaximum(sp->max);
+    m_slider->setSingleStep(sp->step);
+
+    switch (sp->scale) {
+        case SliderParameter::SliderScale::Linear:
+            m_slider->setScale(Slider::Scale::Linear);
+            break;
+        case SliderParameter::SliderScale::Log:
+            m_slider->setScale(Slider::Scale::Log);
+            break;
     }
+
+    m_slider->setValue(sp->value);
 }
 
 // ----------------------------------------------------------------------------
@@ -248,75 +254,5 @@ ParameterWidget* WidgetFromParameter(Parameter *p)
             break;
         default:
             return new ParameterWidget(p);
-    }
-}
-
-void CustomSlider::SetLogSlider()
-{
-    m_isLogSlider = true;
-}
-
-void CustomSlider::SetLogScaleFactor(double minv, double maxv)
-{
-    m_minv           = log(minv);
-    m_maxv           = log(maxv);
-    m_minp           = 0;
-    m_maxp           = 100;
-    m_logscaleFactor = (m_maxv - m_minv) / 100.0;;
-}
-
-double CustomSlider::SliderToDisplayValue(double position)
-{
-    double ReturnValue;
-    if (m_isLogSlider)
-        ReturnValue = exp(m_minv + m_logscaleFactor * (position - m_minp));
-    else
-        ReturnValue = position;
-    return ReturnValue;
-}
-
-double CustomSlider::DisplayToSliderValue(double value)
-{
-    double ReturnValue;
-    if (m_isLogSlider)
-        ReturnValue = (log(value) - m_minv) / m_logscaleFactor + m_minp;
-    else
-        ReturnValue = value;
-    return ReturnValue;
-}
-
-double CustomSlider::GetLogScaleFactor()
-{
-    return m_logscaleFactor;
-}
-
-void CustomSlider::paintEvent(QPaintEvent *event)
-{
-    QSlider::paintEvent(event);
-
-    QPainter p(this);
-    QFont font = p.font() ;
-    font.setPointSize(font.pointSize() - 3);
-    p.setFont(font);
-
-    QStyle *st = style();
-    QStyleOptionSlider slider;
-    slider.initFrom(this);
-    int available = st->pixelMetric(QStyle::PM_SliderSpaceAvailable, &slider, this);
-    int tickStep  = (this->tickInterval() == 0) ? (this->maximum() / 4 ) : this->tickInterval();
-
-    QRect r;
-    p.drawText(rect(), Qt::TextDontPrint, QString::number(9999), &r);
-
-
-    int v = this->minimum();
-    while (v < this->maximum()) {
-        QString vs = QString::number(v);
-
-        int left = QStyle::sliderPositionFromValue(minimum(), maximum(), v, available);
-
-        QPoint pos(left, rect().bottom());
-        p.drawText(pos, QString::number(this->SliderToDisplayValue(v)));
-        v += tickStep;
     }
 }

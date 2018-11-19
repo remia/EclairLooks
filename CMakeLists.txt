@@ -51,6 +51,7 @@ set(SOURCES
     src/image.cpp
     src/imagepipeline.cpp
     src/settings.cpp
+    src/widget/common/slider.cpp
     src/widget/uiloader.cpp
     src/widget/devwidget.cpp
     src/widget/imagewidget.cpp

@@ -41,6 +41,8 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     QPointF widgetToWorld(const QPointF & pos) const;
 
   private:
+    bool m_isInitialized = false;
+
     QOpenGLVertexArrayObject m_vaoCube;
     QOpenGLBuffer m_verticesCube;
     QOpenGLBuffer m_colorsCube;

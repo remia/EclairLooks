@@ -19,11 +19,14 @@ OCIOFileTransform::OCIOFileTransform()
     QString filter = QString("LUT files (*.%1)").arg(exts.join(" *."));
 
     AddParameter(FilePathParameter("LUT", "", "Choose a LUT", filter.toStdString()), "File Transform");
-    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}), "File Transform");
-    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}), "File Transform");
+    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}, "Best"), "File Transform");
+    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}, "Forward"), "File Transform");
 
-    m_transform->setInterpolation(OCIO::InterpolationFromString("Best"));
-    m_transform->setDirection(OCIO::TransformDirectionFromString("Forward"));
+    // Initialize transform with default parameters
+    auto interp = GetParameter<SelectParameter>("Interpolation");
+    auto dir = GetParameter<SelectParameter>("Direction");
+    m_transform->setInterpolation(OCIO::InterpolationFromString(interp.value.c_str()));
+    m_transform->setDirection(OCIO::TransformDirectionFromString(dir.value.c_str()));
 }
 
 ImageOperator *OCIOFileTransform::OpCreate() const
@@ -54,6 +57,8 @@ void OCIOFileTransform::OpApply(Image & img)
 {
     Chrono c;
     c.start();
+
+    OverrideInterpolation();
 
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
@@ -94,14 +99,6 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
     }
 }
 
-QStringList OCIOFileTransform::SupportedExtensions() const
-{
-    QStringList exts;
-    for (size_t i = 0; i < m_transform->getNumFormats(); ++i)
-        exts << m_transform->getFormatExtensionByIndex(i);
-    return exts;
-}
-
 void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
 {
     try {
@@ -124,5 +121,25 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
                 << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+    }
+}
+
+QStringList OCIOFileTransform::SupportedExtensions() const
+{
+    QStringList exts;
+    for (size_t i = 0; i < m_transform->getNumFormats(); ++i)
+        exts << m_transform->getFormatExtensionByIndex(i);
+    return exts;
+}
+
+void OCIOFileTransform::OverrideInterpolation()
+{
+    // Override OCIO "Best" 3D LUT interpolation, use Tetrahedral
+    std::string interp = GetParameter<SelectParameter>("Interpolation").value;
+    auto current = m_transform->getInterpolation();
+
+    if (m_processor->hasChannelCrosstalk() && interp == "Best" && current == OCIO::INTERP_BEST) {
+        m_transform->setInterpolation(OCIO::InterpolationFromString("Tetrahedral"));
+        m_processor = m_config->getProcessor(m_transform);
     }
 }

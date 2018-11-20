@@ -10,7 +10,7 @@ class LookBrowserModel : public QFileSystemModel
   public:
     LookBrowserModel(QObject *parent = nullptr) : QFileSystemModel(parent)
     {
-        setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
+        setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot);
     }
 
   public:
@@ -42,6 +42,18 @@ void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
 {
     m_lookWidget = lookWidget;
     updateRootPath(m_lookWidget->rootPath());
+}
+
+void LookBrowserWidget::updateSupportedExtensions(const QStringList extensions)
+{
+    QListIterator<QString> itr(extensions);
+    QStringList SupportedExtensions;
+    while (itr.hasNext()) {
+        QString current = itr.next();
+        SupportedExtensions << "*." + current;
+    }
+    m_fileSystemModel->setNameFilters(SupportedExtensions);
+    m_fileSystemModel->setNameFilterDisables(false);
 }
 
 void LookBrowserWidget::filterList(const QString &filter)

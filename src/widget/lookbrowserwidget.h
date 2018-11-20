@@ -3,8 +3,6 @@
 #include "../utils/event_source.h"
 
 #include <QtWidgets/QTreeView>
-#include <QSortFilterProxyModel>
-
 
 class LookWidget;
 class LookBrowserModel;

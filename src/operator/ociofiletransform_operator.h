@@ -28,7 +28,7 @@ class OCIOFileTransform : public ImageOperator
   public:
     void SetFileTransform(const std::string &lutpath);
 
-  private:
+  public:
     QStringList SupportedExtensions() const;
     void OverrideInterpolation();
 

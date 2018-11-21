@@ -186,6 +186,22 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
+QStringList LookWidget::GetSupportedExtensions() 
+{
+    if (m_SupportedExtensions.isEmpty()) {
+        QStringList extensions = OCIOFileTransform().SupportedExtensions();
+        QListIterator<QString> itr(extensions);
+        while (itr.hasNext()) {
+            QString current = itr.next();
+            extensions << "*." + current;
+        }
+        m_SupportedExtensions = extensions;
+        return m_SupportedExtensions;
+    }else{
+        return m_SupportedExtensions;
+    }
+}
+
 void LookWidget::setupPipeline()
 {
     if (!m_mainWindow->pipeline()->GetInput())
@@ -196,9 +212,6 @@ void LookWidget::setupPipeline()
     *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
 
     m_pipeline->AddOperator<OCIOFileTransform>();
-
-    m_browserWidget->updateSupportedExtensions(OCIOFileTransform().SupportedExtensions());
-    m_viewTabWidget->updateSupportedExtensions(OCIOFileTransform().SupportedExtensions());
 
     if (!tonemapPath().isEmpty()) {
         if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString()); op != nullptr) {

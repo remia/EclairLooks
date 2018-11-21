@@ -25,7 +25,6 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     void setLookWidget(LookWidget *lw);
 
     void showFolder(const QString &path);
-    void updateSupportedExtensions(const QStringList extensions);
 
   private:
     void selectionChanged();
@@ -35,5 +34,4 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
 
   private:
     LookWidget *m_lookWidget;
-    QStringList m_SupportedExtensions;
 };

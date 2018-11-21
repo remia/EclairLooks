@@ -198,6 +198,7 @@ void LookWidget::setupPipeline()
     m_pipeline->AddOperator<OCIOFileTransform>();
 
     m_browserWidget->updateSupportedExtensions(OCIOFileTransform().SupportedExtensions());
+    m_viewTabWidget->updateSupportedExtensions(OCIOFileTransform().SupportedExtensions());
 
     if (!tonemapPath().isEmpty()) {
         if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString()); op != nullptr) {

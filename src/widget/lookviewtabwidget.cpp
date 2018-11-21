@@ -28,6 +28,15 @@ void LookViewTabWidget::setLookWidget(LookWidget *lw)
     m_lookWidget = lw;
 }
 
+void LookViewTabWidget::updateSupportedExtensions(const QStringList extensions)
+{
+    QListIterator<QString> itr(extensions);
+    while (itr.hasNext()) {
+        QString current = itr.next();
+        m_SupportedExtensions << "*." + current;
+    }
+}
+
 void LookViewTabWidget::showFolder(const QString &path)
 {
     QFileInfo fileInfo(path);
@@ -42,6 +51,7 @@ void LookViewTabWidget::showFolder(const QString &path)
 
     if (auto [exists, index] = tabExists(relPath); !exists) {
         LookViewWidget *lookViewWidget = new LookViewWidget();
+        lookViewWidget->updateSupportedExtensions(m_SupportedExtensions);
         lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->appendFolder(dirPath);
 

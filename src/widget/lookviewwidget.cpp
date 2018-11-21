@@ -106,11 +106,17 @@ int LookViewWidget::indexLook(const QString &path) const
     return -1;
 }
 
+void LookViewWidget::updateSupportedExtensions(const QStringList extensions)
+{
+    m_SupportedExtensions = extensions;
+}
+
 void LookViewWidget::appendFolder(const QString &path)
 {
     clear();
 
     QDir dir(path);
+    dir.setNameFilters(m_SupportedExtensions);
     for (auto & entry : dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QString entryPath = entry.absoluteFilePath();
         addLook(entryPath);

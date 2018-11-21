@@ -41,20 +41,11 @@ LookBrowserWidget::LookBrowserWidget(QWidget *parent)
 void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
 {
     m_lookWidget = lookWidget;
+    m_fileSystemModel->setNameFilters(m_lookWidget->GetSupportedExtensions());
+    m_fileSystemModel->setNameFilterDisables(false);
     updateRootPath(m_lookWidget->rootPath());
 }
 
-void LookBrowserWidget::updateSupportedExtensions(const QStringList extensions)
-{
-    QListIterator<QString> itr(extensions);
-    QStringList SupportedExtensions;
-    while (itr.hasNext()) {
-        QString current = itr.next();
-        SupportedExtensions << "*." + current;
-    }
-    m_fileSystemModel->setNameFilters(SupportedExtensions);
-    m_fileSystemModel->setNameFilterDisables(false);
-}
 
 void LookBrowserWidget::filterList(const QString &filter)
 {

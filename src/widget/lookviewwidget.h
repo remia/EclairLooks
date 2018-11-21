@@ -40,6 +40,7 @@ class LookViewWidget : public QListWidget
     void appendLook(const QString &path);
 
     void removeSelection(int selectedRow);
+    void updateSupportedExtensions(const QStringList extensions);
 
   private:
     void addLook(const QString &path);
@@ -49,6 +50,7 @@ class LookViewWidget : public QListWidget
     LookWidget *m_lookWidget;
     DisplayMode m_displayMode;
     bool m_readOnly;
+    QStringList m_SupportedExtensions;
 };
 
 class LookViewItemWidget : public QWidget

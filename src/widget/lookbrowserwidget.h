@@ -23,7 +23,6 @@ class LookBrowserWidget : public QTreeView, public EventSource<LBEvtDesc>
     void setLookWidget(LookWidget *lookWidget);
 
     void filterList(const QString &filter);
-    void updateSupportedExtensions(const QStringList extansions);
     void updateSelection(const QModelIndex &index);
     void updateRootPath(const QString &path);
 

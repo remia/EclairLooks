@@ -47,7 +47,7 @@ void LookDetailWidget::showDetail(const QString &path, uint8_t id)
         m_imageWidget->updateImage(img);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
-        m_neutralsWidget->drawCurve(id, img);
+        m_neutralsWidget->drawCurve(id, img, path);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewLattice(path); valid) {
         m_cubeWidget->drawCube(img);

@@ -56,11 +56,11 @@ void NeutralWidget::clearView()
     m_curves.clear();
 }
 
-void NeutralWidget::drawCurve(uint8_t id, const Image &img)
+void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
 {
     CurveItems curveItems;
     if (auto c = m_curves.find(id); c == m_curves.end()) {
-        m_curves[id] = initCurve(id, img);
+        m_curves[id] = initCurve(id, path, img);
         curveItems = m_curves[id];
     }
     else {
@@ -90,7 +90,16 @@ void NeutralWidget::clearCurve(uint8_t id)
     }
 }
 
-CurveItems NeutralWidget::initCurve(uint8_t id, const Image &img)
+void NeutralWidget::clearCursors()
+{
+    for (auto const &[id, items] : m_curves) {
+        m_scene->removeItem(items.cursorHLine[0]);
+        m_scene->removeItem(items.cursorHLine[1]);
+        m_scene->removeItem(items.cursorHLine[2]);
+    }
+}
+
+CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
 {
     CurveItems items;
     QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
@@ -112,6 +121,9 @@ CurveItems NeutralWidget::initCurve(uint8_t id, const Image &img)
     items.cursorText = m_scene->addText("");
 
     items.image = img;
+    QFileInfo fi(path);
+    QString fileName = fi.fileName(); 
+    items.name = fileName;
 
     return items;
 }
@@ -200,14 +212,14 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 "<font color=\"red\">%3</font> "
                 "<font color=\"green\">%4</font> "
                 "<font color=\"blue\">%5</font> ")
-                .arg(name)
+                .arg(items.name)
                 .arg(QString::number(inX, 'f', 5))
                 .arg(QString::number(out[0], 'f', 5))
                 .arg(QString::number(out[1], 'f', 5))
                 .arg(QString::number(out[2], 'f', 5))
             );
 
-        items.cursorText->setPos(25, grid_height - 25 - count * 25);
+        items.cursorText->setPos(25, grid_height + 25 - count * 25);
 
         count++;
     }

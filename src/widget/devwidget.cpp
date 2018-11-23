@@ -20,7 +20,7 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
 {
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
     m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
-    m_imageCompute = std::make_unique<Image>(*m_imageRamp);
+    m_imageCompute = std::make_unique<Image>();
 
     //
     // Setup

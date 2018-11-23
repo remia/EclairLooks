@@ -90,7 +90,7 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 
     switch (m_interactMode) {
         case InteractMode::Rotate:
-            m_moveDelta *= 20.f;
+            m_moveDelta *= 60.f;
             m_rotate += m_moveDelta;
             break;
         case InteractMode::Drag:

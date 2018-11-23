@@ -87,14 +87,15 @@ void ImageOperator::Apply(Image & img)
         Image img_1d = Image::Ramp1D(lut_1d_size, 0.0f, 1.0f, RampType::NEUTRAL);
         OpApply(img_1d);
 
-        std::ofstream fs("test.spi1d");
+        std::string lut_name = "test.spi1d";
+        std::ofstream fs(lut_name);
         fs << "Version 1\n";
         fs << "From 0.000000 1.000000\n";
         fs << "Length " << lut_1d_size << "\n";
         fs << "Components 3\n";
         fs << "{\n";
 
-        float * pix = img_1d.pixels_asfloat();
+        float *pix = img_1d.pixels_asfloat();
         for (uint64_t i = 0; i < lut_1d_size; ++i) {
             fs << pix[i * 3] << "\t" << pix[i * 3 + 1] << "\t" << pix[i * 3 + 2] << "\n";
         }
@@ -103,7 +104,7 @@ void ImageOperator::Apply(Image & img)
 
         // Image with contrast only applied
         OCIOFileTransform file_op;
-        file_op.SetFileTransform("test.spi1d");
+        file_op.SetFileTransform(lut_name);
         file_op.OpApply(img_contrast);
 
         // Image with color only applied

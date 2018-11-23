@@ -11,6 +11,8 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOFileTransform::OCIOFileTransform()
 {
+    OCIO::ClearAllCaches();
+
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
     m_transform = OCIO::FileTransform::Create();
@@ -80,6 +82,8 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
 {
     try {
         if (op.name == "LUT") {
+            OCIO::ClearAllCaches();
+
             auto p = static_cast<const FilePathParameter *>(&op);
             m_transform->setSrc((p->value.c_str()));
         }

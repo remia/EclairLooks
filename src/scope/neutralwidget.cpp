@@ -95,6 +95,10 @@ void NeutralWidget::clearCurve(uint8_t id)
         m_scene->removeItem(items.curve[0]);
         m_scene->removeItem(items.curve[1]);
         m_scene->removeItem(items.curve[2]);
+        m_scene->removeItem(items.cursorHLine[0]);
+        m_scene->removeItem(items.cursorHLine[1]);
+        m_scene->removeItem(items.cursorHLine[2]);
+        m_scene->removeItem(items.cursorVLine);
 
         m_scene->removeItem(items.cursorRGBValues);
         m_curves.erase(id);
@@ -105,10 +109,10 @@ void NeutralWidget::clearCursors()
 {
     for (auto c = m_curves.begin(); c != m_curves.end(); ++c) {
         CurveItems &items = c->second;
-        m_scene->removeItem(items.cursorHLine[0]);
-        m_scene->removeItem(items.cursorHLine[1]);
-        m_scene->removeItem(items.cursorHLine[2]);
-        m_scene->removeItem(items.cursorVLine);
+        items.cursorHLine[0]->setVisible(false);
+        items.cursorHLine[1]->setVisible(false);
+        items.cursorHLine[2]->setVisible(false);
+        items.cursorVLine->setVisible(false);
     }
 }
 
@@ -121,10 +125,10 @@ void NeutralWidget::addCursors()
     for (auto &[id, items] : m_curves) {
         for (uint8_t i = 0; i < 3; ++i) {
             pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
-            items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
+            items.cursorHLine[i]->setVisible(true);
         }
         pen.setColor(lineYColor);
-        items.cursorVLine = m_scene->addLine(QLineF(), pen);
+        items.cursorVLine->setVisible(true);
     }
 }
 
@@ -142,11 +146,13 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
     for (uint8_t i = 0; i < 3; ++i) {
         pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
         items.curve[i] = m_scene->addPath(QPainterPath(), pen);
+        items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
     }
 
     pen.setColor(lineYColor);
     items.cursorRGBValues = m_scene->addText("");
     items.cursorName = m_scene->addText("");
+    items.cursorVLine = m_scene->addLine(QLineF(), pen);
 
     items.image = img;
 
@@ -186,7 +192,7 @@ void NeutralWidget::drawGrid()
 void NeutralWidget::drawName(const CurveItems &items, uint8_t id, QString path)
 {
     items.cursorName->setHtml(QString("%1").arg(path));
-    items.cursorName->setPos(grid_width - (grid_width/2), grid_height + 25 + id * 25);
+    items.cursorName->setPos(grid_width - (grid_width/2), grid_height + 15 + id * 25);
 }
 
 void NeutralWidget::drawCurve(const CurveItems &items)
@@ -245,7 +251,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 .arg(QString::number(out[1], 'f', 5))
                 .arg(QString::number(out[2], 'f', 5)));
 
-        items.cursorRGBValues->setPos(25, grid_height + 25 + count * 25);
+        items.cursorRGBValues->setPos(25, grid_height + 15 + count * 25);
 
         count++;
     }

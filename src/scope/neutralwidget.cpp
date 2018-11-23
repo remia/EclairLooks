@@ -71,8 +71,10 @@ void NeutralWidget::clearView()
 void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
 {
     CurveItems curveItems;
+    QFileInfo fi(path);
+    QString fileName = fi.fileName(); 
     if (auto c = m_curves.find(id); c == m_curves.end()) {
-        m_curves[id] = initCurve(id, path, img);
+        m_curves[id] = initCurve(id, fileName, img);
         curveItems = m_curves[id];
     }
     else {
@@ -92,11 +94,6 @@ void NeutralWidget::clearCurve(uint8_t id)
         m_scene->removeItem(items.curve[1]);
         m_scene->removeItem(items.curve[2]);
 
-        m_scene->removeItem(items.cursorHLine[0]);
-        m_scene->removeItem(items.cursorHLine[1]);
-        m_scene->removeItem(items.cursorHLine[2]);
-
-        m_scene->removeItem(items.cursorVLine);
         m_scene->removeItem(items.cursorText);
         m_curves.erase(id);
     }
@@ -149,9 +146,7 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
     items.cursorText = m_scene->addText("");
 
     items.image = img;
-    QFileInfo fi(path);
-    QString fileName = fi.fileName(); 
-    items.name = fileName;
+    items.name = path;
 
     return items;
 }
@@ -231,13 +226,6 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
         items.cursorVLine->setLine(QLineF(
             scenePos.x(), 0, scenePos.x(), grid_height));
 
-        QString label;
-        if (items.name.isEmpty()) {
-            label = id;
-        } else {
-            label = items.name + (id == 1 ? QString::fromStdWString(L"10mv ─") : "");
-        }
-
         items.cursorText->setHtml(
             QString(
                 "<font color=\"black\">"
@@ -247,6 +235,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 "<font color=\"red\">%2</font> "
                 "<font color=\"green\">%3</font> "
                 "<font color=\"blue\">%4</font> ")
+
                 .arg(QString::number(inX, 'f', 5))
                 .arg(QString::number(out[0], 'f', 5))
                 .arg(QString::number(out[1], 'f', 5))

@@ -68,6 +68,7 @@ void NeutralWidget::clearView()
     m_curves.clear();
 }
 
+
 void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
 {
     CurveItems curveItems;
@@ -81,7 +82,7 @@ void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
         m_curves[id].image = img;
         curveItems = m_curves[id];
     }
-
+    drawName(curveItems, id, fileName);
     drawCurve(curveItems);
 }
 
@@ -94,7 +95,7 @@ void NeutralWidget::clearCurve(uint8_t id)
         m_scene->removeItem(items.curve[1]);
         m_scene->removeItem(items.curve[2]);
 
-        m_scene->removeItem(items.cursorText);
+        m_scene->removeItem(items.cursorRGBValues);
         m_curves.erase(id);
     }
 }
@@ -143,10 +144,10 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
     }
 
     pen.setColor(lineYColor);
-    items.cursorText = m_scene->addText("");
+    items.cursorRGBValues = m_scene->addText("");
+    items.cursorName = m_scene->addText("");
 
     items.image = img;
-    items.name = path;
 
     return items;
 }
@@ -179,6 +180,12 @@ void NeutralWidget::drawGrid()
 
     // Draw identity curve
     m_scene->addLine(0.0, grid_height, grid_width, 0.0, pen);
+}
+
+void NeutralWidget::drawName(const CurveItems &items, uint8_t id, QString path)
+{
+    items.cursorName->setHtml(QString("%1").arg(path));
+    items.cursorName->setPos(grid_width - (grid_width/2), grid_height - 25 - id * 25);
 }
 
 void NeutralWidget::drawCurve(const CurveItems &items)
@@ -226,22 +233,18 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
         items.cursorVLine->setLine(QLineF(
             scenePos.x(), 0, scenePos.x(), grid_height));
 
-        items.cursorText->setHtml(
-            QString(
-                "<font color=\"black\">"
-                "%1"
-                "=> "
-                "</font>"
-                "<font color=\"red\">%2</font> "
-                "<font color=\"green\">%3</font> "
-                "<font color=\"blue\">%4</font> ")
-
+        items.cursorRGBValues->setHtml(
+            QString("%1"
+                    "=> "
+                    "<font color=\"red\">%2</font> "
+                    "<font color=\"green\">%3</font> "
+                    "<font color=\"blue\">%4</font> ")
                 .arg(QString::number(inX, 'f', 5))
                 .arg(QString::number(out[0], 'f', 5))
                 .arg(QString::number(out[1], 'f', 5))
                 .arg(QString::number(out[2], 'f', 5)));
 
-        items.cursorText->setPos(25, grid_height - 25 - count * 25);
+        items.cursorRGBValues->setPos(25, grid_height - 25 - count * 25);
 
         count++;
     }

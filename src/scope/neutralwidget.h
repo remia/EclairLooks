@@ -22,8 +22,8 @@ struct CurveItems {
     QGraphicsPathItem *curve[3];
     QGraphicsLineItem *cursorHLine[3];
     QGraphicsLineItem *cursorVLine;
-    QGraphicsTextItem *cursorText;
-    QString name;
+    QGraphicsTextItem *cursorName;
+    QGraphicsTextItem *cursorRGBValues;
 };
 
 class NeutralWidget : public QGraphicsView
@@ -47,6 +47,7 @@ class NeutralWidget : public QGraphicsView
     CurveItems initCurve(uint8_t id, QString path, const Image &img);
 
     void drawGrid();
+    void drawName(const CurveItems &items, uint8_t id, QString path);
     void drawCurve(const CurveItems &items);
     void drawCursor(uint16_t x, uint16_t y);
     void clearCursors();

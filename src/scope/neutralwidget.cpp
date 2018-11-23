@@ -84,6 +84,7 @@ void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
     }
     drawName(curveItems, id, fileName);
     drawCurve(curveItems);
+    fitInView(m_scene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
 void NeutralWidget::clearCurve(uint8_t id)
@@ -185,7 +186,7 @@ void NeutralWidget::drawGrid()
 void NeutralWidget::drawName(const CurveItems &items, uint8_t id, QString path)
 {
     items.cursorName->setHtml(QString("%1").arg(path));
-    items.cursorName->setPos(grid_width - (grid_width/2), grid_height - 25 - id * 25);
+    items.cursorName->setPos(grid_width - (grid_width/2), grid_height + 25 + id * 25);
 }
 
 void NeutralWidget::drawCurve(const CurveItems &items)
@@ -244,7 +245,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 .arg(QString::number(out[1], 'f', 5))
                 .arg(QString::number(out[2], 'f', 5)));
 
-        items.cursorRGBValues->setPos(25, grid_height - 25 - count * 25);
+        items.cursorRGBValues->setPos(25, grid_height + 25 + count * 25);
 
         count++;
     }

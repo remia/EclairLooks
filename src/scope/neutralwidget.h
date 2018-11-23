@@ -34,6 +34,8 @@ class NeutralWidget : public QGraphicsView
   public:
     void resizeEvent(QResizeEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void enterEvent(QEvent * event) override;
+    void leaveEvent(QEvent * event) override;
 
   public:
     void clearView();
@@ -48,8 +50,9 @@ class NeutralWidget : public QGraphicsView
     void drawCurve(const CurveItems &items);
     void drawCursor(uint16_t x, uint16_t y);
     void clearCursors();
+    void addCursors();
 
   private:
-    QGraphicsScene *m_scene;
+    std::unique_ptr<QGraphicsScene> m_scene;
     std::map<uint8_t, CurveItems> m_curves;
 };

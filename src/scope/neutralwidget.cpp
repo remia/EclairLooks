@@ -26,14 +26,14 @@ QColor lineBColorB = QColor(75, 75, 200);
 NeutralWidget::NeutralWidget(QWidget *parent)
 : QGraphicsView(parent)
 {
-    m_scene = new QGraphicsScene();
+    m_scene = std::unique_ptr<QGraphicsScene>(new QGraphicsScene());
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewport(new QOpenGLWidget());
     setBackgroundBrush(QBrush(backgroundColor));
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    setScene(m_scene);
+    setScene(m_scene.get());
 
     drawGrid();
 }
@@ -46,6 +46,18 @@ void NeutralWidget::resizeEvent(QResizeEvent *event)
 void NeutralWidget::mouseMoveEvent(QMouseEvent *event)
 {
     drawCursor(event->x(), event->y());
+}
+
+void NeutralWidget::enterEvent(QEvent * event)
+{
+    addCursors();
+    QWidget::enterEvent(event);
+}
+
+void NeutralWidget::leaveEvent(QEvent * event)
+{
+    clearCursors();
+    QWidget::leaveEvent(event);
 }
 
 void NeutralWidget::clearView()
@@ -92,10 +104,28 @@ void NeutralWidget::clearCurve(uint8_t id)
 
 void NeutralWidget::clearCursors()
 {
-    for (auto const &[id, items] : m_curves) {
+    for (auto c = m_curves.begin(); c != m_curves.end(); ++c) {
+        CurveItems &items = c->second;
         m_scene->removeItem(items.cursorHLine[0]);
         m_scene->removeItem(items.cursorHLine[1]);
         m_scene->removeItem(items.cursorHLine[2]);
+        m_scene->removeItem(items.cursorVLine);
+    }
+}
+
+void NeutralWidget::addCursors()
+{
+    QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
+    QColor colors_b[3] = { lineRColorB, lineGColorB, lineBColorB };
+    QPen pen;
+    // Curves & Cursor
+    for (auto &[id, items] : m_curves) {
+        for (uint8_t i = 0; i < 3; ++i) {
+            pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
+            items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
+        }
+        pen.setColor(lineYColor);
+        items.cursorVLine = m_scene->addLine(QLineF(), pen);
     }
 }
 
@@ -113,11 +143,9 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
     for (uint8_t i = 0; i < 3; ++i) {
         pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
         items.curve[i] = m_scene->addPath(QPainterPath(), pen);
-        items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
     }
 
     pen.setColor(lineYColor);
-    items.cursorVLine = m_scene->addLine(QLineF(), pen);
     items.cursorText = m_scene->addText("");
 
     items.image = img;
@@ -187,7 +215,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
 
     // Draw a cursor for each transforms
     uint8_t count = 0;
-    for (auto& [name, items] : m_curves) {
+    for (auto& [id, items] : m_curves) {
 
         uint16_t inXInt = std::clamp((int) (inX * items.image.width()), 0, items.image.width() - 1);
         const float * pix = items.image.pixels_asfloat();
@@ -203,23 +231,28 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
         items.cursorVLine->setLine(QLineF(
             scenePos.x(), 0, scenePos.x(), grid_height));
 
+        QString label;
+        if (items.name.isEmpty()) {
+            label = id;
+        } else {
+            label = items.name + (id == 1 ? QString::fromStdWString(L"10mv ─") : "");
+        }
+
         items.cursorText->setHtml(
             QString(
                 "<font color=\"black\">"
-                "%1 - %2"
+                "%1"
                 "=> "
                 "</font>"
-                "<font color=\"red\">%3</font> "
-                "<font color=\"green\">%4</font> "
-                "<font color=\"blue\">%5</font> ")
-                .arg(items.name)
+                "<font color=\"red\">%2</font> "
+                "<font color=\"green\">%3</font> "
+                "<font color=\"blue\">%4</font> ")
                 .arg(QString::number(inX, 'f', 5))
                 .arg(QString::number(out[0], 'f', 5))
                 .arg(QString::number(out[1], 'f', 5))
-                .arg(QString::number(out[2], 'f', 5))
-            );
+                .arg(QString::number(out[2], 'f', 5)));
 
-        items.cursorText->setPos(25, grid_height + 25 - count * 25);
+        items.cursorText->setPos(25, grid_height - 25 - count * 25);
 
         count++;
     }

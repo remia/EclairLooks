@@ -10,13 +10,18 @@
 uint16_t grid_width = 640;
 uint16_t grid_height = 400;
 
-QColor backgroundColor = QColor(39, 39, 44);
-QColor gridSmallColor = QColor(55, 56, 61);
-QColor gridLargeColor = QColor(69, 72, 77);
-QColor lineYColor = QColor(200, 200, 200);
-QColor lineRColor = QColor(200, 25, 25);
-QColor lineGColor = QColor(25, 200, 25);
-QColor lineBColor = QColor(25, 25, 200);
+QColor backgroundColor = QColor(200, 200, 200);
+QColor gridSmallColor = QColor(140, 140, 140);
+QColor gridLargeColor = QColor(100, 100, 100);
+QColor lineYColor = QColor(100, 100, 100);
+
+QColor lineRColorA = QColor(170, 25, 25);
+QColor lineGColorA = QColor(25, 170, 25);
+QColor lineBColorA = QColor(25, 25, 170);
+
+QColor lineRColorB = QColor(200, 75, 75);
+QColor lineGColorB = QColor(75, 200, 75);
+QColor lineBColorB = QColor(75, 75, 200);
 
 NeutralWidget::NeutralWidget(QWidget *parent)
 : QGraphicsView(parent)
@@ -88,16 +93,16 @@ void NeutralWidget::clearCurve(uint8_t id)
 CurveItems NeutralWidget::initCurve(uint8_t id, const Image &img)
 {
     CurveItems items;
-    QColor colors[3] = { lineRColor, lineGColor, lineBColor };
+    QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
+    QColor colors_b[3] = { lineRColorB, lineGColorB, lineBColorB };
 
     QPen pen;
     pen.setWidth(2);
-    if (id == 1)
-        pen.setStyle(Qt::DashLine);
+    pen.setStyle(id == 1 ? Qt::DashLine : Qt::SolidLine);
 
     // Curves & Cursor
     for (uint8_t i = 0; i < 3; ++i) {
-        pen.setColor(colors[i]);
+        pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
         items.curve[i] = m_scene->addPath(QPainterPath(), pen);
         items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
     }
@@ -188,8 +193,10 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
 
         items.cursorText->setHtml(
             QString(
+                "<font color=\"black\">"
                 "%1 - %2"
                 "=> "
+                "</font>"
                 "<font color=\"red\">%3</font> "
                 "<font color=\"green\">%4</font> "
                 "<font color=\"blue\">%5</font> ")

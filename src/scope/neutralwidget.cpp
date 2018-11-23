@@ -101,6 +101,7 @@ void NeutralWidget::clearCurve(uint8_t id)
         m_scene->removeItem(items.cursorVLine);
 
         m_scene->removeItem(items.cursorRGBValues);
+        m_scene->removeItem(items.cursorName);
         m_curves.erase(id);
     }
 }

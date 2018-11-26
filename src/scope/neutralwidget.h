@@ -41,7 +41,7 @@ class NeutralWidget : public QGraphicsView
   public:
     void clearView();
 
-    void drawCurve(uint8_t id, const Image &img, QString path="");
+    void drawCurve(uint8_t id, const Image &img, const QString &path="");
     void clearCurve(uint8_t id);
 
   private:

@@ -72,7 +72,7 @@ void NeutralWidget::clearView()
 }
 
 
-void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
+void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString &path)
 {
     CurveItems curveItems;
     QFileInfo fi(path);

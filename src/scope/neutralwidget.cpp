@@ -23,10 +23,13 @@ QColor lineRColorB = QColor(200, 75, 75);
 QColor lineGColorB = QColor(75, 200, 75);
 QColor lineBColorB = QColor(75, 75, 200);
 
+QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
+QColor colors_b[3] = { lineRColorB, lineGColorB, lineBColorB };
+
 NeutralWidget::NeutralWidget(QWidget *parent)
 : QGraphicsView(parent)
 {
-    m_scene = std::unique_ptr<QGraphicsScene>(new QGraphicsScene());
+    m_scene = std::make_unique<QGraphicsScene>();
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -50,13 +53,13 @@ void NeutralWidget::mouseMoveEvent(QMouseEvent *event)
 
 void NeutralWidget::enterEvent(QEvent * event)
 {
-    addCursors();
+    ShowCursors();
     QWidget::enterEvent(event);
 }
 
 void NeutralWidget::leaveEvent(QEvent * event)
 {
-    clearCursors();
+    HideCursors();
     QWidget::leaveEvent(event);
 }
 
@@ -76,13 +79,14 @@ void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString path)
     QString fileName = fi.fileName(); 
     if (auto c = m_curves.find(id); c == m_curves.end()) {
         m_curves[id] = initCurve(id, fileName, img);
+        m_curves[id];
         curveItems = m_curves[id];
     }
     else {
         m_curves[id].image = img;
+        m_curves[id].name = fileName; 
         curveItems = m_curves[id];
     }
-    drawName(curveItems, id, fileName);
     drawCurve(curveItems);
     fitInView(m_scene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
@@ -106,7 +110,7 @@ void NeutralWidget::clearCurve(uint8_t id)
     }
 }
 
-void NeutralWidget::clearCursors()
+void NeutralWidget::HideCursors()
 {
     for (auto c = m_curves.begin(); c != m_curves.end(); ++c) {
         CurveItems &items = c->second;
@@ -117,13 +121,12 @@ void NeutralWidget::clearCursors()
     }
 }
 
-void NeutralWidget::addCursors()
+void NeutralWidget::ShowCursors()
 {
-    QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
-    QColor colors_b[3] = { lineRColorB, lineGColorB, lineBColorB };
     QPen pen;
     // Curves & Cursor
     for (auto &[id, items] : m_curves) {
+        pen.setStyle(id == 1 ? Qt::DashLine : Qt::SolidLine);
         for (uint8_t i = 0; i < 3; ++i) {
             pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
             items.cursorHLine[i]->setVisible(true);
@@ -136,8 +139,6 @@ void NeutralWidget::addCursors()
 CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
 {
     CurveItems items;
-    QColor colors_a[3] = { lineRColorA, lineGColorA, lineBColorA };
-    QColor colors_b[3] = { lineRColorB, lineGColorB, lineBColorB };
 
     QPen pen;
     pen.setWidth(2);
@@ -154,6 +155,7 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
     items.cursorRGBValues = m_scene->addText("");
     items.cursorName = m_scene->addText("");
     items.cursorVLine = m_scene->addLine(QLineF(), pen);
+    items.name = path;
 
     items.image = img;
 
@@ -188,12 +190,6 @@ void NeutralWidget::drawGrid()
 
     // Draw identity curve
     m_scene->addLine(0.0, grid_height, grid_width, 0.0, pen);
-}
-
-void NeutralWidget::drawName(const CurveItems &items, uint8_t id, QString path)
-{
-    items.cursorName->setHtml(QString("%1").arg(path));
-    items.cursorName->setPos(grid_width - (grid_width/2), grid_height + 15 + id * 25);
 }
 
 void NeutralWidget::drawCurve(const CurveItems &items)
@@ -253,6 +249,10 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 .arg(QString::number(out[2], 'f', 5)));
 
         items.cursorRGBValues->setPos(25, grid_height + 15 + count * 25);
+
+        items.cursorName->setHtml(QString("%1").arg(items.name));
+        items.cursorName->setPos(grid_width - (grid_width / 2),
+                                 grid_height + 15 + count * 25);
 
         count++;
     }

@@ -1,0 +1,78 @@
+# travis-ci.org build file
+# https://docs.travis-ci.com/user/languages/cpp
+
+language: cpp
+os: osx
+osx_image: xcode10.1
+compiler: clang
+cache: ccache
+
+cache:
+  ccache: true
+  directories:
+    - $HOME/Library/Caches/Homebrew
+before_cache:
+  - brew cleanup
+
+stages:
+  - name: test
+    if: type IN (pull_request) OR tag IS present
+  - name: deploy
+    if: tag IS present
+
+jobs:
+  include:
+  - stage: test
+    install:
+      - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          brew update;
+          brew upgrade cmake;
+          brew install llvm;
+          brew install ccache;
+          export PATH="/usr/local/opt/ccache/libexec:$PATH";
+          brew install qt;
+          brew install boost;
+          brew install libtiff;
+          brew install ffmpeg;
+          brew install libraw;
+          brew install openjpeg;
+          brew list --versions;
+        fi
+    script:
+      - mkdir build
+      - cd build
+      - cmake .. -DCMAKE_BUILD_TYPE=Debug
+      - cmake --build .
+      - ctest -V
+  - stage: deploy
+    script:
+      - echo "Packaging..."
+      - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          brew update;
+          brew upgrade cmake;
+          brew install llvm;
+          brew install ccache;
+          export PATH="/usr/local/opt/ccache/libexec:$PATH";
+          brew install qt;
+          brew install boost;
+          brew install libtiff;
+          brew install ffmpeg;
+          brew install libraw;
+          brew install openjpeg;
+          brew list --versions;
+        fi
+      - mkdir build
+      - cd build
+      - cmake .. -DCMAKE_BUILD_TYPE=Release
+      - cmake --build .
+      - cmake --build . --target package
+      - echo "Deploying..."
+    deploy:
+      provider: releases
+      skip_cleanup: true
+      api_key:
+        secure: Ute49MMkF/49NS2Q3ChiHFZx6vgIkWYmWT4aiLyVWUj6qHz7mshjYYxTgANAUwbl9g2/bT8eSXNf8oFcsF+0YFJ7k46vvV9UdOw+jSRIDwnOTkt0LH+Bx7QP0MnElv1UKOYEI4EbyMyjXoa95OVJvE0CtPGSvBgCCpnkmtO11wk7u3F5JJV0SdbGmcI5G/GdYyXXHcYAWYq0/x7CMmGv6LgU6EbedV+6fz3OQPM5u8vbvTcjzaeX/ia7uDsXsSTHqeztF4dqdL81PGzBdCi3hs5beFwN+Ix+bAcl/3JZxFQMJ67Cvl9c3uznhT6fUnoZdA+OYg8W/XcSHIYGraTpf7QKc0HIwGDkpkQon1+SFi31rVzF6yFwwJrbhXwb7XP0rG1gNeUdg9QaWjP87qYaz3FKmp3wC5ll11DsdEq9FTppXAVkeKexD+3JlapsO6eMFCyRpf9NCr/OGi44VuTAY0B71ghzqexH9MRqrP7SCBwdE84hq8sCC6pyf+74TEa5cHfl/ucq5nIFnMveqwiB9gOLBwMuN56RO/8TmVS6hbneWUgiDQ7TnY8G08LVFitz9SDFWT//y4xpC7R5lbSF7zWI4lLJALwno1edklb8eG0ngYxdgGkhwJwEmcCh3ZfmwNZbIk4ewovyy6/sy3fMYnY+enPRYvTCGk8zxzVtUtQ=
+      file: 'src/ELook.dmg'
+      on:
+        branch: master
+        tags: true

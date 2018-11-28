@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 project(ELook VERSION 0.1.0)
 
+
 # -----------------------------------------------------------------------------
-# Global settings
+# Settings
+# -----------------------------------------------------------------------------
+
+option(USE_CCACHE "Use ccache if found" ON)
+
+# -----------------------------------------------------------------------------
+# Global
 # -----------------------------------------------------------------------------
 
 set(QT_PREFIX /usr/local/opt/qt)
@@ -10,6 +17,7 @@ set(QT_PREFIX /usr/local/opt/qt)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_PREFIX_PATH ${QT_PREFIX}/lib/cmake)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,7 +25,6 @@ set(CMAKE_AUTOMOC ON)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,80 +42,32 @@ set(CXX_FILESYSTEM_LIB /usr/local/opt/llvm/lib/libc++fs.a)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # -----------------------------------------------------------------------------
-# Application
+# Build
 # -----------------------------------------------------------------------------
 
-find_package(Qt5Widgets)
-find_package(Qt5UiTools)
-find_package(OpenImageIO)
-find_package(OpenColorIO)
-find_package(CTL)
-find_package(IlmBase)
-find_package(OpenEXR)
+set(INSTALL_DIR "${CMAKE_BINARY_DIR}/ext/dist")
+set(CMAKE_BUILD_RPATH "${INSTALL_DIR}/lib")
+add_subdirectory(ext)
 
-set(SOURCES
-    src/main.cpp
-    src/mainwindow.cpp
-    src/image.cpp
-    src/imagepipeline.cpp
-    src/settings.cpp
-    src/widget/common/slider.cpp
-    src/widget/uiloader.cpp
-    src/widget/devwidget.cpp
-    src/widget/imagewidget.cpp
-    src/widget/logwidget.cpp
-    src/widget/textureview.cpp
-    src/widget/pipelinewidget.cpp
-    src/widget/operatorlistwidget.cpp
-    src/widget/operatorwidget.cpp
-    src/widget/lookwidget.cpp
-    src/widget/lookbrowserwidget.cpp
-    src/widget/lookviewtabwidget.cpp
-    src/widget/lookviewwidget.cpp
-    src/widget/lookdetailwidget.cpp
-    src/widget/lookselectionwidget.cpp
-    src/widget/parameterwidget.cpp
-    src/widget/settingwidget.cpp
-    src/operator/imageoperator.cpp
-    src/operator/imageoperatorlist.cpp
-    src/operator/ociofiletransform_operator.cpp
-    src/operator/ociocolorspace_operator.cpp
-    src/operator/ociomatrix_operator.cpp
-    src/operator/ctl_operator.cpp
-    src/operator/ctl_transform.cpp
-    src/scope/cubewidget.cpp
-    src/scope/neutralwidget.cpp
-    src/scope/waveformwidget.cpp
-    src/utils/chrono.cpp
-    src/parameter/parameterlist.cpp
-)
-
-qt5_add_resources(RESOURCES src/resources/res.qrc)
-
-set(MACOSX_BUNDLE_ICON_FILE hexa.icns)
-set(ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/icons/hexa.icns)
-set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-
-add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${RESOURCES} ${ICON})
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${OCIO_INCLUDES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CTL_INCLUDES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${OpenEXR_INCLUDE_DIRS})
-
-target_link_libraries(${PROJECT_NAME} ${OIIO_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${OCIO_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${CTL_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${IlmBase_LIBRARY})
-target_link_libraries(${PROJECT_NAME} ${OpenEXR_LIBRARY})
-target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
-target_link_libraries(${PROJECT_NAME} Qt5::UiTools)
+add_subdirectory(src)
 
 # -----------------------------------------------------------------------------
 # Packaging
 # -----------------------------------------------------------------------------
 
 add_custom_target(package
-    COMMAND ${QT_PREFIX}/bin/macdeployqt ELook.app -dmg
+    COMMAND ${QT_PREFIX}/bin/macdeployqt src/ELook.app -dmg
     DEPENDS ${PROJECT_NAME}
+)
+
+# -----------------------------------------------------------------------------
+# Checks
+# -----------------------------------------------------------------------------
+
+set(RUN_CLANG_TIDY_BIN /usr/local/opt/llvm/share/clang/run-clang-tidy.py)
+
+add_custom_target(
+    tidy
+    COMMAND ${RUN_CLANG_TIDY_BIN}
+    COMMENT "Running clang tidy"
 )

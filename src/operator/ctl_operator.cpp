@@ -3,15 +3,14 @@
 #include "../imagepipeline.h"
 
 #include <vector>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
 
 #include "ctl_transform.h"
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 
 CTLTransform::CTLTransform()

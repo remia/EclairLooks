@@ -23,9 +23,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
-set(CMAKE_CXX_FLAGS "-fcolor-diagnostics -Wall -Werror -Wfatal-errors")
+set(CMAKE_CXX_FLAGS "-fcolor-diagnostics -Wall -Werror -Wfatal-errors -stdlib=libc++")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -fno-omit-frame-pointer -Wno-unused-variable -Wno-unused-private-field -fsanitize=address -fsanitize=undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+
+set(CXX_FILESYSTEM_LIB /usr/local/opt/llvm/lib/libc++fs.a)
 
 #set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
@@ -36,7 +38,6 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 # Application
 # -----------------------------------------------------------------------------
 
-find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Qt5Widgets)
 find_package(Qt5UiTools)
 find_package(OpenImageIO)
@@ -90,13 +91,11 @@ set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resource
 
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${RESOURCES} ${ICON})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OIIO_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OCIO_INCLUDES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CTL_INCLUDES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenEXR_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${OIIO_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${OCIO_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${CTL_LIBRARIES})

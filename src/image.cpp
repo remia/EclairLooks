@@ -242,7 +242,7 @@ Image Image::FromBuffer(void * buffer, size_t size)
     config.attribute("oiio:ioproxy", TypeDesc::PTR, &ptr);
 
     auto in = ImageInput::open("in.exr", &config);
-    if (! in) {
+    if (!in) {
         qWarning() << "Could not open image !";
         return Image();
     }

@@ -73,10 +73,10 @@ void CTLTransform::OpApply(Image &img)
     try {
         transform(img, 1.0f, 1.0f, ops, global, searchs);
     }
-    catch (Iex_2_3::ArgExc & e) {
+    catch (Iex::ArgExc & e) {
         qWarning() << e.what() << "\n";
     }
-    catch (Iex_2_3::LogicExc & e) {
+    catch (Iex::LogicExc & e) {
         qWarning() << e.what() << "\n";
     }
 }

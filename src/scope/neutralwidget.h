@@ -48,7 +48,7 @@ class NeutralWidget : public QGraphicsView
     CurveItems initCurve(uint8_t id, QString path, const Image &img);
 
     void drawGrid();
-    void drawCurve(const CurveItems &items);
+    void drawCurve(const CurveItems &items, uint8_t id);
     void drawCursor(uint16_t x, uint16_t y);
     void HideCursors();
     void ShowCursors();

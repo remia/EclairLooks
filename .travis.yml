@@ -23,22 +23,8 @@ stages:
 jobs:
   include:
   - stage: test
-    install:
-      - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-          brew update;
-          brew upgrade cmake;
-          brew install llvm;
-          brew install ccache;
-          export PATH="/usr/local/opt/ccache/libexec:$PATH";
-          brew install qt;
-          brew install boost;
-          brew install libtiff;
-          brew install ffmpeg;
-          brew install libraw;
-          brew install openjpeg;
-          brew list --versions;
-        fi
     script:
+      - ./.travis/install-deps.sh
       - mkdir build
       - cd build
       - cmake .. -DCMAKE_BUILD_TYPE=Debug
@@ -46,27 +32,12 @@ jobs:
       - ctest -V
   - stage: deploy
     script:
-      - echo "Packaging..."
-      - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-          brew update;
-          brew upgrade cmake;
-          brew install llvm;
-          brew install ccache;
-          export PATH="/usr/local/opt/ccache/libexec:$PATH";
-          brew install qt;
-          brew install boost;
-          brew install libtiff;
-          brew install ffmpeg;
-          brew install libraw;
-          brew install openjpeg;
-          brew list --versions;
-        fi
+      - ./.travis/install-deps.sh
       - mkdir build
       - cd build
       - cmake .. -DCMAKE_BUILD_TYPE=Release
       - cmake --build .
       - cmake --build . --target package
-      - echo "Deploying..."
     deploy:
       provider: releases
       skip_cleanup: true

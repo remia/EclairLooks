@@ -208,7 +208,7 @@ void NeutralWidget::drawCurve(const CurveItems &items, uint8_t id)
 
         items.curve[c]->setPath(path);
     }
-    items.cursorName->setHtml(QString("%1").arg(items.name));
+    items.cursorName->setHtml(QString("<font color=\"black\">%1</font>").arg(items.name));
     items.cursorName->setPos(grid_width - (grid_width / 2),
                                  grid_height + 15 + (id * 25));
 }
@@ -241,8 +241,9 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
             scenePos.x(), 0, scenePos.x(), grid_height));
 
         items.cursorRGBValues->setHtml(
-            QString("%1"
+            QString("<font color=\"black\">%1"
                     "=> "
+                    "</font>"
                     "<font color=\"red\">%2</font> "
                     "<font color=\"green\">%3</font> "
                     "<font color=\"blue\">%4</font> ")

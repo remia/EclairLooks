@@ -25,6 +25,7 @@ jobs:
   - stage: test
     script:
       - ./.travis/install-deps.sh
+      - export PATH="/usr/local/opt/ccache/libexec:$PATH";
       - mkdir build
       - cd build
       - cmake .. -DCMAKE_BUILD_TYPE=Debug
@@ -33,6 +34,7 @@ jobs:
   - stage: deploy
     script:
       - ./.travis/install-deps.sh
+      - export PATH="/usr/local/opt/ccache/libexec:$PATH";
       - mkdir build
       - cd build
       - cmake .. -DCMAKE_BUILD_TYPE=Release

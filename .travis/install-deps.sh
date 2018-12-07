@@ -3,7 +3,6 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     brew upgrade cmake;
     brew install llvm;
     brew install ccache;
-    export PATH="/usr/local/opt/ccache/libexec:$PATH";
     brew install qt;
     brew install boost;
     brew install libtiff;

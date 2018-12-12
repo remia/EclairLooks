@@ -10,6 +10,8 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
 {
     setTabsClosable(true);
     setMovable(true);
+    setUsesScrollButtons(true);
+    setElideMode(Qt::ElideNone);
 
     QObject::connect(this, &QTabWidget::currentChanged, this, &LookViewTabWidget::tabChanged);
     QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);

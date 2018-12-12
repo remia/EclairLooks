@@ -262,7 +262,7 @@ void CubeWidget::resetView()
 
 void CubeWidget::setupCube()
 {
-GL_CHECK(m_vaoCube.create());
+    GL_CHECK(m_vaoCube.create());
     GL_CHECK(m_vaoCube.bind());
 
     GLfloat cube_vertices[] = {
@@ -463,8 +463,13 @@ QMatrix4x4 CubeWidget::setupMVP(const QMatrix4x4 &m) const
     QMatrix4x4 view;
     view.translate(m_translate.x(), m_translate.y());
     view.scale(m_scale);
+
+    // Center on origin before rotation and restore initial position
+    // Remember, transformations in reverse order
+    view.translate(0.5, 0.5, 0.5);
     view.rotate((m_rotate.x()), QVector3D(0.f, 1.f, 0.f));
     view.rotate((m_rotate.y()), QVector3D(1.f, 0.f, 0.f));
+    view.translate(-0.5, -0.5, -0.5);
 
     // 3. Projection
     float ratio = 1.f * width() / height();

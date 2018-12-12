@@ -21,7 +21,7 @@ void LookViewWidget::mousePressEvent(QMouseEvent *event)
 {
     QListWidgetItem * item = itemAt(event->pos());
     if (!item)
-        clearSelection();
+        setCurrentIndex(QModelIndex());
 
     QListWidget::mousePressEvent(event);
 }

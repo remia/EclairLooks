@@ -41,7 +41,7 @@ LookBrowserWidget::LookBrowserWidget(QWidget *parent)
 void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
 {
     m_lookWidget = lookWidget;
-    m_fileSystemModel->setNameFilters(m_lookWidget->GetSupportedExtensions());
+    m_fileSystemModel->setNameFilters(m_lookWidget->supportedExtensions());
     m_fileSystemModel->setNameFilterDisables(false);
     updateRootPath(m_lookWidget->rootPath());
 }

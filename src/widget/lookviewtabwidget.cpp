@@ -44,7 +44,6 @@ void LookViewTabWidget::showFolder(const QString &path)
 
     if (auto [exists, index] = tabExists(relPath); !exists) {
         LookViewWidget *lookViewWidget = new LookViewWidget();
-        lookViewWidget->updateSupportedExtensions(m_lookWidget->GetSupportedExtensions());
         lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->appendFolder(dirPath);
 

@@ -187,20 +187,16 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
-QStringList LookWidget::GetSupportedExtensions()
+QStringList LookWidget::supportedExtensions()
 {
-    if (m_SupportedExtensions.isEmpty()) {
-        QStringList extensions = OCIOFileTransform().SupportedExtensions();
-        QListIterator<QString> itr(extensions);
-        while (itr.hasNext()) {
-            QString current = itr.next();
-            extensions << "*." + current;
-        }
-        m_SupportedExtensions = extensions;
-        return m_SupportedExtensions;
-    }else{
-        return m_SupportedExtensions;
+    QStringList extensions = OCIOFileTransform().SupportedExtensions();
+    QListIterator<QString> itr(extensions);
+    while (itr.hasNext()) {
+        QString current = itr.next();
+        extensions << "*." + current;
     }
+
+    return extensions;
 }
 
 void LookWidget::setupPipeline()

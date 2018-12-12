@@ -20,12 +20,11 @@ public:
   VecCIt end() const;
 
 public:
-  template <typename T> bool Add(const T &op);
+  template <typename T, typename... P> T* Add(P&&... params);
   bool Delete(const std::string &name);
 
-  template <typename T> T const Get(const std::string &name) const;
-  template <typename T> bool Set(const T &op);
-  bool Set(const Parameter &op);
+  template <typename T> T* Get(const std::string &name);
+  template <typename T> T* const Get(const std::string &name) const;
 
 private:
   bool HasName(const std::string &name) const;

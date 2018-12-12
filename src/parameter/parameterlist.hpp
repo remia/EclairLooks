@@ -1,37 +1,33 @@
 #pragma once
 
 
-template <typename T>
-bool ParameterList::Add(const T &op)
+template <typename T, typename... P>
+T* ParameterList::Add(P&&... p)
 {
-    if (HasName(op.name))
-        return false;
+    auto param = UPtr<T>(new T(std::forward<P>(p)...));
+    if (HasName(param->name()))
+        return nullptr;
 
-    m_params.push_back(std::make_unique<T>(op));
-    return true;
+    m_params.push_back(std::move(param));
+    return static_cast<T*>(m_params.back().get());
 }
 
 template <typename T>
-T const ParameterList::Get(const std::string &name) const
+T* ParameterList::Get(const std::string &name)
 {
     for (auto &p : m_params)
-        if (p->name == name)
-            return *static_cast<const T*>(p.get());
+        if (p->name() == name)
+            return static_cast<T*>(p.get());
 
-    return T();
+    return nullptr;
 }
 
 template <typename T>
-bool ParameterList::Set(const T &op)
+T* const ParameterList::Get(const std::string &name) const
 {
-    if (!HasName(op.name))
-        return false;
-
     for (auto &p : m_params)
-        if (p->name == op.name) {
-            T *param = static_cast<T*>(p.get());
-            *param = op;
-        }
+        if (p->name() == name)
+            return static_cast<T*>(p.get());
 
-    return true;
+    return nullptr;
 }

@@ -15,8 +15,7 @@ class Settings
   public:
     const ParameterList & Parameters() const;
 
-    template <typename T> T GetParameter(const std::string &name) const;
-    bool SetParameter(const Parameter &p);
+    template <typename T> T* const Get(const std::string &name) const;
 
   private:
     void LoadParameters();
@@ -31,7 +30,7 @@ class Settings
 };
 
 template <typename T>
-T Settings::GetParameter(const std::string &name) const
+T* const Settings::Get(const std::string &name) const
 {
     return m_paramList.Get<T>(name);
 }

@@ -1,5 +1,5 @@
 #include "settingwidget.h"
-#include "parameterwidget.h"
+#include "parameter/parameter_widget.h"
 #include "../settings.h"
 
 #include <QtWidgets/QtWidgets>
@@ -18,10 +18,8 @@ SettingWidget::SettingWidget(Settings *settings, QWidget *parent)
 
     fLayout->addRow("<b>General</b>", new QWidget());
     for (auto & p : m_settings->Parameters()) {
-        QLabel * label = new QLabel(QString::fromStdString(p->name));
+        QLabel * label = new QLabel(QString::fromStdString(p->displayName()));
         ParameterWidget *paramWidget = WidgetFromParameter(p.get());
-        paramWidget->Subscribe<PW::Update>(std::bind(&Settings::SetParameter, m_settings, _1));
-
         fLayout->addRow(label, paramWidget);
     }
 }

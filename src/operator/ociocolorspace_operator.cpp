@@ -10,11 +10,11 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOColorSpace::OCIOColorSpace()
 {
-    AddParameter(FilePathParameter("Config File", "", "Choose an OpenColorIO config", "OCIO Config (*.ocio)"), "ColorSpace Transform");
-    AddParameter(SelectParameter("Source"), "ColorSpace Transform");
-    AddParameter(SelectParameter("Destination"), "ColorSpace Transform");
-    AddParameter(SelectParameter("Look"), "ColorSpace Transform");
-    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}), "ColorSpace Transform");
+    AddParameterByCategory<FilePathParameter>("ColorSpace Transform", "Config File", "", "Choose an OpenColorIO config", "OCIO Config (*.ocio)");
+    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Source");
+    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Destination");
+    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Look");
+    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Direction", std::vector<std::string>{"Forward", "Inverse"});
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -61,25 +61,25 @@ bool OCIOColorSpace::OpIsIdentity() const
 void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
 {
     try {
-        if (op.name == "Config File") {
+        if (op.name() == "Config File") {
             auto p = static_cast<const FilePathParameter *>(&op);
-            SetConfig(p->value);
+            SetConfig(p->value());
         }
-        else if (op.name == "Source") {
+        else if (op.name() == "Source") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setSrc(p->value.c_str());
+            m_transform->setSrc(p->value().c_str());
         }
-        else if (op.name == "Destination") {
+        else if (op.name() == "Destination") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setDst(p->value.c_str());
+            m_transform->setDst(p->value().c_str());
         }
-        else if (op.name == "Look") {
+        else if (op.name() == "Look") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setLooks(p->value.c_str());
+            m_transform->setLooks(p->value().c_str());
         }
-        else if (op.name == "Direction") {
+        else if (op.name() == "Direction") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value.c_str()));
+            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value().c_str()));
         }
 
         m_processor = m_config->getProcessor(m_transform);
@@ -91,20 +91,27 @@ void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
 void OCIOColorSpace::SetConfig(const std::string &configpath)
 {
     {
-        auto m = AutoMute(this, UpdateOp);
+        auto m = EventMute(this, UpdateParam);
         m_config = OCIO::Config::CreateFromFile(configpath.c_str());
-        SetParameter(FilePathParameter("Config File", configpath));
+        GetParameter<FilePathParameter>("Config File")->setValue(configpath);
     }
 
     std::vector<std::string> colorspaces;
     for (int i = 0; i < m_config->getNumColorSpaces(); i++)
         colorspaces.push_back(m_config->getColorSpaceNameByIndex(i));
-    SetParameter(SelectParameter("Source", colorspaces));
-    SetParameter(SelectParameter("Destination", colorspaces));
+    if (colorspaces.size() > 0) {
+        GetParameter<SelectParameter>("Source")->setChoices(colorspaces);
+        GetParameter<SelectParameter>("Source")->setValue(colorspaces[0]);
+        GetParameter<SelectParameter>("Destination")->setChoices(colorspaces);
+        GetParameter<SelectParameter>("Destination")->setValue(colorspaces[0]);
+    }
 
     std::vector<std::string> looks;
     looks.push_back("");
     for (int i = 0; i < m_config->getNumLooks(); ++i)
         looks.push_back(m_config->getLookNameByIndex(i));
-    SetParameter(SelectParameter("Look", looks));
+    if (looks.size() > 0) {
+        GetParameter<SelectParameter>("Look")->setChoices(looks);
+        GetParameter<SelectParameter>("Look")->setValue(looks[0]);
+    }
 }

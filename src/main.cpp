@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     // First try to load image from application settings
     // If this fails, use default embeded image
-    std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
+    std::string imgPath = settings.Get<FilePathParameter>("Default Image")->value();
     Image img = Image::FromFile(imgPath);
 
     if (!img) {

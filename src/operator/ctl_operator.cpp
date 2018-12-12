@@ -15,8 +15,8 @@ using namespace std::filesystem;
 
 CTLTransform::CTLTransform()
 {
-    AddParameter(FilePathParameter("CTL Base Path"), "CTL");
-    AddParameter(TextParameter("CTL Transform"), "CTL");
+    AddParameterByCategory<FilePathParameter>("CTL", "CTL Base Path");
+    AddParameterByCategory<TextParameter>("CTL", "CTL Transform");
 }
 
 ImageOperator *CTLTransform::OpCreate() const
@@ -43,7 +43,7 @@ ImageOperator *CTLTransform::OpCreateFromPath(const std::string &filepath) const
 
 void CTLTransform::OpApply(Image &img)
 {
-    std::string basePath = Parameters().Get<FilePathParameter>("CTL Base Path").value;
+    std::string basePath = Parameters().Get<FilePathParameter>("CTL Base Path")->value();
 
     path p = path(basePath);
     directory_iterator it{p};
@@ -83,7 +83,7 @@ void CTLTransform::OpApply(Image &img)
 
 bool CTLTransform::OpIsIdentity() const
 {
-    return GetParameter<TextParameter>("CTL Transform").value.empty();
+    return GetParameter<TextParameter>("CTL Transform")->value().empty();
 }
 
 void CTLTransform::OpUpdateParamCallback(const Parameter & op)
@@ -93,5 +93,5 @@ void CTLTransform::OpUpdateParamCallback(const Parameter & op)
 
 void CTLTransform::SetBaseFolder(const std::string &baseFolder)
 {
-    SetParameter(FilePathParameter("CTL Base Path", baseFolder));
+    GetParameter<FilePathParameter>("CTL Base Path")->setValue(baseFolder);
 }

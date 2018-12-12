@@ -128,13 +128,13 @@ void LookWidget::toggleFullScreen()
 
 QString LookWidget::rootPath()
 {
-    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Base Folder").value;
+    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder")->value();
     return QString::fromStdString(val);
 }
 
 QString LookWidget::tonemapPath()
 {
-    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Tonemap LUT").value;
+    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT")->value();
     return QString::fromStdString(val);
 }
 

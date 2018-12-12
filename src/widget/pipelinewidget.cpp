@@ -119,8 +119,7 @@ void PipelineWidget::disableSelection(int selectedRow)
     // and add new property that will be accessible from the CSS ?
     auto &op    = m_devWidget->pipeline()->GetOperator(selectedRow);
     auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
-    param.value = !param.value;
-    op.SetParameter(param);
+    param->setValue(!param->value());
 }
 
 void PipelineWidget::removeSelection(int selectedRow)

@@ -20,15 +20,15 @@ OCIOFileTransform::OCIOFileTransform()
     QStringList exts = SupportedExtensions();
     QString filter = QString("LUT files (*.%1)").arg(exts.join(" *."));
 
-    AddParameter(FilePathParameter("LUT", "", "Choose a LUT", filter.toStdString()), "File Transform");
-    AddParameter(SelectParameter("Interpolation", {"Best", "Nearest", "Linear", "Tetrahedral"}, "Best"), "File Transform");
-    AddParameter(SelectParameter("Direction", {"Forward", "Inverse"}, "Forward"), "File Transform");
+    AddParameterByCategory<FilePathParameter>("File Transform", "LUT", "", "Choose a LUT", filter.toStdString());
+    AddParameterByCategory<SelectParameter>("File Transform", "Interpolation", std::vector<std::string>{"Best", "Nearest", "Linear", "Tetrahedral"}, "Best");
+    AddParameterByCategory<SelectParameter>("File Transform", "Direction", std::vector<std::string>{"Forward", "Inverse"}, "Forward");
 
     // Initialize transform with default parameters
     auto interp = GetParameter<SelectParameter>("Interpolation");
     auto dir = GetParameter<SelectParameter>("Direction");
-    m_transform->setInterpolation(OCIO::InterpolationFromString(interp.value.c_str()));
-    m_transform->setDirection(OCIO::TransformDirectionFromString(dir.value.c_str()));
+    m_transform->setInterpolation(OCIO::InterpolationFromString(interp->value().c_str()));
+    m_transform->setDirection(OCIO::TransformDirectionFromString(dir->value().c_str()));
 }
 
 ImageOperator *OCIOFileTransform::OpCreate() const
@@ -81,19 +81,19 @@ bool OCIOFileTransform::OpIsIdentity() const
 void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
 {
     try {
-        if (op.name == "LUT") {
+        if (op.name() == "LUT") {
             OCIO::ClearAllCaches();
 
             auto p = static_cast<const FilePathParameter *>(&op);
-            m_transform->setSrc((p->value.c_str()));
+            m_transform->setSrc((p->value().c_str()));
         }
-        else if (op.name == "Interpolation") {
+        else if (op.name() == "Interpolation") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setInterpolation(OCIO::InterpolationFromString(p->value.c_str()));
+            m_transform->setInterpolation(OCIO::InterpolationFromString(p->value().c_str()));
         }
-        else if (op.name == "Direction") {
+        else if (op.name() == "Direction") {
             auto p = static_cast<const SelectParameter *>(&op);
-            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value.c_str()));
+            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value().c_str()));
         }
 
         m_processor = m_config->getProcessor(m_transform);
@@ -109,16 +109,16 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
         Chrono c;
         c.start();
 
-        auto m = AutoMute(this, UpdateOp);
+        auto m = EventMute(this, UpdateParam);
+
+        GetParameter<FilePathParameter>("LUT")->setValue(lutpath);
 
         auto interp = GetParameter<SelectParameter>("Interpolation");
         auto dir = GetParameter<SelectParameter>("Direction");
         m_transform->setSrc(lutpath.c_str());
-        m_transform->setInterpolation(OCIO::InterpolationFromString(interp.value.c_str()));
-        m_transform->setDirection(OCIO::TransformDirectionFromString(dir.value.c_str()));
+        m_transform->setInterpolation(OCIO::InterpolationFromString(interp->value().c_str()));
+        m_transform->setDirection(OCIO::TransformDirectionFromString(dir->value().c_str()));
         m_processor = m_config->getProcessor(m_transform);
-
-        SetParameter(FilePathParameter("LUT", lutpath));
 
         qInfo() << "OCIOFileTransform init - (" << QString::fromStdString(lutpath)
                 << ") : " << fixed << qSetRealNumberPrecision(2)
@@ -139,7 +139,7 @@ QStringList OCIOFileTransform::SupportedExtensions() const
 void OCIOFileTransform::OverrideInterpolation()
 {
     // Override OCIO "Best" 3D LUT interpolation, use Tetrahedral
-    std::string interp = GetParameter<SelectParameter>("Interpolation").value;
+    std::string interp = GetParameter<SelectParameter>("Interpolation")->value();
     auto current = m_transform->getInterpolation();
 
     if (m_processor->hasChannelCrosstalk() && interp == "Best" && current == OCIO::INTERP_BEST) {

@@ -10,18 +10,16 @@
 #include <QtCore/QDebug>
 
 
-std::string ImageOperator::m_defaultCategory = "Global";
-
 ImageOperator::ImageOperator()
 {
-    AddParameter(CheckBoxParameter{ "Enabled", true });
-    AddParameter(SliderParameter{ "Opacity", 100.0f, 0.0f, 100.0f, 1.0f});
-    AddParameter(SliderParameter{ "Contrast", 100.0f, 0.0f, 100.0f, 1.0f});
-    AddParameter(SliderParameter{ "Color", 100.0f, 0.0f, 100.0f, 1.0 });
-    // AddParameter(SliderParameter{ "Log", 100.0f, 0.0001f, 10000.0f, 1.0f, SliderParameter::SliderScale::Log });
+    AddParameter<CheckBoxParameter>("Enabled", true);
+    AddParameter<SliderParameter>("Opacity", 100.0f, 0.0f, 100.0f, 1.0f);
+    AddParameter<SliderParameter>("Contrast", 100.0f, 0.0f, 100.0f, 1.0f);
+    AddParameter<SliderParameter>("Color", 100.0f, 0.0f, 100.0f, 1.0);
+    // AddParameter<SliderParameter>("Log", 100.0f, 0.0001f, 10000.0f, 1.0f, SliderParameter::Scale::Log);
 
     using std::placeholders::_1;
-    Subscribe<UpdateOp>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
+    Subscribe<UpdateParam>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));
 }
 
 ParameterList & ImageOperator::Parameters()
@@ -44,34 +42,25 @@ ImageOperator::CategoryMapT const & ImageOperator::Categories() const
     return m_categoryMap;
 }
 
-
-bool ImageOperator::DeleteParameter(const std::string &name)
+void ImageOperator::UpdatedParameter(const Parameter &p)
 {
-    return m_paramList.Delete(name);
-}
-
-bool ImageOperator::SetParameter(const Parameter &op)
-{
-    if (m_paramList.Set(op)) {
-        EmitEvent<Evt::UpdateOp>(op);
-        EmitEvent<Evt::UpdateGui>(op);
-        EmitEvent<Evt::Update>();
-        return true;
-    }
-
-    return false;
+    // Order matters here, first give a chance to the operator to update
+    // it's internal processing state.
+    EmitEvent<Evt::UpdateParam>(p);
+    // Then emit the event that will throw a pipeline update...
+    EmitEvent<Evt::Update>();
 }
 
 bool ImageOperator::IsIdentity() const
 {
-    auto enabled = m_paramList.Get<CheckBoxParameter>("Enabled").value;
+    auto enabled = m_paramList.Get<CheckBoxParameter>("Enabled")->value();
     return (!enabled || OpIsIdentity());
 }
 
 void ImageOperator::Apply(Image & img)
 {
-    float isolate_cts = m_paramList.Get<SliderParameter>("Contrast").value / 100.f;
-    float isolate_color = m_paramList.Get<SliderParameter>("Color").value / 100.f;
+    float isolate_cts = m_paramList.Get<SliderParameter>("Contrast")->value() / 100.f;
+    float isolate_color = m_paramList.Get<SliderParameter>("Color")->value() / 100.f;
 
     const Image img_orig = img;
     Image img_apply = img;
@@ -108,9 +97,7 @@ void ImageOperator::Apply(Image & img)
         file_op.OpApply(img_contrast);
 
         // Image with color only applied
-        auto direction = file_op.GetParameter<SelectParameter>("Direction");
-        direction.value = "Inverse";
-        file_op.SetParameter(direction);
+        file_op.GetParameter<SelectParameter>("Direction")->setValue("Inverse");
         file_op.OpApply(img_color);
         OpApply(img_color);
 
@@ -162,7 +149,7 @@ void ImageOperator::Apply(Image & img)
         img = img_apply;
     }
 
-    float opacity = m_paramList.Get<SliderParameter>("Opacity").value;
+    float opacity = m_paramList.Get<SliderParameter>("Opacity")->value();
     float a = opacity / 100.0f;
     img = img_orig * (1.0f - a) + img * a;
 }

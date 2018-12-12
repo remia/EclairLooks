@@ -1,6 +1,6 @@
 #include "operatorwidget.h"
+#include "parameter/parameter_widget.h"
 #include "../operator/imageoperator.h"
-#include "parameterwidget.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -28,17 +28,16 @@ void OperatorWidget::setupUi()
 
         for (auto & name : plist)
             for (auto & p : m_operator->Parameters())
-                if (p->name == name) {
-                    QLabel * label = new QLabel(QString::fromStdString(name));
+                if (p->name() == name) {
+                    QLabel * label = new QLabel(QString::fromStdString(p->displayName()));
                     ParameterWidget *paramWidget = WidgetFromParameter(p.get());
                     paramWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 
-                    paramWidget->Subscribe<PW::Update>(std::bind(&IOP::SetParameter, m_operator, _1));
-                    auto c = m_operator->Subscribe<IOP::UpdateGui>(std::bind(&PW::UpdateUi, paramWidget, _1));
+                    auto c = m_operator->Subscribe<IOP::UpdateParam>(std::bind(&PW::UpdateUi, paramWidget, _1));
                     QObject::connect(
                         paramWidget, &QWidget::destroyed,
                         [&, op = m_operator, c]() {
-                            op->Unsubscribe<IOP::UpdateGui>(c);
+                            op->Unsubscribe<IOP::UpdateParam>(c);
                         }
                     );
 

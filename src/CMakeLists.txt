@@ -9,6 +9,7 @@ set(SOURCES
     imagepipeline.cpp
     settings.cpp
     widget/common/slider.cpp
+    widget/parameter/parameter_widget.cpp
     widget/uiloader.cpp
     widget/devwidget.cpp
     widget/imagewidget.cpp
@@ -23,7 +24,6 @@ set(SOURCES
     widget/lookviewwidget.cpp
     widget/lookdetailwidget.cpp
     widget/lookselectionwidget.cpp
-    widget/parameterwidget.cpp
     widget/settingwidget.cpp
     operator/imageoperator.cpp
     operator/imageoperatorlist.cpp

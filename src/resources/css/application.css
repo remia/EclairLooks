@@ -214,3 +214,7 @@ QStackedWidget#operatorDetailWidget {
 QWidget#lookSelectionWidget {
     border: 1px solid #1e1b18;
 }
+
+QWidget#lookViewWidget {
+    border: 1px solid #1e1b18;
+}

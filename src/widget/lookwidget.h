@@ -5,6 +5,7 @@
 #include <QtCore/QByteArray>
 
 
+class Settings;
 class Image;
 class ImagePipeline;
 class MainWindow;
@@ -43,17 +44,25 @@ class LookWidget : public QWidget
 
   private:
     void setupPipeline();
+    void setupSetting();
     QWidget* setupUi();
 
     TupleT<bool, Image &> _lookPreview(const QString &lookPath, Image &img);
 
+    void updateViews();
+    void toggleToneMap(bool v);
+    void updateToneMap();
+
   private:
     MainWindow *m_mainWindow;
+
+    Settings *m_settings;
 
     LookBrowserWidget *m_browserWidget;
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
     LookSelectionWidget *m_selectWidget;
+    QWidget *m_settingWidget;
     QLineEdit *m_browserSearch;
 
     bool m_isFullScreen;

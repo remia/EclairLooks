@@ -46,6 +46,9 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QWidget" name="lookSettingWidget" native="true"/>
+       </item>
       </layout>
      </widget>
      <widget class="QSplitter" name="vSplitter">
@@ -83,6 +86,11 @@
    <extends>QWidget</extends>
    <header>lookbrowserwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LookSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>lookselectionwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

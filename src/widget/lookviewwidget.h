@@ -37,6 +37,7 @@ class LookViewWidget : public QListWidget
     void appendFolder(const QString &path);
     void appendLook(const QString &path);
 
+    void updateView();
     void removeSelection(int selectedRow);
 
   private:
@@ -64,9 +65,9 @@ class LookViewItemWidget : public QWidget
     void setup();
 
   private:
-    QLabel * m_thumbnail;
-    QLabel * m_name;
-    QLabel * m_date;
+    QLabel * m_thumbnail = nullptr;
+    QLabel * m_name = nullptr;
+    QLabel * m_date = nullptr;
 
     QString m_path;
     QPixmap m_pixmap;

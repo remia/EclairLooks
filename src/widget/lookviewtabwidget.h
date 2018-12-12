@@ -25,6 +25,7 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     void setLookWidget(LookWidget *lw);
 
     void showFolder(const QString &path);
+    void updateViews();
 
   private:
     void selectionChanged();

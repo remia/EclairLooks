@@ -62,6 +62,15 @@ void LookViewTabWidget::showFolder(const QString &path)
     }
 }
 
+void LookViewTabWidget::updateViews()
+{
+    // Maybe update current tab first (top priority)...
+    for (uint16_t i = 0; i < count(); ++i) {
+        LookViewWidget *w = static_cast<LookViewWidget*>(widget(i));
+        w->updateView();
+    }
+}
+
 void LookViewTabWidget::selectionChanged()
 {
     LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());

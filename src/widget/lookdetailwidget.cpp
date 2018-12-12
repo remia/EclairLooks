@@ -47,6 +47,13 @@ void LookDetailWidget::resetView(Compare c)
     m_neutralsWidget->clearCurve(UnderlyingT<Compare>(c));
     m_cubeWidget->resetCube();
 }
+
+void LookDetailWidget::updateView(Compare c)
+{
+    if (m_cmap[c].isEmpty())
+        return;
+
+    showDetail(m_cmap[c], c);
 }
 
 void LookDetailWidget::showDetail(const QString &path, Compare c)

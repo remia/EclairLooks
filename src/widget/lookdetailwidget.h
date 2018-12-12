@@ -25,6 +25,7 @@ class LookDetailWidget : public QWidget
     void setLookWidget(LookWidget *lw);
 
     void resetView(Compare c);
+    void updateView(Compare c);
     void showDetail(const QString &path, Compare c);
 
   private:

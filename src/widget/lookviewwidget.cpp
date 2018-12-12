@@ -125,6 +125,14 @@ void LookViewWidget::appendLook(const QString &path)
     addLook(path);
 }
 
+void LookViewWidget::updateView()
+{
+    for (uint16_t i = 0; i < count(); ++i) {
+        LookViewItemWidget *w = static_cast<LookViewItemWidget*>(itemWidget(item(i)));
+        w->setImage(QPixmap::fromImage(computeThumbnail(w->path())));
+    }
+}
+
 void LookViewWidget::removeSelection(int selectedRow)
 {
     if (m_readOnly)
@@ -210,6 +218,9 @@ const QPixmap * LookViewItemWidget::image() const
 void LookViewItemWidget::setImage(const QPixmap & img)
 {
     m_pixmap = img;
+
+    if (m_thumbnail)
+        m_thumbnail->setPixmap(m_pixmap);
 }
 
 void LookViewItemWidget::setup()

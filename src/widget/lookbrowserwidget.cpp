@@ -46,7 +46,6 @@ void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
     updateRootPath(m_lookWidget->rootPath());
 }
 
-
 void LookBrowserWidget::filterList(const QString &filter)
 {
     expandAll();

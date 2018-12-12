@@ -117,7 +117,7 @@ void PipelineWidget::disableSelection(int selectedRow)
     // NOTE : we should also track the operator state to choose new styles on enable /
     // disable From the CSS would be perfect, I think we have to subclass QListWidgetItem
     // and add new property that will be accessible from the CSS ?
-    auto &op    = m_devWidget->pipeline()->GetOperator(selectedRow);
+    auto &op = m_devWidget->pipeline()->GetOperator(selectedRow);
     auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
     param->setValue(!param->value());
 }

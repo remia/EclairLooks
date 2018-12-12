@@ -187,7 +187,7 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
-QStringList LookWidget::GetSupportedExtensions() 
+QStringList LookWidget::GetSupportedExtensions()
 {
     if (m_SupportedExtensions.isEmpty()) {
         QStringList extensions = OCIOFileTransform().SupportedExtensions();

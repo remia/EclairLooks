@@ -28,7 +28,6 @@ void LookViewTabWidget::setLookWidget(LookWidget *lw)
     m_lookWidget = lw;
 }
 
-
 void LookViewTabWidget::showFolder(const QString &path)
 {
     QFileInfo fileInfo(path);

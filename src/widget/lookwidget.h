@@ -26,7 +26,7 @@ class LookWidget : public QWidget
   public:
     LookViewTabWidget * lookViewTabWidget();
 
-    QStringList GetSupportedExtensions(); 
+    QStringList GetSupportedExtensions();
 
     void toggleFullScreen();
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include "../utils/generic.h"
 
 #include <QtWidgets/QWidget>
@@ -9,11 +10,13 @@ class LookWidget;
 class ImageWidget;
 class NeutralWidget;
 class CubeWidget;
+class QLabel;
 
 class LookDetailWidget : public QWidget
 {
   public:
     enum class Compare { Selected, Reference };
+    using CompareMap = std::map<Compare, QString>;
 
   public:
     LookDetailWidget(QWidget *parent = nullptr);
@@ -29,4 +32,8 @@ class LookDetailWidget : public QWidget
     ImageWidget *m_imageWidget;
     NeutralWidget *m_neutralsWidget;
     CubeWidget *m_cubeWidget;
+
+    QLabel *m_titleLabel;
+
+    CompareMap m_cmap;
 };

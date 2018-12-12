@@ -43,9 +43,11 @@ void LookDetailWidget::resetView(Compare c)
     m_cmap[c] = "";
     m_titleLabel->setText(m_cmap[Compare::Selected]);
 
-    m_imageWidget->clearImage();
     m_neutralsWidget->clearCurve(UnderlyingT<Compare>(c));
-    m_cubeWidget->resetCube();
+    if (c == Compare::Selected) {
+        m_imageWidget->clearImage();
+        m_cubeWidget->resetCube();
+    }
 }
 
 void LookDetailWidget::updateView(Compare c)

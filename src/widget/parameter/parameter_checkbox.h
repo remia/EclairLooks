@@ -11,7 +11,7 @@ class ParameterCheckBoxWidget : public ParameterWidget
     {
         m_checkBoxParam = static_cast<CheckBoxParameter *>(param);
 
-        m_checkBox = new QCheckBox(QString::fromStdString(m_checkBoxParam->name()));
+        m_checkBox = new QCheckBox();
         m_layout->addWidget(m_checkBox);
 
         UpdateWidget(*param);

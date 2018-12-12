@@ -34,20 +34,20 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
     m_neutralsWidget->installEventFilter(m_lookWidget);
 }
 
-void LookDetailWidget::resetView(uint8_t id)
+void LookDetailWidget::resetView(Compare c)
 {
     m_imageWidget->clearImage();
-    m_neutralsWidget->clearCurve(id);
+    m_neutralsWidget->clearCurve(UnderlyingT<Compare>(c));
 }
 
-void LookDetailWidget::showDetail(const QString &path, uint8_t id)
+void LookDetailWidget::showDetail(const QString &path, Compare c)
 {
     if (auto [valid, img] = m_lookWidget->lookPreview(path); valid) {
         m_imageWidget->setImage(m_lookWidget->fullImage());
         m_imageWidget->updateImage(img);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
-        m_neutralsWidget->drawCurve(id, img, path);
+        m_neutralsWidget->drawCurve(UnderlyingT<Compare>(c), img, path);
     }
     if (auto [valid, img] = m_lookWidget->lookPreviewLattice(path); valid) {
         m_cubeWidget->drawCube(img);

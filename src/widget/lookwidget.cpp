@@ -67,11 +67,11 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
 
     m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showFolder, m_viewTabWidget, _1));
 
-    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 0));
-    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 0));
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::resetView, m_detailWidget, LD::Compare::Selected));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, LD::Compare::Selected));
 
-    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 1));
-    m_selectWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 1));
+    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LD::resetView, m_detailWidget, LD::Compare::Reference));
+    m_selectWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, LD::Compare::Reference));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)

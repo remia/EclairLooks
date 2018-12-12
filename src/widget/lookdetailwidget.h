@@ -13,13 +13,16 @@ class CubeWidget;
 class LookDetailWidget : public QWidget
 {
   public:
+    enum class Compare { Selected, Reference };
+
+  public:
     LookDetailWidget(QWidget *parent = nullptr);
 
   public:
     void setLookWidget(LookWidget *lw);
 
-    void resetView(uint8_t id);
-    void showDetail(const QString &path, uint8_t id);
+    void resetView(Compare c);
+    void showDetail(const QString &path, Compare c);
 
   private:
     LookWidget *m_lookWidget;

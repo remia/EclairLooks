@@ -14,7 +14,7 @@ class ParameterFilePathWidget : public ParameterWidget
         QHBoxLayout *hLayout = new QHBoxLayout();
         hLayout->setContentsMargins(0, 0, 0, 0);
 
-        m_lineEdit   = new QLineEdit();
+        m_lineEdit = new QLineEdit();
         m_toolButton = new QToolButton();
         hLayout->addWidget(m_lineEdit);
         hLayout->addWidget(m_toolButton);
@@ -24,15 +24,16 @@ class ParameterFilePathWidget : public ParameterWidget
 
         QObject::connect(m_toolButton, &QToolButton::clicked,
                          [&, p = m_filePathParam, w = this, le = m_lineEdit]() {
+                             QString path = QDir(QString::fromStdString(p->value())).path();
                              QString fileName;
 
                              if (p->pathType() == FilePathParameter::PathType::File)
                                  fileName = QFileDialog::getOpenFileName(
-                                     w, QString::fromStdString(p->description()), "",
+                                     w, QString::fromStdString(p->description()), path,
                                      QString::fromStdString(p->filters()));
                              else
                                  fileName = QFileDialog::getExistingDirectory(
-                                     w, QString::fromStdString(p->description()));
+                                     w, QString::fromStdString(p->description()), path);
 
                              if (!fileName.isEmpty()) {
                                  p->setValue(fileName.toStdString());

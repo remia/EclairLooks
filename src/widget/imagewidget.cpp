@@ -98,6 +98,12 @@ void ImageWidget::initializeGL()
     GL_CHECK(m_sliderPosUniform = m_program.uniformLocation("sliderPosition"));
 }
 
+void ImageWidget::resizeGL(int w, int h)
+{
+    updateAspectRatio();
+    TextureView::resizeGL(w, h);
+}
+
 void ImageWidget::paintGL()
 {
     GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
@@ -137,6 +143,8 @@ void ImageWidget::setImage(const Image &img)
     createTexture(m_textureIn, img);
     createTexture(m_textureOut, img);
 
+    updateAspectRatio();
+
     resetView();
 }
 
@@ -168,14 +176,8 @@ void ImageWidget::clearImage()
     update();
 }
 
-QMatrix4x4 ImageWidget::setupMVP() const
+void ImageWidget::updateAspectRatio()
 {
-    // 1. Model
-    QMatrix4x4 model;
-
-    // 2. View
-    QMatrix4x4 view;
-
     // Aspect ratio adaptation
     QSize dstSize = this->size();
     QSize srcSize = QSize(m_textureIn.width(), m_textureIn.height());
@@ -183,12 +185,18 @@ QMatrix4x4 ImageWidget::setupMVP() const
     float dstRatio = 1.0f * dstSize.width() / dstSize.height();
 
     if (dstRatio > srcRatio)
-        view.scale((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
+        setTextureRatio((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
     else
-        view.scale(1.0, (dstSize.width() / srcRatio) / dstSize.height());
+        setTextureRatio(1.0, (dstSize.width() / srcRatio) / dstSize.height());
+}
 
-    // Viewer settings
-    view *= viewMatrix();
+QMatrix4x4 ImageWidget::setupMVP() const
+{
+    // 1. Model
+    QMatrix4x4 model;
+
+    // 2. View
+    QMatrix4x4 view = viewMatrix();
 
     // 3. Projection
     QMatrix4x4 projection;

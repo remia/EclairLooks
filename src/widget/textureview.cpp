@@ -15,7 +15,7 @@
 
 
 TextureView::TextureView(QWidget *parent)
-    : QOpenGLWidget(parent), m_defaultScale(1.f)
+    : QOpenGLWidget(parent), m_textureRatio(1.f, 1.f)
 {
     setFocusPolicy(Qt::ClickFocus);
     resetView();
@@ -24,7 +24,7 @@ TextureView::TextureView(QWidget *parent)
 void TextureView::mousePressEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
-        m_imagePosition = widgetToWorld(event->localPos());
+        m_imagePosition = -widgetToTexture(event->localPos());
     }
     else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
         setMouseTracking(true);
@@ -148,7 +148,6 @@ void TextureView::initializeGL()
     GL_CHECK(m_vao.release());
 
     printOpenGLInfo();
-    qInfo() << "OpenGL Initialization done !\n";
 }
 
 void TextureView::resizeGL(int w, int h)
@@ -161,6 +160,11 @@ void TextureView::setDefaultScale(float s)
 {
     m_defaultScale = s;
     resetView();
+}
+
+void TextureView::setTextureRatio(float x, float y)
+{
+    m_textureRatio = QPointF(x, y);
 }
 
 QString TextureView::defaultVertexShader() const
@@ -225,6 +229,14 @@ QPointF TextureView::widgetToWorld(const QPointF & pos) const
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }
 
+QPointF TextureView::widgetToTexture(const QPointF & pos) const
+{
+    QPointF worldPoint = widgetToWorld(pos);
+    QVector3D worldPos(worldPoint.x(), -worldPoint.y(), 0.f);
+    QVector3D viewPos = viewMatrix().inverted() * worldPos;
+    return QPointF(viewPos.x(), viewPos.y());
+}
+
 QOpenGLVertexArrayObject & TextureView::vaoObject()
 {
     return m_vao;
@@ -233,6 +245,8 @@ QOpenGLVertexArrayObject & TextureView::vaoObject()
 QMatrix4x4 TextureView::viewMatrix() const
 {
     QMatrix4x4 view;
+
+    view.scale(m_textureRatio.x(), m_textureRatio.y());
 
     // Inverse Y scale to account for OpenGL Y axis (bottom top)
     view.scale(m_imageScale, -m_imageScale);

@@ -27,6 +27,7 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     void dropEvent(QDropEvent *event) override;
 
     void initializeGL() override;
+    void resizeGL(int w, int h) override;
     void paintGL() override;
 
   public:
@@ -36,6 +37,8 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
 
   private:
     QMatrix4x4 setupMVP() const;
+
+    void updateAspectRatio();
 
     void createTexture(QOpenGLTexture &tex, const Image &img);
     bool guessPixelsParameters(

@@ -24,6 +24,7 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     : QWidget(parent), m_mainWindow(mw), m_isFullScreen(false), m_proxySize(125, 125)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
+    m_pipeline->SetName("look");
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
     m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
 

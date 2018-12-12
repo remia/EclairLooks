@@ -37,6 +37,11 @@ Image & ImagePipeline::GetOutput()
     return m_outputImg;
 }
 
+void ImagePipeline::SetName(const std::string &name)
+{
+    m_name = name;
+}
+
 uint8_t ImagePipeline::OperatorCount() const
 {
     return m_operators.size();
@@ -118,7 +123,8 @@ void ImagePipeline::ComputeImage(Image & img)
         if (!t->IsIdentity())
             t->Apply(img);
 
-    qInfo() << "Compute Pipeline in : " << fixed << qSetRealNumberPrecision(2)
+    qInfo() << "Compute (" << QString::fromStdString(m_name)
+            << ") Pipeline in : " << fixed << qSetRealNumberPrecision(2)
             << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
 }
 

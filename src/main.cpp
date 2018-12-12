@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 
     // Pipeline & Operators
     ImagePipeline pipeline;
+    pipeline.SetName("main");
 
     // First try to load image from application settings
     // If this fails, use default embeded image

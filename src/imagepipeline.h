@@ -28,6 +28,8 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     Image &GetInput();
     Image &GetOutput();
 
+    void SetName(const std::string &name);
+
     uint8_t OperatorCount() const;
     ImageOperator &GetOperator(uint8_t index);
 
@@ -47,6 +49,8 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     Image m_inputImg;
     Image m_outputImg;
     VecT m_operators;
+
+    std::string m_name = "unamed";
 };
 
 

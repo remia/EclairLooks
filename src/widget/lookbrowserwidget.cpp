@@ -43,7 +43,7 @@ void LookBrowserWidget::setLookWidget(LookWidget *lookWidget)
     m_lookWidget = lookWidget;
     m_fileSystemModel->setNameFilters(m_lookWidget->supportedExtensions());
     m_fileSystemModel->setNameFilterDisables(false);
-    updateRootPath(m_lookWidget->rootPath());
+    updateRootPath(m_lookWidget->lookBasePath());
 }
 
 void LookBrowserWidget::filterList(const QString &filter)
@@ -52,7 +52,7 @@ void LookBrowserWidget::filterList(const QString &filter)
     m_sortFilterModel->setFilterFixedString(filter);
 
     if (filter.isEmpty() || !rootIndex().isValid()) {
-        updateRootPath(m_lookWidget->rootPath());
+        updateRootPath(m_lookWidget->lookBasePath());
         collapseAll();
     }
 }

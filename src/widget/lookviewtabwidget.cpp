@@ -39,7 +39,7 @@ void LookViewTabWidget::showFolder(const QString &path)
     else
         dirPath = fileInfo.dir().absolutePath();
 
-    QDir rootDir(m_lookWidget->rootPath());
+    QDir rootDir(m_lookWidget->lookBasePath());
     QString relPath = rootDir.relativeFilePath(dirPath);
 
     if (auto [exists, index] = tabExists(relPath); !exists) {

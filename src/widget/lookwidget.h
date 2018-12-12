@@ -30,7 +30,7 @@ class LookWidget : public QWidget
 
     void toggleFullScreen();
 
-    QString rootPath();
+    QString lookBasePath();
     QString tonemapPath();
 
     Image & fullImage();

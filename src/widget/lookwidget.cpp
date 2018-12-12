@@ -125,7 +125,7 @@ void LookWidget::toggleFullScreen()
     }
 }
 
-QString LookWidget::rootPath()
+QString LookWidget::lookBasePath()
 {
     std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder")->value();
     return QString::fromStdString(val);

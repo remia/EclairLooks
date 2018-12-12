@@ -33,10 +33,9 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     //
 
     QWidget * w = setupUi();
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
-    setLayout(layout);
 
     m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");

@@ -15,6 +15,7 @@ class Settings
   public:
     const ParameterList & Parameters() const;
 
+    template <typename T, typename... P> T* Add(P&&... params);
     template <typename T> T* const Get(const std::string &name) const;
 
   private:
@@ -28,6 +29,19 @@ class Settings
     UPtr<QSettings> m_settings;
     ParameterList m_paramList;
 };
+
+template <typename T, typename... P>
+T* Settings::Add(P&&... p)
+{
+    using std::placeholders::_1;
+
+    T* param = m_paramList.Add<T>(std::forward<P>(p)...);
+    param->template Subscribe<Parameter::UpdateValue>(std::bind(&Settings::Save, this, _1));
+
+    Load(*param);
+
+    return param;
+}
 
 template <typename T>
 T* const Settings::Get(const std::string &name) const

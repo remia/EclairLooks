@@ -8,20 +8,7 @@ Settings::Settings()
 {
     m_settings = std::make_unique<QSettings>();
 
-    using std::placeholders::_1;
     Parameter *p = nullptr;
-
-    p = m_paramList.Add<FilePathParameter>("Default Image", "", "Choose an image", "");
-    p->Subscribe<Parameter::UpdateValue>(std::bind(&Settings::Save, this, _1));
-
-    p = m_paramList.Add<FilePathParameter>("Look Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
-    p->Subscribe<Parameter::UpdateValue>(std::bind(&Settings::Save, this, _1));
-
-    p = m_paramList.Add<FilePathParameter>("Look Tonemap LUT", "", "Choose a LUT", "");
-    p->Subscribe<Parameter::UpdateValue>(std::bind(&Settings::Save, this, _1));
-
-
-    LoadParameters();
 }
 
 Settings::~Settings()

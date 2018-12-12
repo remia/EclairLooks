@@ -64,7 +64,7 @@ void MainWindow::setup()
     m_logWidget = new LogWidget();
     m_devWidget = new DevWidget(this);
     m_lookWidget = new LookWidget(this);
-    m_settingWidget = new SettingWidget(m_settings);
+    m_settingWidget = new SettingWidget(m_settings, "General");
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");

@@ -217,6 +217,23 @@ void CubeWidget::resizeGL(int w, int h)
     GL_CHECK(glViewport(0, 0, w * retinaScale, h * retinaScale));
 }
 
+void CubeWidget::resetView()
+{
+    m_scale = m_defaultScale;
+    m_translate = QPointF(0.f, 0.f);
+    m_rotate = QPointF(0.f, 0.f);
+    m_lastPosition = QPointF(0.f, 0.f);
+    m_moveDelta = QPointF(0.f, 0.f);
+
+    update();
+}
+
+void CubeWidget::setDefaultScale(float s)
+{
+    m_defaultScale = s;
+    resetView();
+}
+
 void CubeWidget::drawCube(const Image &img)
 {
     makeCurrent();
@@ -243,21 +260,35 @@ void CubeWidget::drawCube(const Image &img)
     doneCurrent();
 }
 
-void CubeWidget::setDefaultScale(float s)
+void CubeWidget::resetCube()
 {
-    m_defaultScale = s;
-    resetView();
-}
+    makeCurrent();
 
-void CubeWidget::resetView()
-{
-    m_scale = m_defaultScale;
-    m_translate = QPointF(0.f, 0.f);
-    m_rotate = QPointF(0.f, 0.f);
-    m_lastPosition = QPointF(0.f, 0.f);
-    m_moveDelta = QPointF(0.f, 0.f);
+    if (!m_isInitialized)
+        initializeGL();
+
+    std::vector<GLfloat> sphere_positions;
+    for (int x = 0; x < m_cubeSize; ++x) {
+        float xn = x / (m_cubeSize -1.);
+        for (int y = 0; y < m_cubeSize; ++y) {
+            float yn = y / (m_cubeSize -1.);
+            for (int z = 0; z < m_cubeSize; ++z) {
+                float zn = z / (m_cubeSize -1.);
+
+                sphere_positions.push_back(xn);
+                sphere_positions.push_back(yn);
+                sphere_positions.push_back(zn);
+            }
+        }
+    }
+
+    GL_CHECK(m_positionSphere.bind());
+    GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
+    GL_CHECK(m_positionSphere.release());
 
     update();
+
+    doneCurrent();
 }
 
 void CubeWidget::setupCube()

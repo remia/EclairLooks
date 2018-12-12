@@ -38,6 +38,8 @@ void LookDetailWidget::resetView(Compare c)
 {
     m_imageWidget->clearImage();
     m_neutralsWidget->clearCurve(UnderlyingT<Compare>(c));
+    m_cubeWidget->resetCube();
+}
 }
 
 void LookDetailWidget::showDetail(const QString &path, Compare c)

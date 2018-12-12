@@ -45,6 +45,10 @@ inline void checkOpenGLError(const std::string &stmt, const std::string &file, i
 
 inline void printOpenGLInfo()
 {
+    static bool isPrinted = false;
+    if (isPrinted)
+        return;
+
     QOpenGLFunctions glFuncs(QOpenGLContext::currentContext());
     auto gl_vendor   = QString(reinterpret_cast<char const *>(glFuncs.glGetString(GL_VENDOR)));
     auto gl_renderer = QString(reinterpret_cast<char const *>(glFuncs.glGetString(GL_RENDERER)));
@@ -57,6 +61,8 @@ inline void printOpenGLInfo()
             << "\tRenderer : " << gl_renderer << "\n"
             << "\tVersion : " << gl_version << "\n"
             << "\tGLSL Version : " << gl_glsl_version << "\n";
+
+    isPrinted = true;
 }
 
 // ----------------------------------------------------------------------------

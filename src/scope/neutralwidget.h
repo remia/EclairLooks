@@ -35,8 +35,8 @@ class NeutralWidget : public QGraphicsView
   public:
     void resizeEvent(QResizeEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
-    void enterEvent(QEvent * event) override;
-    void leaveEvent(QEvent * event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
   public:
     void clearView();
@@ -50,8 +50,8 @@ class NeutralWidget : public QGraphicsView
     void drawGrid();
     void drawCurve(const CurveItems &items, uint8_t id);
     void drawCursor(uint16_t x, uint16_t y);
-    void HideCursors();
-    void ShowCursors();
+    void hideCursors();
+    void showCursors();
 
   private:
     UPtr<QGraphicsScene> m_scene;

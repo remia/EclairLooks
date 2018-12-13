@@ -179,13 +179,16 @@ TupleT<bool, Image &> LookWidget::lookPreviewLattice(const QString &lookPath)
 
 TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)
 {
-    if (auto op = m_mainWindow->operators()->CreateFromPath(lookPath.toStdString())) {
-        m_pipeline->ReplaceOperator(op, 0);
-        m_pipeline->SetInput(img);
-        return { true, m_pipeline->GetOutput() };
-    }
+    ImageOperator &op = m_pipeline->GetOperator(0);
+    auto opPath = op.GetParameter<FilePathParameter>("LUT");
+    std::string currentPath = opPath->value();
+    std::string requestPath = lookPath.toStdString();
 
-    return { false, img };
+    if (currentPath != requestPath)
+        opPath->setValue(requestPath);
+
+    m_pipeline->SetInput(img);
+    return { true, m_pipeline->GetOutput() };
 }
 
 QWidget * LookWidget::setupUi()

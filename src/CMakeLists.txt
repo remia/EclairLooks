@@ -36,6 +36,7 @@ set(SOURCES
     scope/neutralwidget.cpp
     scope/waveformwidget.cpp
     utils/chrono.cpp
+    utils/pystring.cpp
     parameter/parameterlist.cpp
 )
 

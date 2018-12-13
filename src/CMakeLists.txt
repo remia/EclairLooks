@@ -18,8 +18,8 @@ set(SOURCES
     widget/pipelinewidget.cpp
     widget/operatorlistwidget.cpp
     widget/operatorwidget.cpp
+    widget/browserwidget.cpp
     widget/lookwidget.cpp
-    widget/lookbrowserwidget.cpp
     widget/lookviewtabwidget.cpp
     widget/lookviewwidget.cpp
     widget/lookdetailwidget.cpp

@@ -9,11 +9,10 @@ class Settings;
 class Image;
 class ImagePipeline;
 class MainWindow;
-class LookBrowserWidget;
+class BrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
 class LookSelectionWidget;
-class QLineEdit;
 class QSplitter;
 
 class LookWidget : public QWidget
@@ -27,7 +26,7 @@ class LookWidget : public QWidget
   public:
     LookViewTabWidget * lookViewTabWidget();
 
-    QStringList supportedExtensions();
+    QStringList supportedLookExtensions();
 
     void toggleFullScreen();
 
@@ -44,6 +43,7 @@ class LookWidget : public QWidget
 
   private:
     void setupPipeline();
+    void setupBrowser();
     void setupSetting();
     QWidget* setupUi();
 
@@ -58,12 +58,11 @@ class LookWidget : public QWidget
 
     Settings *m_settings;
 
-    LookBrowserWidget *m_browserWidget;
+    BrowserWidget *m_browserWidget;
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
     LookSelectionWidget *m_selectWidget;
     QWidget *m_settingWidget;
-    QLineEdit *m_browserSearch;
 
     bool m_isFullScreen;
     QSplitter *m_hSplitter;

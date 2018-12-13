@@ -111,7 +111,7 @@ void LookViewWidget::appendFolder(const QString &path)
     clear();
 
     QDir dir(path);
-    dir.setNameFilters(m_lookWidget->supportedExtensions());
+    dir.setNameFilters(m_lookWidget->supportedLookExtensions());
     for (auto & entry : dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QString entryPath = entry.absoluteFilePath();
         addLook(entryPath);

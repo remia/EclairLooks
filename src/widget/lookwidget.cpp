@@ -1,6 +1,6 @@
 #include "lookwidget.h"
 #include "uiloader.h"
-#include "lookbrowserwidget.h"
+#include "browserwidget.h"
 #include "lookviewtabwidget.h"
 #include "lookviewwidget.h"
 #include "lookdetailwidget.h"
@@ -17,7 +17,7 @@
 #include <QFile>
 
 using std::placeholders::_1;
-using LB = LookBrowserWidget;
+using BW = BrowserWidget;
 using LV = LookViewTabWidget;
 using LD = LookDetailWidget;
 using P = Parameter;
@@ -40,11 +40,10 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
 
-    m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
+    m_browserWidget = findChild<BrowserWidget*>("lookBrowserWidget");
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_selectWidget = findChild<LookSelectionWidget*>("lookSelectionWidget");
-    m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
     m_settingWidget = findChild<QWidget*>("lookSettingWidget");
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
@@ -56,9 +55,9 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_hSplitterView->setSizes(QList<int>({80000, 20000}));
 
     setupPipeline();
+    setupBrowser();
     setupSetting();
 
-    m_browserWidget->setLookWidget(this);
     m_viewTabWidget->setLookWidget(this);
     m_detailWidget->setLookWidget(this);
     m_selectWidget->setLookWidget(this);
@@ -67,14 +66,12 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     // Connections
     //
 
-    QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
-
     auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
-    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_browserWidget->updateRootPath(lookBasePath()); });
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_browserWidget->setRootPath(lookBasePath()); });
     auto lookTonemap = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT");
     lookTonemap->Subscribe<P::UpdateValue>(std::bind(&LookWidget::updateToneMap, this));
 
-    m_browserWidget->Subscribe<LB::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
+    m_browserWidget->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
 
     m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::resetView, m_detailWidget, LD::Compare::Selected));
     m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, LD::Compare::Selected));
@@ -115,6 +112,18 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
 LookViewTabWidget * LookWidget::lookViewTabWidget()
 {
     return m_viewTabWidget;
+}
+
+QStringList LookWidget::supportedLookExtensions()
+{
+    QStringList extensions = OCIOFileTransform().SupportedExtensions();
+    QListIterator<QString> itr(extensions);
+    while (itr.hasNext()) {
+        QString current = itr.next();
+        extensions << "*." + current;
+    }
+
+    return extensions;
 }
 
 void LookWidget::toggleFullScreen()
@@ -199,18 +208,6 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
-QStringList LookWidget::supportedExtensions()
-{
-    QStringList extensions = OCIOFileTransform().SupportedExtensions();
-    QListIterator<QString> itr(extensions);
-    while (itr.hasNext()) {
-        QString current = itr.next();
-        extensions << "*." + current;
-    }
-
-    return extensions;
-}
-
 void LookWidget::setupPipeline()
 {
     if (!m_mainWindow->pipeline()->GetInput())
@@ -224,6 +221,12 @@ void LookWidget::setupPipeline()
     m_pipeline->AddOperator<OCIOFileTransform>();
 
     updateToneMap();
+}
+
+void LookWidget::setupBrowser()
+{
+    m_browserWidget->setRootPath(lookBasePath());
+    m_browserWidget->setExtFilter(supportedLookExtensions());
 }
 
 void LookWidget::setupSetting()

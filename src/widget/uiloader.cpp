@@ -3,7 +3,7 @@
 #include "imagewidget.h"
 #include "pipelinewidget.h"
 #include "operatorlistwidget.h"
-#include "lookbrowserwidget.h"
+#include "browserwidget.h"
 #include "lookviewtabwidget.h"
 #include "lookdetailwidget.h"
 #include "lookselectionwidget.h"
@@ -27,8 +27,8 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         OperatorListWidget *w = new OperatorListWidget(parent);
         w->setObjectName(name);
         return w;
-    } else if (className == "LookBrowserWidget") {
-        LookBrowserWidget *w = new LookBrowserWidget(parent);
+    } else if (className == "BrowserWidget") {
+        BrowserWidget *w = new BrowserWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "LookViewTabWidget") {

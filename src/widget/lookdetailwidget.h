@@ -2,6 +2,7 @@
 
 #include <map>
 #include "../utils/generic.h"
+#include "../utils/types.h"
 
 #include <QtWidgets/QWidget>
 
@@ -11,22 +12,25 @@ class ImageWidget;
 class NeutralWidget;
 class CubeWidget;
 class QLabel;
+class Image;
 
 class LookDetailWidget : public QWidget
 {
   public:
-    enum class Compare { Selected, Reference };
-    using CompareMap = std::map<Compare, QString>;
+    using CompareMap = std::map<SideBySide, QString>;
 
   public:
     LookDetailWidget(QWidget *parent = nullptr);
 
   public:
+    void showEvent(QShowEvent *event) override;
+
+  public:
     void setLookWidget(LookWidget *lw);
 
-    void resetView(Compare c);
-    void updateView(Compare c);
-    void showDetail(const QString &path, Compare c);
+    void clearView(SideBySide c);
+    void updateView(SideBySide c);
+    void showDetail(const QString &path, SideBySide c);
 
   private:
     LookWidget *m_lookWidget;

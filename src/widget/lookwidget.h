@@ -33,6 +33,7 @@ class LookWidget : public QWidget
     QString lookBasePath();
     QString tonemapPath();
 
+    void setImage(const Image &img);
     Image & fullImage();
     Image & proxyImage();
 

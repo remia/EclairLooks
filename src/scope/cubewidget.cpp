@@ -260,7 +260,7 @@ void CubeWidget::drawCube(const Image &img)
     doneCurrent();
 }
 
-void CubeWidget::resetCube()
+void CubeWidget::clearCube()
 {
     makeCurrent();
 

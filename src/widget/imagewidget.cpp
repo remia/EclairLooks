@@ -21,15 +21,15 @@ static std::string fragmentShaderSource = R"(
 
     layout(location = 0) out vec4 fragColor;
 
-    uniform sampler2D imgTexIn;
-    uniform sampler2D imgTexOut;
+    uniform sampler2D imgTexA;
+    uniform sampler2D imgTexB;
     uniform float sliderPosition;
 
     void main() {
        if (texCoord.x > sliderPosition)
-           fragColor = texture(imgTexOut, texCoord);
+           fragColor = texture(imgTexA, texCoord);
        else
-           fragColor = texture(imgTexIn, texCoord);
+           fragColor = texture(imgTexB, texCoord);
 
        if (texCoord.x > sliderPosition - 0.001f && texCoord.x < sliderPosition + 0.001f)
            fragColor = vec4(0.7, 0.7, 0.7, 1.0);
@@ -38,8 +38,8 @@ static std::string fragmentShaderSource = R"(
 
 
 ImageWidget::ImageWidget(QWidget *parent)
-    : TextureView(parent), m_textureIn(QOpenGLTexture::Target2D),
-      m_textureOut(QOpenGLTexture::Target2D), m_sliderPosition(0.5f)
+    : TextureView(parent), m_textureA(QOpenGLTexture::Target2D),
+      m_textureB(QOpenGLTexture::Target2D), m_sliderPosition(0.5f)
 {
     setAcceptDrops(true);
 }
@@ -93,8 +93,8 @@ void ImageWidget::initializeGL()
     m_program.link();
 
     GL_CHECK(m_matrixUniform = m_program.uniformLocation("matrix"));
-    GL_CHECK(m_textureUniformIn = m_program.uniformLocation("imgTexIn"));
-    GL_CHECK(m_textureUniformOut = m_program.uniformLocation("imgTexOut"));
+    GL_CHECK(m_textureUniformA = m_program.uniformLocation("imgTexA"));
+    GL_CHECK(m_textureUniformB = m_program.uniformLocation("imgTexB"));
     GL_CHECK(m_sliderPosUniform = m_program.uniformLocation("sliderPosition"));
 }
 
@@ -109,7 +109,7 @@ void ImageWidget::paintGL()
     GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-    bool texComplete = m_textureIn.isStorageAllocated();
+    bool texComplete = m_textureA.isStorageAllocated();
     if (!texComplete)
         return;
 
@@ -117,38 +117,46 @@ void ImageWidget::paintGL()
     m_program.bind();
 
     GL_CHECK(glActiveTexture(GL_TEXTURE0));
-    m_textureIn.bind();
+    m_textureA.bind();
     GL_CHECK(glActiveTexture(GL_TEXTURE1));
-    m_textureOut.bind();
+    m_textureB.bind();
 
     GL_CHECK(m_program.setUniformValue(m_matrixUniform, setupMVP()));
     GL_CHECK(m_program.setUniformValue(m_sliderPosUniform, m_sliderPosition));
-    GL_CHECK(m_program.setUniformValue(m_textureUniformIn, 0));
-    GL_CHECK(m_program.setUniformValue(m_textureUniformOut, 1));
+    GL_CHECK(m_program.setUniformValue(m_textureUniformA, 0));
+    GL_CHECK(m_program.setUniformValue(m_textureUniformB, 1));
 
     GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
 
-    if (texComplete && m_textureIn.isBound()) {
-        m_textureIn.release();
-        m_textureOut.release();
+    if (texComplete && m_textureA.isBound()) {
+        m_textureA.release();
+        m_textureB.release();
     }
     m_program.release();
     vaoObject().release();
 }
 
-void ImageWidget::setImage(const Image &img)
+bool ImageWidget::hasImage() const
+{
+    return m_textureA.isStorageAllocated();
+}
+
+void ImageWidget::resetImage(const Image &img)
 {
     makeCurrent();
 
-    createTexture(m_textureIn, img);
-    createTexture(m_textureOut, img);
+    m_textureA.destroy();
+    m_textureB.destroy();
+
+    createTexture(m_textureA, img);
+    createTexture(m_textureB, img);
 
     updateAspectRatio();
 
     resetView();
 }
 
-void ImageWidget::updateImage(const Image &img)
+void ImageWidget::updateImage(SideBySide sbs, const Image &img)
 {
     QOpenGLTexture::PixelType pixelType;
     QOpenGLTexture::PixelFormat pixelFormat;
@@ -156,31 +164,31 @@ void ImageWidget::updateImage(const Image &img)
     if (!guessPixelsParameters(img, pixelType, pixelFormat, sw))
         return;
 
-    if (m_textureIn.width() != img.width() || m_textureIn.height() != img.height()) {
-        qCritical() << "ImageWidget : Invalid Texture Update\n";
-        return;
+    QOpenGLTexture *texture = nullptr;
+    switch (sbs) {
+        case SideBySide::A:
+            texture = &m_textureA;
+            break;
+        case SideBySide::B:
+            texture = &m_textureB;
+            break;
     }
 
-    m_textureOut.setData(pixelFormat, pixelType, img.pixels());
+    if (texture->width() != img.width() || texture->height() != img.height())
+        resetImage(img);
+
+    texture->setData(pixelFormat, pixelType, img.pixels());
 
     update();
 
-    EmitEvent<Evt::Update>(m_textureOut);
-}
-
-void ImageWidget::clearImage()
-{
-    makeCurrent();
-    m_textureIn.destroy();
-    m_textureOut.destroy();
-    update();
+    EmitEvent<Evt::Update>(*texture);
 }
 
 void ImageWidget::updateAspectRatio()
 {
     // Aspect ratio adaptation
     QSize dstSize = this->size();
-    QSize srcSize = QSize(m_textureIn.width(), m_textureIn.height());
+    QSize srcSize = QSize(m_textureA.width(), m_textureA.height());
     float srcRatio = 1.0f * srcSize.width() / srcSize.height();
     float dstRatio = 1.0f * dstSize.width() / dstSize.height();
 

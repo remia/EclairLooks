@@ -31,7 +31,7 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     void resetView();
     void setDefaultScale(float s);
     void drawCube(const Image &img);
-    void resetCube();
+    void clearCube();
 
   private:
     void setupCube();

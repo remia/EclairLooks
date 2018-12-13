@@ -12,6 +12,7 @@
 #include "../mainwindow.h"
 #include "../operator/imageoperatorlist.h"
 #include "../operator/ociofiletransform_operator.h"
+#include "../utils/types.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
@@ -73,11 +74,11 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
 
     m_browserWidget->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
 
-    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::resetView, m_detailWidget, LD::Compare::Selected));
-    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, LD::Compare::Selected));
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::A));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::A));
 
-    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LD::resetView, m_detailWidget, LD::Compare::Reference));
-    m_selectWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, LD::Compare::Reference));
+    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::B));
+    m_selectWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::B));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)
@@ -156,6 +157,16 @@ QString LookWidget::tonemapPath()
     return QString::fromStdString(val);
 }
 
+void LookWidget::setImage(const Image &img)
+{
+    if (!img)
+        return;
+
+    m_image = std::make_unique<Image>(img);
+    m_imageProxy = std::make_unique<Image>(*m_image);
+    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
+}
+
 Image & LookWidget::fullImage()
 {
     return *m_image;
@@ -210,12 +221,7 @@ QWidget * LookWidget::setupUi()
 
 void LookWidget::setupPipeline()
 {
-    if (!m_mainWindow->pipeline()->GetInput())
-        return;
-
-    m_image = std::make_unique<Image>(m_mainWindow->pipeline()->GetInput());
-    m_imageProxy = std::make_unique<Image>(*m_image);
-    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
+    setImage(m_mainWindow->pipeline()->GetInput());
 
     m_pipeline->AddOperator<OCIOFileTransform>();
     m_pipeline->AddOperator<OCIOFileTransform>();
@@ -248,8 +254,8 @@ void LookWidget::setupSetting()
 
 void LookWidget::updateViews()
 {
-    m_detailWidget->updateView(LD::Compare::Selected);
-    m_detailWidget->updateView(LD::Compare::Reference);
+    m_detailWidget->updateView(SideBySide::A);
+    m_detailWidget->updateView(SideBySide::B);
     m_viewTabWidget->updateViews();
 }
 

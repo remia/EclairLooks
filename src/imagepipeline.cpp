@@ -52,7 +52,7 @@ ImageOperator &ImagePipeline::GetOperator(uint8_t index)
     return *m_operators[index];
 }
 
-void ImagePipeline::AddOperator(ImageOperator * op, int8_t index)
+ImageOperator* ImagePipeline::AddOperator(ImageOperator * op, int8_t index)
 {
     VecCIt pos = m_operators.end();
     if (index >= 0) {
@@ -64,17 +64,21 @@ void ImagePipeline::AddOperator(ImageOperator * op, int8_t index)
     optr->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
 
     Compute();
+
+    return optr.get();
 }
 
-void ImagePipeline::ReplaceOperator(ImageOperator * op, int8_t index)
+ImageOperator* ImagePipeline::ReplaceOperator(ImageOperator * op, int8_t index)
 {
     if (index >= m_operators.size()) {
         qWarning() << "Cannot replace operator at index" << index;
-        return;
+        return nullptr;
     }
 
     m_operators[index] = UPtr<ImageOperator>(op);
     m_operators[index]->Subscribe<ImageOperator::Update>(std::bind(&ImagePipeline::Compute, this) );
+
+    return m_operators[index].get();
 }
 
 bool ImagePipeline::DeleteOperator(uint8_t index)

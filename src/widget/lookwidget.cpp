@@ -145,16 +145,24 @@ void LookWidget::toggleFullScreen()
     }
 }
 
-QString LookWidget::lookBasePath()
+QString LookWidget::lookBasePath() const
 {
     std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder")->value();
     return QString::fromStdString(val);
 }
 
-QString LookWidget::tonemapPath()
+QString LookWidget::tonemapPath() const
 {
     std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT")->value();
     return QString::fromStdString(val);
+}
+
+bool LookWidget::tonemapEnabled() const
+{
+    if (!m_settings)
+        return false;
+
+    return m_settings->Get<CheckBoxParameter>("Tone Mapping")->value();
 }
 
 void LookWidget::setImage(const Image &img)
@@ -272,8 +280,10 @@ void LookWidget::updateToneMap()
     if (tonemapPath().isEmpty())
         return;
 
-    if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString()))
-        m_pipeline->ReplaceOperator(op, 1);
+    if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString())) {
+        op = m_pipeline->ReplaceOperator(op, 1);
+        op->GetParameter<CheckBoxParameter>("Enabled")->setValue(tonemapEnabled());
+    }
 
     updateViews();
 }

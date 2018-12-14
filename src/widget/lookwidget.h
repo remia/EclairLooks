@@ -30,8 +30,10 @@ class LookWidget : public QWidget
 
     void toggleFullScreen();
 
-    QString lookBasePath();
-    QString tonemapPath();
+    QString lookBasePath() const;
+    QString imageBasePath() const;
+    QString tonemapPath() const;
+    bool tonemapEnabled() const;
 
     void setImage(const Image &img);
     Image & fullImage();
@@ -57,7 +59,7 @@ class LookWidget : public QWidget
   private:
     MainWindow *m_mainWindow;
 
-    Settings *m_settings;
+    Settings *m_settings = nullptr;
 
     BrowserWidget *m_browserWidget;
     LookViewTabWidget *m_viewTabWidget;

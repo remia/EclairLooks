@@ -24,7 +24,7 @@ TextureView::TextureView(QWidget *parent)
 void TextureView::mousePressEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
-        m_imagePosition = -widgetToTexture(event->localPos());
+        m_imagePosition = -widgetToWorld(event->localPos());
     }
     else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
         setMouseTracking(true);
@@ -219,22 +219,39 @@ void TextureView::resetView()
     update();
 }
 
-QPointF TextureView::widgetToNorm(const QPointF & pos) const
+QPointF TextureView::widgetToNorm(const QPointF &pos) const
 {
     return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
 }
 
-QPointF TextureView::widgetToWorld(const QPointF & pos) const
+QPointF TextureView::normToWidget(const QPointF &pos) const
+{
+    return QPointF(pos.x() * width(), pos.y() * height());
+}
+
+QPointF TextureView::widgetToClip(const QPointF &pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }
 
-QPointF TextureView::widgetToTexture(const QPointF & pos) const
+QPointF TextureView::clipToWidget(const QPointF &pos) const
 {
-    QPointF worldPoint = widgetToWorld(pos);
-    QVector3D worldPos(worldPoint.x(), -worldPoint.y(), 0.f);
-    QVector3D viewPos = viewMatrix().inverted() * worldPos;
-    return QPointF(viewPos.x(), viewPos.y());
+    return normToWidget((pos + QPointF(1.f, 1.f)) / 2.f);
+}
+
+QPointF TextureView::widgetToWorld(const QPointF &pos) const
+{
+    QPointF clipPoint = widgetToClip(pos);
+    QVector3D clipPos(clipPoint.x(), -clipPoint.y(), 0.f);
+    QVector3D worldPos = viewMatrix().inverted() * clipPos;
+    return QPointF(worldPos.x(), worldPos.y());
+}
+
+QPointF TextureView::worldToWidget(const QPointF &pos) const
+{
+    QVector3D worldPos(pos.x(), pos.y(), 0.f);
+    QVector3D clipPos = viewMatrix() * worldPos;
+    return clipToWidget(QPointF(clipPos.x(), -clipPos.y()));
 }
 
 QOpenGLVertexArrayObject & TextureView::vaoObject()

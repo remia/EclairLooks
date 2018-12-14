@@ -32,8 +32,11 @@ class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
     QString defaultFragmentShader() const;
 
     QPointF widgetToNorm(const QPointF &pos) const;
+    QPointF normToWidget(const QPointF &pos) const;
+    QPointF widgetToClip(const QPointF & pos) const;
+    QPointF clipToWidget(const QPointF &pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;
-    QPointF widgetToTexture(const QPointF & pos) const;
+    QPointF worldToWidget(const QPointF &pos) const;
 
     QOpenGLVertexArrayObject & vaoObject();
     QMatrix4x4 viewMatrix() const;

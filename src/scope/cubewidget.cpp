@@ -516,7 +516,7 @@ QPointF CubeWidget::widgetToNorm(const QPointF & pos) const
     return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
 }
 
-QPointF CubeWidget::widgetToWorld(const QPointF & pos) const
+QPointF CubeWidget::widgetToClip(const QPointF & pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }

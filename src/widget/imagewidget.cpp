@@ -12,6 +12,7 @@
 #include <QtGui/QWindow>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
+#include <QtGui/QPainter>
 
 
 static std::string fragmentShaderSource = R"(
@@ -30,16 +31,13 @@ static std::string fragmentShaderSource = R"(
            fragColor = texture(imgTexA, texCoord);
        else
            fragColor = texture(imgTexB, texCoord);
-
-       if (texCoord.x > sliderPosition - 0.001f && texCoord.x < sliderPosition + 0.001f)
-           fragColor = vec4(0.7, 0.7, 0.7, 1.0);
     }
 )";
 
 
 ImageWidget::ImageWidget(QWidget *parent)
     : TextureView(parent), m_textureA(QOpenGLTexture::Target2D),
-      m_textureB(QOpenGLTexture::Target2D), m_sliderPosition(0.5f)
+      m_textureB(QOpenGLTexture::Target2D), m_sliderPosition(0.f)
 {
     setAcceptDrops(true);
 }
@@ -48,7 +46,8 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::NoModifier) {
         setMouseTracking(true);
-        m_sliderPosition = widgetToNorm(event->localPos()).x();
+        m_sliderPosition = widgetToWorld(event->localPos()).x();
+        m_sliderPosition = std::clamp(m_sliderPosition, -1.f, 1.f);
     }
 
     TextureView::mousePressEvent(event);
@@ -57,7 +56,8 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::NoModifier) {
-        m_sliderPosition = widgetToNorm(event->localPos()).x();
+        m_sliderPosition = widgetToWorld(event->localPos()).x();
+        m_sliderPosition = std::clamp(m_sliderPosition, -1.f, 1.f);
     }
 
     TextureView::mouseMoveEvent(event);
@@ -106,34 +106,46 @@ void ImageWidget::resizeGL(int w, int h)
 
 void ImageWidget::paintGL()
 {
-    GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
-    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
+    QPainter p(this);
 
-    bool texComplete = m_textureA.isStorageAllocated();
-    if (!texComplete)
-        return;
+    // Draw the texture(s)
+    p.beginNativePainting();
 
-    vaoObject().bind();
-    m_program.bind();
+        GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
+        GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-    GL_CHECK(glActiveTexture(GL_TEXTURE0));
-    m_textureA.bind();
-    GL_CHECK(glActiveTexture(GL_TEXTURE1));
-    m_textureB.bind();
+        bool texComplete = m_textureA.isStorageAllocated();
+        if (!texComplete)
+            return;
 
-    GL_CHECK(m_program.setUniformValue(m_matrixUniform, setupMVP()));
-    GL_CHECK(m_program.setUniformValue(m_sliderPosUniform, m_sliderPosition));
-    GL_CHECK(m_program.setUniformValue(m_textureUniformA, 0));
-    GL_CHECK(m_program.setUniformValue(m_textureUniformB, 1));
+        GL_CHECK(vaoObject().bind());
+        GL_CHECK(m_program.bind());
 
-    GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
+        GL_CHECK(glActiveTexture(GL_TEXTURE0));
+        GL_CHECK(m_textureA.bind());
+        GL_CHECK(glActiveTexture(GL_TEXTURE1));
+        GL_CHECK(m_textureB.bind());
 
-    if (texComplete && m_textureA.isBound()) {
-        m_textureA.release();
-        m_textureB.release();
-    }
-    m_program.release();
-    vaoObject().release();
+        GL_CHECK(m_program.setUniformValue(m_matrixUniform, viewMatrix()));
+        GL_CHECK(m_program.setUniformValue(m_textureUniformA, 0));
+        GL_CHECK(m_program.setUniformValue(m_textureUniformB, 1));
+        GL_CHECK(m_program.setUniformValue(m_sliderPosUniform, (m_sliderPosition + 1.f) / 2.f));
+
+        GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
+
+        GL_CHECK(m_textureA.release());
+        GL_CHECK(m_textureB.release());
+
+        GL_CHECK(m_program.release());
+        GL_CHECK(vaoObject().release());
+
+    p.endNativePainting();
+
+    // Draw the slider
+    p.setPen(Qt::white);
+    p.drawLine(
+        worldToWidget(QPointF(m_sliderPosition, -1.f)),
+        worldToWidget(QPointF(m_sliderPosition, 1.f)));
 }
 
 bool ImageWidget::hasImage() const

@@ -90,7 +90,10 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 
     switch (m_interactMode) {
         case InteractMode::Rotate:
-            m_moveDelta *= 60.f;
+            // Rotation angle is in degree, here we have half a complete
+            // rotation around the axis when the mouse is dragged over the
+            // full width of the widget.
+            m_moveDelta *= 180.f;
             m_rotate += m_moveDelta;
             break;
         case InteractMode::Drag:

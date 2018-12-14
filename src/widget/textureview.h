@@ -39,7 +39,10 @@ class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
     QPointF worldToWidget(const QPointF &pos) const;
 
     QOpenGLVertexArrayObject & vaoObject();
+
+    QMatrix4x4 worldMatrix() const;
     QMatrix4x4 viewMatrix() const;
+    QMatrix4x4 projMatrix() const;
 
     void resetView();
 

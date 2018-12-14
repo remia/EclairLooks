@@ -259,6 +259,12 @@ QOpenGLVertexArrayObject & TextureView::vaoObject()
     return m_vao;
 }
 
+QMatrix4x4 TextureView::worldMatrix() const
+{
+    // Warning : if not identity must update coordinates convert methods !
+    return QMatrix4x4();
+}
+
 QMatrix4x4 TextureView::viewMatrix() const
 {
     QMatrix4x4 view;
@@ -273,4 +279,10 @@ QMatrix4x4 TextureView::viewMatrix() const
         m_imagePosition.y() + m_moveDelta.y());
 
     return view;
+}
+
+QMatrix4x4 TextureView::projMatrix() const
+{
+    // Warning : if not identity must update coordinates convert methods !
+    return QMatrix4x4();
 }

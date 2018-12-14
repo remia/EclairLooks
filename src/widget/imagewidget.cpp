@@ -217,20 +217,6 @@ void ImageWidget::updateAspectRatio()
         setTextureRatio(1.0, (dstSize.width() / srcRatio) / dstSize.height());
 }
 
-QMatrix4x4 ImageWidget::setupMVP() const
-{
-    // 1. Model
-    QMatrix4x4 model;
-
-    // 2. View
-    QMatrix4x4 view = viewMatrix();
-
-    // 3. Projection
-    QMatrix4x4 projection;
-
-    return projection * view * model;
-}
-
 void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)
 {
     QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA32F;

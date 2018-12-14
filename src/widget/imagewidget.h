@@ -37,7 +37,6 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     void updateImage(SideBySide sbs, const Image &img);
 
     GLint texture();
-    QMatrix4x4 setupMVP() const;
 
   private:
     void updateAspectRatio();

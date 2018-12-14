@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "imagepipeline.h"
 #include "settings.h"
+#include "version.h"
 #include "widget/devwidget.h"
 #include "widget/lookwidget.h"
 #include "widget/logwidget.h"
@@ -12,7 +13,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_pipeline(nullptr), m_operators(nullptr), m_settings(nullptr)
 {
-    setWindowTitle("Eclair Look");
+    setWindowTitle(ELOOK_VERSION_PRETTY);
 
     QSettings settings;
     restoreGeometry(settings.value("mw/geometry").toByteArray());

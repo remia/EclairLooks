@@ -36,3 +36,6 @@
 
 # Folders
 build/
+
+# Generated files
+src/version.h

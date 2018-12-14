@@ -2,6 +2,8 @@
 find_package(Qt5Widgets)
 find_package(Qt5UiTools)
 
+configure_file("version.h.in" "${CMAKE_CURRENT_LIST_DIR}/version.h" @ONLY)
+
 set(SOURCES
     main.cpp
     mainwindow.cpp
@@ -42,6 +44,7 @@ set(SOURCES
 
 qt5_add_resources(RESOURCES resources/res.qrc)
 
+set(MACOSX_BUNDLE_BUNDLE_NAME "Eclair Looks")
 set(MACOSX_BUNDLE_ICON_FILE hexa.icns)
 set(ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/hexa.icns)
 set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")

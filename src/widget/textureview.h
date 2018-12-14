@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLExtraFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLBuffer>
@@ -8,7 +8,7 @@
 #include <QtWidgets/QOpenGLWidget>
 
 
-class TextureView : public QOpenGLWidget, public QOpenGLFunctions
+class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
 {
   public:
     TextureView(QWidget *parent = nullptr);

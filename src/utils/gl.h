@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtCore/QDebug>
-#include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLExtraFunctions>
 
 
 // ----------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 inline void checkOpenGLError(const std::string &stmt, const std::string &file, int line)
 {
-    QOpenGLFunctions glFuncs(QOpenGLContext::currentContext());
+    QOpenGLExtraFunctions glFuncs(QOpenGLContext::currentContext());
     GLenum err;
 
     while ((err = glFuncs.glGetError()) != GL_NO_ERROR) {
@@ -49,7 +49,7 @@ inline void printOpenGLInfo()
     if (isPrinted)
         return;
 
-    QOpenGLFunctions glFuncs(QOpenGLContext::currentContext());
+    QOpenGLExtraFunctions glFuncs(QOpenGLContext::currentContext());
     auto gl_vendor   = QString(reinterpret_cast<char const *>(glFuncs.glGetString(GL_VENDOR)));
     auto gl_renderer = QString(reinterpret_cast<char const *>(glFuncs.glGetString(GL_RENDERER)));
     auto gl_version  = QString(reinterpret_cast<char const *>(glFuncs.glGetString(GL_VERSION)));

@@ -36,9 +36,10 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     void resetImage(const Image &img);
     void updateImage(SideBySide sbs, const Image &img);
 
-  private:
+    GLint texture();
     QMatrix4x4 setupMVP() const;
 
+  private:
     void updateAspectRatio();
 
     void createTexture(QOpenGLTexture &tex, const Image &img);

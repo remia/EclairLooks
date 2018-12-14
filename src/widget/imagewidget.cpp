@@ -154,6 +154,8 @@ void ImageWidget::resetImage(const Image &img)
     updateAspectRatio();
 
     resetView();
+
+    doneCurrent();
 }
 
 void ImageWidget::updateImage(SideBySide sbs, const Image &img)
@@ -182,6 +184,11 @@ void ImageWidget::updateImage(SideBySide sbs, const Image &img)
     update();
 
     EmitEvent<Evt::Update>(*texture);
+}
+
+GLint ImageWidget::texture()
+{
+    return m_textureA.textureId();
 }
 
 void ImageWidget::updateAspectRatio()

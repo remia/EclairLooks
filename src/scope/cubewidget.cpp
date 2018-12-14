@@ -154,6 +154,7 @@ void CubeWidget::initializeGL()
         return;
 
     initializeOpenGLFunctions();
+
     setupCube();
     setupSphere();
 
@@ -236,10 +237,10 @@ void CubeWidget::setDefaultScale(float s)
 
 void CubeWidget::drawCube(const Image &img)
 {
-    makeCurrent();
-
     if (!m_isInitialized)
-        initializeGL();
+        return;
+
+    makeCurrent();
 
     std::vector<GLfloat> sphere_positions;
     uint16_t latticeCount = m_cubeSize * m_cubeSize * m_cubeSize;
@@ -250,22 +251,21 @@ void CubeWidget::drawCube(const Image &img)
         sphere_positions.push_back(pixels[i*3 + 0]);
     }
 
-
     GL_CHECK(m_positionSphere.bind());
     GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
     GL_CHECK(m_positionSphere.release());
 
-    update();
-
     doneCurrent();
+
+    update();
 }
 
 void CubeWidget::clearCube()
 {
-    makeCurrent();
-
     if (!m_isInitialized)
-        initializeGL();
+        return;
+
+    makeCurrent();
 
     std::vector<GLfloat> sphere_positions;
     for (int x = 0; x < m_cubeSize; ++x) {
@@ -286,9 +286,9 @@ void CubeWidget::clearCube()
     GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
     GL_CHECK(m_positionSphere.release());
 
-    update();
-
     doneCurrent();
+
+    update();
 }
 
 void CubeWidget::setupCube()

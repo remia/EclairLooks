@@ -31,6 +31,9 @@ class ParameterSelectWidget : public ParameterWidget
         m_comboBox->clear();
         for (auto &v : sp->choices())
             m_comboBox->addItem(QString::fromStdString(v));
+        if (sp->tooltips().size() == m_comboBox->count())
+            for (int i = 0; i < m_comboBox->count(); ++i)
+                m_comboBox->setItemData(i, QString::fromStdString(sp->tooltips()[i]), Qt::ToolTipRole);
 
         if (!sp->value().empty())
             m_comboBox->setCurrentText(QString::fromStdString(sp->value()));

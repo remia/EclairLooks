@@ -3,6 +3,8 @@
 #include <string>
 #include "parameter.h"
 
+#include <QtCore/QDebug>
+
 
 class SelectParameter : public Parameter
 {
@@ -41,9 +43,16 @@ class SelectParameter : public Parameter
     }
 
     std::vector<std::string> choices() const { return m_choices; }
-    void setChoices(const std::vector<std::string> &v)
+    std::vector<std::string> tooltips() const { return m_tooltips; }
+    void setChoices(const std::vector<std::string> &v, const std::vector<std::string> &t = std::vector<std::string>())
     {
+        if (t.size() > 0 && v.size() != t.size()) {
+            qWarning() << "Choices / Tooltip size don't match !";
+            return;
+        }
+
         m_choices = v;
+        m_tooltips = t;
         EmitEvent<UpdateSpecification>(*this);
     }
 
@@ -51,4 +60,5 @@ class SelectParameter : public Parameter
     std::string m_value;
     std::string m_default_value;
     std::vector<std::string> m_choices;
+    std::vector<std::string> m_tooltips;
 };

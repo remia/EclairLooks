@@ -2,6 +2,8 @@
 #include "../image.h"
 #include "../imagepipeline.h"
 
+#include <sstream>
+
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
 
@@ -96,22 +98,41 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
         GetParameter<FilePathParameter>("Config File")->setValue(configpath);
     }
 
+    auto showDesc = [](auto v){
+        std::ostringstream oStr;
+        oStr  << *v;
+        return oStr.str();
+     };
+
     std::vector<std::string> colorspaces;
-    for (int i = 0; i < m_config->getNumColorSpaces(); i++)
-        colorspaces.push_back(m_config->getColorSpaceNameByIndex(i));
+    std::vector<std::string> colorspacesDescs;
+    for (int i = 0; i < m_config->getNumColorSpaces(); i++) {
+        auto colorspaceName = m_config->getColorSpaceNameByIndex(i);
+        auto colorspace = m_config->getColorSpace(colorspaceName);
+
+        colorspaces.push_back(colorspaceName);
+        colorspacesDescs.push_back(showDesc(colorspace));
+    }
     if (colorspaces.size() > 0) {
-        GetParameter<SelectParameter>("Source")->setChoices(colorspaces);
+        GetParameter<SelectParameter>("Source")->setChoices(colorspaces, colorspacesDescs);
         GetParameter<SelectParameter>("Source")->setValue(colorspaces[0]);
-        GetParameter<SelectParameter>("Destination")->setChoices(colorspaces);
+        GetParameter<SelectParameter>("Destination")->setChoices(colorspaces, colorspacesDescs);
         GetParameter<SelectParameter>("Destination")->setValue(colorspaces[0]);
     }
 
     std::vector<std::string> looks;
+    std::vector<std::string> looksDescs;
     looks.push_back("");
-    for (int i = 0; i < m_config->getNumLooks(); ++i)
-        looks.push_back(m_config->getLookNameByIndex(i));
+    looksDescs.push_back("");
+    for (int i = 0; i < m_config->getNumLooks(); ++i) {
+        auto lookName = m_config->getLookNameByIndex(i);
+        auto look = m_config->getLook(lookName);
+
+        looks.push_back(lookName);
+        looksDescs.push_back(showDesc(look));
+    }
     if (looks.size() > 0) {
-        GetParameter<SelectParameter>("Look")->setChoices(looks);
+        GetParameter<SelectParameter>("Look")->setChoices(looks, looksDescs);
         GetParameter<SelectParameter>("Look")->setValue(looks[0]);
     }
 }

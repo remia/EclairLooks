@@ -162,6 +162,10 @@ void LookViewWidget::addLook(const QString &path)
         return;
     }
 
+    QFileInfo info(path);
+    if (!info.exists())
+        return;
+
     QListWidgetItem *item = new QListWidgetItem();
 
     if (m_displayMode != DisplayMode::Minimized) {
@@ -176,7 +180,6 @@ void LookViewWidget::addLook(const QString &path)
         setItemWidget(item, widget);
     }
     else {
-        QFileInfo info(path);
         item->setText(info.fileName());
         item->setData(Qt::UserRole, path);
         addItem(item);

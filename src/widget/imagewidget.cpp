@@ -114,17 +114,15 @@ void ImageWidget::paintGL()
         GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-        bool texComplete = m_textureA.isStorageAllocated();
+        bool texComplete = m_textureA.isStorageAllocated() && m_textureB.isStorageAllocated();
         if (!texComplete)
             return;
 
         GL_CHECK(vaoObject().bind());
         GL_CHECK(m_program.bind());
 
-        GL_CHECK(glActiveTexture(GL_TEXTURE0));
-        GL_CHECK(m_textureA.bind());
-        GL_CHECK(glActiveTexture(GL_TEXTURE1));
-        GL_CHECK(m_textureB.bind());
+        GL_CHECK(m_textureA.bind(0));
+        GL_CHECK(m_textureB.bind(1));
 
         GL_CHECK(m_program.setUniformValue(m_matrixUniform, viewMatrix()));
         GL_CHECK(m_program.setUniformValue(m_textureUniformA, 0));
@@ -133,8 +131,8 @@ void ImageWidget::paintGL()
 
         GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
 
-        GL_CHECK(m_textureA.release());
         GL_CHECK(m_textureB.release());
+        GL_CHECK(m_textureA.release());
 
         GL_CHECK(m_program.release());
         GL_CHECK(vaoObject().release());
@@ -191,7 +189,9 @@ void ImageWidget::updateImage(SideBySide sbs, const Image &img)
     if (texture->width() != img.width() || texture->height() != img.height())
         resetImage(img);
 
+    makeCurrent();
     texture->setData(pixelFormat, pixelType, img.pixels());
+    doneCurrent();
 
     update();
 

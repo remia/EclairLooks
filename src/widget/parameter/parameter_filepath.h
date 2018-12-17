@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtCore/QFileInfo>
 #include <QtWidgets/QWidget>
 
 
@@ -55,7 +56,13 @@ class ParameterFilePathWidget : public ParameterWidget
     {
         const FilePathParameter *fpp = static_cast<const FilePathParameter *>(&p);
 
-        m_lineEdit->setText(QString::fromStdString(fpp->value()));
+        QFileInfo fileInfo(QString::fromStdString(fpp->value()));
+        if (!fileInfo.exists())
+            m_lineEdit->setStyleSheet(QString("color: red"));
+        else
+            m_lineEdit->setStyleSheet("");
+
+        m_lineEdit->setText(fileInfo.filePath());
         m_toolButton->setText("...");
     }
 

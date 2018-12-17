@@ -17,7 +17,7 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
     QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);
 }
 
-QWidget *LookViewTabWidget::currentView()
+LookViewWidget *LookViewTabWidget::currentView()
 {
     if (LookViewWidget *w = static_cast<LookViewWidget*>(currentWidget()))
         return w;

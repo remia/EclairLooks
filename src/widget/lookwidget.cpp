@@ -142,6 +142,12 @@ void LookWidget::toggleFullScreen()
         m_hSplitter->restoreState(m_hSplitterState);
         m_vSplitter->restoreState(m_vSplitterState);
         m_isFullScreen = false;
+
+        // User can browse through list while in full screen with shortcuts,
+        // we need to re-center the view on current item when fullscreen
+        // mode is disabled.
+        if (LookViewWidget *view = m_viewTabWidget->currentView())
+            view->scrollToItem(view->currentItem(), QAbstractItemView::PositionAtCenter);
     }
 }
 

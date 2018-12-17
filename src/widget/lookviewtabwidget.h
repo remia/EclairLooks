@@ -11,6 +11,7 @@ typedef EventDesc <
     FuncT<void()>> LVEvtDesc;
 
 class LookWidget;
+class LookViewWidget;
 
 class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
 {
@@ -21,7 +22,7 @@ class LookViewTabWidget : public QTabWidget, public EventSource<LVEvtDesc>
     LookViewTabWidget(QWidget *parent = nullptr);
 
   public:
-    QWidget *currentView();
+    LookViewWidget *currentView();
     void setLookWidget(LookWidget *lw);
 
     void showFolder(const QString &path);

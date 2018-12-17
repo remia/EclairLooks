@@ -29,6 +29,11 @@ std::string CTLTransform::OpName() const
     return "CTL Transform";
 }
 
+std::string CTLTransform::OpLabel() const
+{
+    return "CTL";
+}
+
 ImageOperator *CTLTransform::OpCreateFromPath(const std::string &filepath) const
 {
     QFileInfo file = QFileInfo(QString::fromStdString(filepath));

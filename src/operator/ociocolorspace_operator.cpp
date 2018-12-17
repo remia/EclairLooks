@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include <QtWidgets/QtWidgets>
+#include <QtCore/QFileInfo>
 #include <QtCore/QDebug>
 
 namespace OCIO = OCIO_NAMESPACE;
@@ -12,11 +13,11 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOColorSpace::OCIOColorSpace()
 {
-    AddParameterByCategory<FilePathParameter>("ColorSpace Transform", "Config File", "", "Choose an OpenColorIO config", "OCIO Config (*.ocio)");
-    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Source");
-    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Destination");
-    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Look");
-    AddParameterByCategory<SelectParameter>("ColorSpace Transform", "Direction", std::vector<std::string>{"Forward", "Inverse"});
+    AddParameterByCategory<FilePathParameter>("Color Space", "Config File", "", "Choose an OpenColorIO config", "OCIO Config (*.ocio)");
+    AddParameterByCategory<SelectParameter>("Color Space", "Source");
+    AddParameterByCategory<SelectParameter>("Color Space", "Destination");
+    AddParameterByCategory<SelectParameter>("Color Space", "Look");
+    AddParameterByCategory<SelectParameter>("Color Space", "Direction", std::vector<std::string>{"Forward", "Inverse"});
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -43,6 +44,20 @@ ImageOperator *OCIOColorSpace::OpCreateFromPath(const std::string &filepath) con
 std::string OCIOColorSpace::OpName() const
 {
     return "OCIO ColorSpace";
+}
+
+std::string OCIOColorSpace::OpLabel() const
+{
+    QFileInfo fileInfo(QString::fromStdString(
+        GetParameter<FilePathParameter>("Config File")->value()));
+    return "CSC - " + fileInfo.fileName().toStdString();
+}
+
+std::string OCIOColorSpace::OpDesc() const
+{
+    std::ostringstream oStr;
+    oStr << "OCIO ColorSpace Transform\n" << *m_transform;
+    return oStr.str();
 }
 
 void OCIOColorSpace::OpApply(Image & img)
@@ -86,14 +101,29 @@ void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
 
         m_processor = m_config->getProcessor(m_transform);
     } catch (OCIO::Exception &exception) {
+        // When setup has failed, reset processor
+        m_processor = OCIO::Processor::Create();
+
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }
 }
 
 void OCIOColorSpace::SetConfig(const std::string &configpath)
 {
+    // We have to mute events when updating config to prevent infinite
+    // recursion. Indeed, updating the filepath parameter will trigger
+    // OpUpdateParamCallback.
     {
-        auto m = EventMute(this, UpdateParam);
+        auto m = EventMute(this, { UpdateParam, Update });
+
+        // When changing config, clear all parameters first
+        GetParameter<SelectParameter>("Source")->setValue("");
+        GetParameter<SelectParameter>("Destination")->setValue("");
+        GetParameter<SelectParameter>("Look")->setValue("");
+        GetParameter<SelectParameter>("Source")->setChoices({});
+        GetParameter<SelectParameter>("Destination")->setChoices({});
+        GetParameter<SelectParameter>("Look")->setChoices({});
+
         m_config = OCIO::Config::CreateFromFile(configpath.c_str());
         GetParameter<FilePathParameter>("Config File")->setValue(configpath);
     }
@@ -104,6 +134,7 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
         return oStr.str();
      };
 
+    // Colorspaces
     std::vector<std::string> colorspaces;
     std::vector<std::string> colorspacesDescs;
     for (int i = 0; i < m_config->getNumColorSpaces(); i++) {
@@ -113,13 +144,15 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
         colorspaces.push_back(colorspaceName);
         colorspacesDescs.push_back(showDesc(colorspace));
     }
+
+    GetParameter<SelectParameter>("Source")->setChoices(colorspaces, colorspacesDescs);
+    GetParameter<SelectParameter>("Destination")->setChoices(colorspaces, colorspacesDescs);
     if (colorspaces.size() > 0) {
-        GetParameter<SelectParameter>("Source")->setChoices(colorspaces, colorspacesDescs);
         GetParameter<SelectParameter>("Source")->setValue(colorspaces[0]);
-        GetParameter<SelectParameter>("Destination")->setChoices(colorspaces, colorspacesDescs);
         GetParameter<SelectParameter>("Destination")->setValue(colorspaces[0]);
     }
 
+    // Looks
     std::vector<std::string> looks;
     std::vector<std::string> looksDescs;
     looks.push_back("");
@@ -131,8 +164,9 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
         looks.push_back(lookName);
         looksDescs.push_back(showDesc(look));
     }
+
+    GetParameter<SelectParameter>("Look")->setChoices(looks, looksDescs);
     if (looks.size() > 0) {
-        GetParameter<SelectParameter>("Look")->setChoices(looks, looksDescs);
         GetParameter<SelectParameter>("Look")->setValue(looks[0]);
     }
 }

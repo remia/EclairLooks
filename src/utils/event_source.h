@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 #include "generic.h"
 
@@ -47,12 +48,13 @@ public:
 template <typename T> class EventMute
 {
   public:
-    EventMute(T *obj, EventIdT id = T::InvalidEventT);
+    EventMute(T *obj, EventIdT id);
+    EventMute(T *obj, std::vector<EventIdT> ids);
     ~EventMute();
 
   private:
     T *m_obj;
-    EventIdT m_id;
+    std::vector<EventIdT> m_ids;
 };
 
 #include "event_source.hpp"

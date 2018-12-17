@@ -54,14 +54,21 @@ template <EventIdT Id, typename... Args> void EventSource<EvtDesc>::EmitEvent(Ar
 
 template <typename T>
 EventMute<T>::EventMute(T *obj, EventIdT id)
-: m_obj(obj)
-, m_id(id)
+: EventMute(obj, std::vector<EventIdT>{id})
 {
-    m_obj->Mute(m_id);
+}
+
+template <typename T>
+EventMute<T>::EventMute(T *obj, std::vector<EventIdT> ids)
+: m_obj(obj), m_ids(ids)
+{
+    for (auto id : m_ids)
+        m_obj->Mute(id);
 }
 
 template <typename T>
 EventMute<T>::~EventMute()
 {
-    m_obj->Unmute(m_id);
+    for (auto id : m_ids)
+        m_obj->Unmute(id);
 }

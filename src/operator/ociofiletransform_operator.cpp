@@ -3,7 +3,10 @@
 #include "../imagepipeline.h"
 #include "../utils/chrono.h"
 
+#include <sstream>
+
 #include <QtWidgets/QtWidgets>
+#include <QtCore/QFileInfo>
 #include <QtCore/QDebug>
 
 namespace OCIO = OCIO_NAMESPACE;
@@ -20,9 +23,9 @@ OCIOFileTransform::OCIOFileTransform()
     QStringList exts = SupportedExtensions();
     QString filter = QString("LUT files (*.%1)").arg(exts.join(" *."));
 
-    AddParameterByCategory<FilePathParameter>("File Transform", "LUT", "", "Choose a LUT", filter.toStdString());
-    AddParameterByCategory<SelectParameter>("File Transform", "Interpolation", std::vector<std::string>{"Best", "Nearest", "Linear", "Tetrahedral"}, "Best");
-    AddParameterByCategory<SelectParameter>("File Transform", "Direction", std::vector<std::string>{"Forward", "Inverse"}, "Forward");
+    AddParameterByCategory<FilePathParameter>("File", "LUT", "", "Choose a LUT", filter.toStdString());
+    AddParameterByCategory<SelectParameter>("File", "Interpolation", std::vector<std::string>{"Best", "Nearest", "Linear", "Tetrahedral"}, "Best");
+    AddParameterByCategory<SelectParameter>("File", "Direction", std::vector<std::string>{"Forward", "Inverse"}, "Forward");
 
     // Initialize transform with default parameters
     auto interp = GetParameter<SelectParameter>("Interpolation");
@@ -52,7 +55,20 @@ ImageOperator *OCIOFileTransform::OpCreateFromPath(const std::string &filepath) 
 
 std::string OCIOFileTransform::OpName() const
 {
-    return "OCIO File Transform";
+    return "OCIO File";
+}
+
+std::string OCIOFileTransform::OpLabel() const
+{
+    QFileInfo fileInfo(m_transform->getSrc());
+    return "FT - " + fileInfo.fileName().toStdString();
+}
+
+std::string OCIOFileTransform::OpDesc() const
+{
+    std::ostringstream oStr;
+    oStr << "OCIO File Transform\n" << *m_transform;
+    return oStr.str();
 }
 
 void OCIOFileTransform::OpApply(Image & img)
@@ -98,8 +114,10 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
 
         m_processor = m_config->getProcessor(m_transform);
     } catch (OCIO::Exception &exception) {
-        qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+        // When setup has failed, reset processor
         m_processor = OCIO::Processor::Create();
+
+        qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }
 }
 
@@ -109,7 +127,7 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
         Chrono c;
         c.start();
 
-        auto m = EventMute(this, UpdateParam);
+        auto m = EventMute(this, { UpdateParam, Update });
 
         GetParameter<FilePathParameter>("LUT")->setValue(lutpath);
 

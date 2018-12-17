@@ -33,6 +33,8 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     virtual ImageOperator * OpCreate() const = 0;
     virtual ImageOperator * OpCreateFromPath(const std::string &filepath) const { return nullptr; }
     virtual std::string OpName() const = 0;
+    virtual std::string OpLabel() const = 0;
+    virtual std::string OpDesc() const { return ""; }
     virtual void OpApply(Image &img) = 0;
     virtual bool OpIsIdentity() const { return true; }
     virtual void OpUpdateParamCallback(const Parameter &op) {}

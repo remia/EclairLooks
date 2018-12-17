@@ -27,6 +27,4 @@ class PipelineWidget : public QListWidget
 
   private:
     DevWidget *m_devWidget;
-
-    uint16_t m_currentIndex;
 };

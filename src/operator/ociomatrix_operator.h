@@ -17,6 +17,7 @@ public:
 public:
     ImageOperator * OpCreate() const override;
     std::string OpName() const override;
+    std::string OpLabel() const override;
     void OpApply(Image & img) override;
     bool OpIsIdentity() const override;
     void OpUpdateParamCallback(const Parameter & op) override;

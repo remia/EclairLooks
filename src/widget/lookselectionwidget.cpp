@@ -49,16 +49,20 @@ LookSelectionWidget::LookSelectionWidget(QWidget *parent)
 
 void LookSelectionWidget::dragEnterEvent(QDragEnterEvent *e)
 {
-    if (e->mimeData()->hasUrls())
+    if (e->mimeData()->hasUrls() || e->mimeData()->hasText())
         e->acceptProposedAction();
 }
 
 void LookSelectionWidget::dropEvent(QDropEvent *e)
 {
     if (e->mimeData()->hasUrls()) {
-        foreach (const QUrl &url, e->mimeData()->urls()) {
+        foreach (const QUrl &url, e->mimeData()->urls())
             m_viewWidget->appendLook(url.toLocalFile());
-        }
+    }
+    else if (e->mimeData()->hasText()) {
+        QStringList urls = e->mimeData()->text().split(";");
+        foreach (const QString &p, urls)
+            m_viewWidget->appendLook(p);
     }
 }
 

@@ -14,7 +14,7 @@ LookViewWidget::LookViewWidget(QWidget *parent)
 {
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
-    setSelectionMode(QAbstractItemView::SingleSelection);
+    setSelectionMode(QAbstractItemView::ContiguousSelection);
 }
 
 void LookViewWidget::mousePressEvent(QMouseEvent *event)
@@ -44,16 +44,29 @@ void LookViewWidget::keyPressEvent(QKeyEvent *event)
 
 void LookViewWidget::startDrag(Qt::DropActions supportedActions)
 {
-    QListWidgetItem* item = currentItem();
-    LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(item));
-
     QMimeData *mimeData = new QMimeData();
-    mimeData->setUrls(QList<QUrl>() << QUrl::fromLocalFile(w->path()));
 
+    // For some reasons, if more than one urls is present when
+    // QMimeData::setUrls() is called, the drag & drop will not work.
+    // Don't really know why, looks like a Qt bug
+    // QList<QUrl> urls;
+    QStringList urls;
+
+    QList<QListWidgetItem *> items = selectedItems();
+    for (auto item : items) {
+        LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(item));
+        urls << w->path();
+    }
+
+    LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(currentItem()));
     QDrag *drag = new QDrag(this);
+    mimeData->setText(urls.join(";"));
     drag->setMimeData(mimeData);
     drag->setPixmap(*w->image());
-    drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
+    drag->setHotSpot(QPoint(drag->pixmap().width() / 2, drag->pixmap().height() / 2));
+
+    Qt::DropAction defaultDropAction = Qt::IgnoreAction;
+    drag->exec(supportedActions, defaultDropAction);
 }
 
 void LookViewWidget::setLookWidget(LookWidget *lw)

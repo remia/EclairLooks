@@ -28,18 +28,16 @@ void LookViewWidget::mousePressEvent(QMouseEvent *event)
 
 void LookViewWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (currentRow() >= 0) {
-        switch (event->key()) {
-            case Qt::Key_Backspace:
-                removeSelection(currentRow());
-                break;
-            default:
-                QListWidget::keyPressEvent(event);
-        }
+    switch (event->key()) {
+        case Qt::Key_Backspace: {
+            if (!m_readOnly)
+                qDeleteAll(selectedItems());
+        } break;
+        default:
+            break;
     }
-    else {
-        QListWidget::keyPressEvent(event);
-    }
+
+    QListWidget::keyPressEvent(event);
 }
 
 void LookViewWidget::startDrag(Qt::DropActions supportedActions)

@@ -12,7 +12,7 @@
 
 
 PipelineWidget::PipelineWidget(QWidget *parent)
-    : QListWidget(parent), m_devWidget(nullptr), m_currentIndex(0)
+    : QListWidget(parent), m_devWidget(nullptr)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDragEnabled(true);
@@ -93,9 +93,15 @@ void PipelineWidget::setDevWidget(DevWidget *w)
 
 void PipelineWidget::initTransformationWidget(ImageOperator &op)
 {
-    QString name = QString("%1 [%2]").arg(
-        QString::fromStdString(op.OpName()), QString::number(++m_currentIndex));
-    addItem(new QListWidgetItem(name));
+    QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(op.OpLabel()));
+    item->setToolTip(QString::fromStdString(op.OpDesc()));
+
+    op.Subscribe<ImageOperator::Update>([item, &op](){
+        item->setText(QString::fromStdString(op.OpLabel()));
+        item->setToolTip(QString::fromStdString(op.OpDesc()));
+    });
+
+    addItem(item);
 }
 
 void PipelineWidget::updateSelection(QListWidgetItem *item)
@@ -117,10 +123,9 @@ void PipelineWidget::disableSelection(int selectedRow)
     // NOTE : we should also track the operator state to choose new styles on enable /
     // disable From the CSS would be perfect, I think we have to subclass QListWidgetItem
     // and add new property that will be accessible from the CSS ?
-    auto &op    = m_devWidget->pipeline()->GetOperator(selectedRow);
+    auto &op = m_devWidget->pipeline()->GetOperator(selectedRow);
     auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
-    param.value = !param.value;
-    op.SetParameter(param);
+    param->setValue(!param->value());
 }
 
 void PipelineWidget::removeSelection(int selectedRow)

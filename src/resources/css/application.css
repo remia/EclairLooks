@@ -191,14 +191,6 @@ QWidget#scopeView {
     border: 1px solid #1e1b18;
 }
 
-QWidget#lookDetailWidget {
-    border: 1px solid #1e1b18;
-}
-
-QTabWidget#lookViewWidget::pane {
-    border: 1px solid #1e1b18;
-}
-
 QListWidget#pipelineWidget {
     border: 1px solid #1e1b18;
 }
@@ -212,5 +204,13 @@ QStackedWidget#operatorDetailWidget {
 }
 
 QWidget#lookSelectionWidget {
+    border: 1px solid #1e1b18;
+}
+
+QWidget#lookViewWidget {
+    border: 1px solid #1e1b18;
+}
+
+QTabWidget#lookViewWidget::pane {
     border: 1px solid #1e1b18;
 }

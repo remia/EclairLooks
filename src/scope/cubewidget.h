@@ -31,6 +31,7 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     void resetView();
     void setDefaultScale(float s);
     void drawCube(const Image &img);
+    void clearCube();
 
   private:
     void setupCube();
@@ -38,7 +39,7 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     QMatrix4x4 setupMVP(const QMatrix4x4 &model = QMatrix4x4()) const;
 
     QPointF widgetToNorm(const QPointF &pos) const;
-    QPointF widgetToWorld(const QPointF & pos) const;
+    QPointF widgetToClip(const QPointF & pos) const;
 
   private:
     bool m_isInitialized = false;

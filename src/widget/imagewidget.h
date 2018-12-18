@@ -2,6 +2,7 @@
 
 #include "textureview.h"
 #include "../utils/event_source.h"
+#include "../utils/types.h"
 
 #include <array>
 
@@ -27,15 +28,18 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     void dropEvent(QDropEvent *event) override;
 
     void initializeGL() override;
+    void resizeGL(int w, int h) override;
     void paintGL() override;
 
   public:
-    void setImage(const Image &img);
-    void updateImage(const Image &img);
-    void clearImage();
+    bool hasImage() const;
+    void resetImage(const Image &img);
+    void updateImage(SideBySide sbs, const Image &img);
+
+    GLint texture();
 
   private:
-    QMatrix4x4 setupMVP() const;
+    void updateAspectRatio();
 
     void createTexture(QOpenGLTexture &tex, const Image &img);
     bool guessPixelsParameters(
@@ -46,13 +50,13 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
 
   private:
     GLuint m_matrixUniform;
-    GLuint m_textureUniformIn;
-    GLuint m_textureUniformOut;
+    GLuint m_textureUniformA;
+    GLuint m_textureUniformB;
     GLuint m_sliderPosUniform;
 
     QOpenGLShaderProgram m_program;
-    QOpenGLTexture m_textureIn;
-    QOpenGLTexture m_textureOut;
+    QOpenGLTexture m_textureA;
+    QOpenGLTexture m_textureB;
 
     float m_sliderPosition;
 };

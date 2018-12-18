@@ -90,7 +90,10 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 
     switch (m_interactMode) {
         case InteractMode::Rotate:
-            m_moveDelta *= 60.f;
+            // Rotation angle is in degree, here we have half a complete
+            // rotation around the axis when the mouse is dragged over the
+            // full width of the widget.
+            m_moveDelta *= 180.f;
             m_rotate += m_moveDelta;
             break;
         case InteractMode::Drag:
@@ -154,6 +157,7 @@ void CubeWidget::initializeGL()
         return;
 
     initializeOpenGLFunctions();
+
     setupCube();
     setupSphere();
 
@@ -217,38 +221,6 @@ void CubeWidget::resizeGL(int w, int h)
     GL_CHECK(glViewport(0, 0, w * retinaScale, h * retinaScale));
 }
 
-void CubeWidget::drawCube(const Image &img)
-{
-    makeCurrent();
-
-    if (!m_isInitialized)
-        initializeGL();
-
-    std::vector<GLfloat> sphere_positions;
-    uint16_t latticeCount = m_cubeSize * m_cubeSize * m_cubeSize;
-    const float *pixels = img.pixels_asfloat();
-    for(int i = 0; i < latticeCount; ++i) {
-        sphere_positions.push_back(pixels[i*3 + 2]);
-        sphere_positions.push_back(pixels[i*3 + 1]);
-        sphere_positions.push_back(pixels[i*3 + 0]);
-    }
-
-
-    GL_CHECK(m_positionSphere.bind());
-    GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
-    GL_CHECK(m_positionSphere.release());
-
-    update();
-
-    doneCurrent();
-}
-
-void CubeWidget::setDefaultScale(float s)
-{
-    m_defaultScale = s;
-    resetView();
-}
-
 void CubeWidget::resetView()
 {
     m_scale = m_defaultScale;
@@ -260,9 +232,71 @@ void CubeWidget::resetView()
     update();
 }
 
+void CubeWidget::setDefaultScale(float s)
+{
+    m_defaultScale = s;
+    resetView();
+}
+
+void CubeWidget::drawCube(const Image &img)
+{
+    if (!m_isInitialized)
+        return;
+
+    makeCurrent();
+
+    std::vector<GLfloat> sphere_positions;
+    uint16_t latticeCount = m_cubeSize * m_cubeSize * m_cubeSize;
+    const float *pixels = img.pixels_asfloat();
+    for(int i = 0; i < latticeCount; ++i) {
+        sphere_positions.push_back(pixels[i*3 + 2]);
+        sphere_positions.push_back(pixels[i*3 + 1]);
+        sphere_positions.push_back(pixels[i*3 + 0]);
+    }
+
+    GL_CHECK(m_positionSphere.bind());
+    GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
+    GL_CHECK(m_positionSphere.release());
+
+    doneCurrent();
+
+    update();
+}
+
+void CubeWidget::clearCube()
+{
+    if (!m_isInitialized)
+        return;
+
+    makeCurrent();
+
+    std::vector<GLfloat> sphere_positions;
+    for (int x = 0; x < m_cubeSize; ++x) {
+        float xn = x / (m_cubeSize -1.);
+        for (int y = 0; y < m_cubeSize; ++y) {
+            float yn = y / (m_cubeSize -1.);
+            for (int z = 0; z < m_cubeSize; ++z) {
+                float zn = z / (m_cubeSize -1.);
+
+                sphere_positions.push_back(xn);
+                sphere_positions.push_back(yn);
+                sphere_positions.push_back(zn);
+            }
+        }
+    }
+
+    GL_CHECK(m_positionSphere.bind());
+    GL_CHECK(m_positionSphere.write(0, sphere_positions.data(), sphere_positions.size() * sizeof(GLfloat)));
+    GL_CHECK(m_positionSphere.release());
+
+    doneCurrent();
+
+    update();
+}
+
 void CubeWidget::setupCube()
 {
-GL_CHECK(m_vaoCube.create());
+    GL_CHECK(m_vaoCube.create());
     GL_CHECK(m_vaoCube.bind());
 
     GLfloat cube_vertices[] = {
@@ -463,8 +497,13 @@ QMatrix4x4 CubeWidget::setupMVP(const QMatrix4x4 &m) const
     QMatrix4x4 view;
     view.translate(m_translate.x(), m_translate.y());
     view.scale(m_scale);
+
+    // Center on origin before rotation and restore initial position
+    // Remember, transformations in reverse order
+    view.translate(0.5, 0.5, 0.5);
     view.rotate((m_rotate.x()), QVector3D(0.f, 1.f, 0.f));
     view.rotate((m_rotate.y()), QVector3D(1.f, 0.f, 0.f));
+    view.translate(-0.5, -0.5, -0.5);
 
     // 3. Projection
     float ratio = 1.f * width() / height();
@@ -480,7 +519,7 @@ QPointF CubeWidget::widgetToNorm(const QPointF & pos) const
     return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
 }
 
-QPointF CubeWidget::widgetToWorld(const QPointF & pos) const
+QPointF CubeWidget::widgetToClip(const QPointF & pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
 }

@@ -15,8 +15,8 @@ class Settings
   public:
     const ParameterList & Parameters() const;
 
-    template <typename T> T GetParameter(const std::string &name) const;
-    bool SetParameter(const Parameter &p);
+    template <typename T, typename... P> T* Add(P&&... params);
+    template <typename T> T* const Get(const std::string &name) const;
 
   private:
     void LoadParameters();
@@ -30,8 +30,21 @@ class Settings
     ParameterList m_paramList;
 };
 
+template <typename T, typename... P>
+T* Settings::Add(P&&... p)
+{
+    using std::placeholders::_1;
+
+    T* param = m_paramList.Add<T>(std::forward<P>(p)...);
+    param->template Subscribe<Parameter::UpdateValue>(std::bind(&Settings::Save, this, _1));
+
+    Load(*param);
+
+    return param;
+}
+
 template <typename T>
-T Settings::GetParameter(const std::string &name) const
+T* const Settings::Get(const std::string &name) const
 {
     return m_paramList.Get<T>(name);
 }

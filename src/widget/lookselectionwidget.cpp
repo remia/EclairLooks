@@ -49,16 +49,20 @@ LookSelectionWidget::LookSelectionWidget(QWidget *parent)
 
 void LookSelectionWidget::dragEnterEvent(QDragEnterEvent *e)
 {
-    if (e->mimeData()->hasUrls())
+    if (e->mimeData()->hasUrls() || e->mimeData()->hasText())
         e->acceptProposedAction();
 }
 
 void LookSelectionWidget::dropEvent(QDropEvent *e)
 {
     if (e->mimeData()->hasUrls()) {
-        foreach (const QUrl &url, e->mimeData()->urls()) {
+        foreach (const QUrl &url, e->mimeData()->urls())
             m_viewWidget->appendLook(url.toLocalFile());
-        }
+    }
+    else if (e->mimeData()->hasText()) {
+        QStringList urls = e->mimeData()->text().split(";");
+        foreach (const QString &p, urls)
+            m_viewWidget->appendLook(p);
     }
 }
 
@@ -109,7 +113,7 @@ void LookSelectionWidget::saveSelection()
         QListWidgetItem * item = m_viewWidget->item(i);
         QString path = item->data(Qt::UserRole).toString();
 
-        QDir rootDir(m_lookWidget->rootPath());
+        QDir rootDir(m_lookWidget->lookBasePath());
         QString relPath = rootDir.relativeFilePath(path);
         s << relPath << endl;
     }
@@ -135,7 +139,7 @@ void LookSelectionWidget::loadSelection()
         if (line.isEmpty())
             continue;
 
-        QDir rootDir(m_lookWidget->rootPath());
+        QDir rootDir(m_lookWidget->lookBasePath());
         QDir lookPath = rootDir.filePath(line);
         m_viewWidget->appendLook(lookPath.absolutePath());
     }

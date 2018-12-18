@@ -10,12 +10,14 @@ LookViewTabWidget::LookViewTabWidget(QWidget *parent)
 {
     setTabsClosable(true);
     setMovable(true);
+    setUsesScrollButtons(true);
+    setElideMode(Qt::ElideNone);
 
     QObject::connect(this, &QTabWidget::currentChanged, this, &LookViewTabWidget::tabChanged);
     QObject::connect(this, &QTabWidget::tabCloseRequested, this, &LookViewTabWidget::tabClosed);
 }
 
-QWidget *LookViewTabWidget::currentView()
+LookViewWidget *LookViewTabWidget::currentView()
 {
     if (LookViewWidget *w = static_cast<LookViewWidget*>(currentWidget()))
         return w;
@@ -28,7 +30,6 @@ void LookViewTabWidget::setLookWidget(LookWidget *lw)
     m_lookWidget = lw;
 }
 
-
 void LookViewTabWidget::showFolder(const QString &path)
 {
     QFileInfo fileInfo(path);
@@ -38,12 +39,11 @@ void LookViewTabWidget::showFolder(const QString &path)
     else
         dirPath = fileInfo.dir().absolutePath();
 
-    QDir rootDir(m_lookWidget->rootPath());
+    QDir rootDir(m_lookWidget->lookBasePath());
     QString relPath = rootDir.relativeFilePath(dirPath);
 
     if (auto [exists, index] = tabExists(relPath); !exists) {
         LookViewWidget *lookViewWidget = new LookViewWidget();
-        lookViewWidget->updateSupportedExtensions(m_lookWidget->GetSupportedExtensions());
         lookViewWidget->setLookWidget(m_lookWidget);
         lookViewWidget->appendFolder(dirPath);
 
@@ -59,6 +59,15 @@ void LookViewTabWidget::showFolder(const QString &path)
     }
     else {
         setCurrentIndex(index);
+    }
+}
+
+void LookViewTabWidget::updateViews()
+{
+    // Maybe update current tab first (top priority)...
+    for (uint16_t i = 0; i < count(); ++i) {
+        LookViewWidget *w = static_cast<LookViewWidget*>(widget(i));
+        w->updateView();
     }
 }
 

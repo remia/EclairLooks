@@ -62,7 +62,7 @@ static std::string fragmentShaderSolidSource = R"(
 )";
 
 WaveformWidget::WaveformWidget(QWidget *parent)
-    : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform"), m_textureSrc(nullptr)
+    : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform")
 {
 
 }
@@ -119,9 +119,19 @@ void WaveformWidget::paintGL()
     }
 }
 
-void WaveformWidget::updateTexture(QOpenGLTexture & tex)
+void WaveformWidget::updateTexture(GLint tex)
 {
-    m_textureSrc = &tex;
+    makeCurrent();
+
+    m_textureId = tex;
+
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_textureSize.rwidth()));
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_textureSize.rheight()));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+
+    doneCurrent();
+
     update();
 }
 
@@ -133,8 +143,6 @@ void WaveformWidget::setScopeType(const std::string &type)
 
 void WaveformWidget::initLegend()
 {
-    makeCurrent();
-
     m_programLegend.removeAllShaders();
     m_programLegend.addShaderFromSourceCode(QOpenGLShader::Vertex, defaultVertexShader());
     m_programLegend.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSolidSource.c_str());
@@ -219,8 +227,7 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
     GL_CHECK(m_vaoLegend.release());
 
     // Fill in waveform
-    bool texComplete = m_textureSrc && m_textureSrc->isStorageAllocated();
-    if (!texComplete)
+    if (m_textureId == -1)
         return;
 
     float alpha = m_alpha;
@@ -228,16 +235,16 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
 
     GL_CHECK(m_vaoScope.bind());
     GL_CHECK(m_programScope.bind());
-    GL_CHECK(m_textureSrc->bind());
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
         GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
         GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSrc->width()));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSrc->height()));
-        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSrc->width() * m_textureSrc->height()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSize.width()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSize.height()));
+        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));
 
-    GL_CHECK(m_textureSrc->release());
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CHECK(m_programScope.release());
     GL_CHECK(m_vaoScope.release());
 }

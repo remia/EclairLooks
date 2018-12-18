@@ -4,6 +4,7 @@
 
 #include "../utils/generic.h"
 
+
 class MainWindow;
 class ImagePipeline;
 class Image;
@@ -35,8 +36,7 @@ class DevWidget : public QWidget
     void initOperatorsView();
     void initScopeView();
 
-    void updateCurve(const Image &img);
-    void updateCube(const Image &img);
+    void updateScope(const Image &img);
 
   private:
     MainWindow *m_mainWindow;

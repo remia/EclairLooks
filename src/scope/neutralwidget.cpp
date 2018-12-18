@@ -53,13 +53,13 @@ void NeutralWidget::mouseMoveEvent(QMouseEvent *event)
 
 void NeutralWidget::enterEvent(QEvent * event)
 {
-    ShowCursors();
+    showCursors();
     QWidget::enterEvent(event);
 }
 
 void NeutralWidget::leaveEvent(QEvent * event)
 {
-    HideCursors();
+    hideCursors();
     QWidget::leaveEvent(event);
 }
 
@@ -71,12 +71,11 @@ void NeutralWidget::clearView()
     m_curves.clear();
 }
 
-
 void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString &path)
 {
     CurveItems curveItems;
     QFileInfo fi(path);
-    QString fileName = fi.fileName(); 
+    QString fileName = fi.fileName();
     if (auto c = m_curves.find(id); c == m_curves.end()) {
         m_curves[id] = initCurve(id, fileName, img);
         m_curves[id];
@@ -84,7 +83,7 @@ void NeutralWidget::drawCurve(uint8_t id, const Image &img, const QString &path)
     }
     else {
         m_curves[id].image = img;
-        m_curves[id].name = fileName; 
+        m_curves[id].name = fileName;
         curveItems = m_curves[id];
     }
     drawCurve(curveItems, id);
@@ -110,7 +109,7 @@ void NeutralWidget::clearCurve(uint8_t id)
     }
 }
 
-void NeutralWidget::HideCursors()
+void NeutralWidget::hideCursors()
 {
     for (auto c = m_curves.begin(); c != m_curves.end(); ++c) {
         CurveItems &items = c->second;
@@ -118,21 +117,18 @@ void NeutralWidget::HideCursors()
         items.cursorHLine[1]->setVisible(false);
         items.cursorHLine[2]->setVisible(false);
         items.cursorVLine->setVisible(false);
+        items.cursorRGBValues->setVisible(false);
     }
 }
 
-void NeutralWidget::ShowCursors()
+void NeutralWidget::showCursors()
 {
-    QPen pen;
-    // Curves & Cursor
     for (auto &[id, items] : m_curves) {
-        pen.setStyle(id == 1 ? Qt::DashLine : Qt::SolidLine);
-        for (uint8_t i = 0; i < 3; ++i) {
-            pen.setColor(id == 1 ? colors_b[i] : colors_a[i]);
-            items.cursorHLine[i]->setVisible(true);
-        }
-        pen.setColor(lineYColor);
+        items.cursorHLine[0]->setVisible(true);
+        items.cursorHLine[1]->setVisible(true);
+        items.cursorHLine[2]->setVisible(true);
         items.cursorVLine->setVisible(true);
+        items.cursorRGBValues->setVisible(true);
     }
 }
 
@@ -209,8 +205,7 @@ void NeutralWidget::drawCurve(const CurveItems &items, uint8_t id)
         items.curve[c]->setPath(path);
     }
     items.cursorName->setHtml(QString("<font color=\"black\">%1</font>").arg(items.name));
-    items.cursorName->setPos(grid_width - (grid_width / 2),
-                                 grid_height + 15 + (id * 25));
+    items.cursorName->setPos(grid_width - (grid_width / 2), grid_height + 15 + (id * 25));
 }
 
 void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
@@ -241,7 +236,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
             scenePos.x(), 0, scenePos.x(), grid_height));
 
         items.cursorRGBValues->setHtml(
-            QString("<font color=\"black\">%1"
+            QString("<font color=\"black\">%1 "
                     "=> "
                     "</font>"
                     "<font color=\"red\">%2</font> "

@@ -1,4 +1,5 @@
 #include "image.h"
+#include "utils/pystring.h"
 
 #include <QtCore/QDebug>
 
@@ -331,6 +332,36 @@ Image Image::Lattice(uint16_t size, uint16_t maxwidth)
             }
         }
     }
+
+    return res;
+}
+
+std::vector<std::string> Image::SupportedExtensions()
+{
+    std::vector<std::string> res;
+
+    std::string exts;
+    OIIO::getattribute("extension_list", exts);
+    qInfo() << QString::fromStdString(exts);
+
+    // Format : "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
+    std::vector<std::string> formats;
+    pystring::split(exts, formats, ";");
+
+    for (auto format : formats) {
+        std::vector<std::string> desc;
+        pystring::split(format, desc, ":");
+        if (desc.size() != 2)
+            continue;
+
+        std::vector<std::string> exts;
+        pystring::split(desc[1], exts, ",");
+        for (auto ext: exts)
+            res.push_back(ext);
+    }
+
+    // Additional known format
+    res.push_back("ari");
 
     return res;
 }

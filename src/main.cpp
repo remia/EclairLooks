@@ -34,13 +34,17 @@ int main(int argc, char **argv)
 
     // Settings
     Settings settings;
+    settings.Add<FilePathParameter>("Default Image", "", "Choose an image", "");
+    settings.Add<FilePathParameter>("Look Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
+    settings.Add<FilePathParameter>("Look Tonemap LUT", "", "Choose a LUT", "");
 
     // Pipeline & Operators
     ImagePipeline pipeline;
+    pipeline.SetName("main");
 
     // First try to load image from application settings
     // If this fails, use default embeded image
-    std::string imgPath = settings.GetParameter<FilePathParameter>("Default Image").value;
+    std::string imgPath = settings.Get<FilePathParameter>("Default Image")->value();
     Image img = Image::FromFile(imgPath);
 
     if (!img) {

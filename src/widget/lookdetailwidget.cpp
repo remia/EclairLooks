@@ -24,7 +24,19 @@ LookDetailWidget::LookDetailWidget(QWidget *parent)
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     hSplitter->setSizes(QList<int>({33333, 33333, 33333}));
 
+    m_titleLabel = new QLabel();
+    m_titleLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+
+    vLayout->addWidget(m_titleLabel);
     vLayout->addWidget(hSplitter);
+}
+
+void LookDetailWidget::showEvent(QShowEvent *event)
+{
+    if (!m_imageWidget->hasImage())
+        m_imageWidget->resetImage(m_lookWidget->fullImage());
+
+    QWidget::showEvent(event);
 }
 
 void LookDetailWidget::setLookWidget(LookWidget *lw)
@@ -34,22 +46,39 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
     m_neutralsWidget->installEventFilter(m_lookWidget);
 }
 
-void LookDetailWidget::resetView(uint8_t id)
+void LookDetailWidget::clearView(SideBySide c)
 {
-    m_imageWidget->clearImage();
-    m_neutralsWidget->clearCurve(id);
+    m_cmap[c] = "";
+    m_titleLabel->setText(m_cmap[SideBySide::A]);
+
+    m_neutralsWidget->clearCurve(UnderlyingT<SideBySide>(c));
+    m_imageWidget->updateImage(c, m_lookWidget->fullImage());
+
+    // No comparaison mode for cube at the moment
+    if (c == SideBySide::A)
+        m_cubeWidget->clearCube();
 }
 
-void LookDetailWidget::showDetail(const QString &path, uint8_t id)
+void LookDetailWidget::updateView(SideBySide c)
 {
-    if (auto [valid, img] = m_lookWidget->lookPreview(path); valid) {
-        m_imageWidget->setImage(m_lookWidget->fullImage());
-        m_imageWidget->updateImage(img);
-    }
-    if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid) {
-        m_neutralsWidget->drawCurve(id, img, path);
-    }
-    if (auto [valid, img] = m_lookWidget->lookPreviewLattice(path); valid) {
-        m_cubeWidget->drawCube(img);
-    }
+    if (m_cmap[c].isEmpty())
+        return;
+
+    showDetail(m_cmap[c], c);
+}
+
+void LookDetailWidget::showDetail(const QString &path, SideBySide c)
+{
+    m_cmap[c] = path;
+    m_titleLabel->setText(m_cmap[SideBySide::A]);
+
+    if (auto [valid, img] = m_lookWidget->lookPreview(path); valid)
+        m_imageWidget->updateImage(c, img);
+    if (auto [valid, img] = m_lookWidget->lookPreviewRamp(path); valid)
+        m_neutralsWidget->drawCurve(UnderlyingT<SideBySide>(c), img, path);
+
+    // No comparaison mode for cube at the moment
+    if (c == SideBySide::A)
+        if (auto [valid, img] = m_lookWidget->lookPreviewLattice(path); valid)
+            m_cubeWidget->drawCube(img);
 }

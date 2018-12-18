@@ -5,8 +5,6 @@
 
 class LookWidget;
 class LookViewItemWidget;
-class QListWidget;
-class QListWidgetItem;
 class QImage;
 class QPixmap;
 class QStringList;
@@ -39,8 +37,8 @@ class LookViewWidget : public QListWidget
     void appendFolder(const QString &path);
     void appendLook(const QString &path);
 
+    void updateView();
     void removeSelection(int selectedRow);
-    void updateSupportedExtensions(const QStringList extensions);
 
   private:
     void addLook(const QString &path);
@@ -50,7 +48,6 @@ class LookViewWidget : public QListWidget
     LookWidget *m_lookWidget;
     DisplayMode m_displayMode;
     bool m_readOnly;
-    QStringList m_SupportedExtensions;
 };
 
 class LookViewItemWidget : public QWidget
@@ -68,9 +65,9 @@ class LookViewItemWidget : public QWidget
     void setup();
 
   private:
-    QLabel * m_thumbnail;
-    QLabel * m_name;
-    QLabel * m_date;
+    QLabel * m_thumbnail = nullptr;
+    QLabel * m_name = nullptr;
+    QLabel * m_date = nullptr;
 
     QString m_path;
     QPixmap m_pixmap;

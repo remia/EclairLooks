@@ -5,14 +5,14 @@
 #include <QtCore/QByteArray>
 
 
+class Settings;
 class Image;
 class ImagePipeline;
 class MainWindow;
-class LookBrowserWidget;
+class BrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
 class LookSelectionWidget;
-class QLineEdit;
 class QSplitter;
 
 class LookWidget : public QWidget
@@ -26,13 +26,16 @@ class LookWidget : public QWidget
   public:
     LookViewTabWidget * lookViewTabWidget();
 
-    QStringList GetSupportedExtensions(); 
+    QStringList supportedLookExtensions();
 
     void toggleFullScreen();
 
-    QString rootPath();
-    QString tonemapPath();
+    QString lookBasePath() const;
+    QString imageBasePath() const;
+    QString tonemapPath() const;
+    bool tonemapEnabled() const;
 
+    void setImage(const Image &img);
     Image & fullImage();
     Image & proxyImage();
 
@@ -43,19 +46,26 @@ class LookWidget : public QWidget
 
   private:
     void setupPipeline();
+    void setupBrowser();
+    void setupSetting();
     QWidget* setupUi();
 
     TupleT<bool, Image &> _lookPreview(const QString &lookPath, Image &img);
 
+    void updateViews();
+    void toggleToneMap(bool v);
+    void updateToneMap();
+
   private:
     MainWindow *m_mainWindow;
 
-    LookBrowserWidget *m_browserWidget;
+    Settings *m_settings = nullptr;
+
+    BrowserWidget *m_browserWidget;
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
     LookSelectionWidget *m_selectWidget;
-    QStringList m_SupportedExtensions;
-    QLineEdit *m_browserSearch;
+    QWidget *m_settingWidget;
 
     bool m_isFullScreen;
     QSplitter *m_hSplitter;

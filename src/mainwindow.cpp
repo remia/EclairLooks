@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "imagepipeline.h"
 #include "settings.h"
+#include "version.h"
 #include "widget/devwidget.h"
 #include "widget/lookwidget.h"
 #include "widget/logwidget.h"
@@ -12,7 +13,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_pipeline(nullptr), m_operators(nullptr), m_settings(nullptr)
 {
-    setWindowTitle("Eclair Look");
+    setWindowTitle(ELOOK_VERSION_PRETTY);
 
     QSettings settings;
     restoreGeometry(settings.value("mw/geometry").toByteArray());
@@ -64,7 +65,7 @@ void MainWindow::setup()
     m_logWidget = new LogWidget();
     m_devWidget = new DevWidget(this);
     m_lookWidget = new LookWidget(this);
-    m_settingWidget = new SettingWidget(m_settings);
+    m_settingWidget = new SettingWidget(m_settings, "General");
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");

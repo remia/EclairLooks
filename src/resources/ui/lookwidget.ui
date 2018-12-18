@@ -37,14 +37,10 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="LookBrowserWidget" name="lookBrowserWidget" native="true"/>
+        <widget class="BrowserWidget" name="lookBrowserWidget" native="true"/>
        </item>
        <item>
-        <widget class="QLineEdit" name="lookBrowserSearch">
-         <property name="placeholderText">
-          <string>Search look...</string>
-         </property>
-        </widget>
+        <widget class="QWidget" name="lookSettingWidget" native="true"/>
        </item>
       </layout>
      </widget>
@@ -79,10 +75,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>LookBrowserWidget</class>
+   <class>BrowserWidget</class>
    <extends>QWidget</extends>
-   <header>lookbrowserwidget.h</header>
+   <header>browserwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LookSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>lookselectionwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

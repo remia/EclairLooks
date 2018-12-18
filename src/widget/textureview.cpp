@@ -15,7 +15,7 @@
 
 
 TextureView::TextureView(QWidget *parent)
-    : QOpenGLWidget(parent), m_defaultScale(1.f)
+    : QOpenGLWidget(parent), m_textureRatio(1.f, 1.f)
 {
     setFocusPolicy(Qt::ClickFocus);
     resetView();
@@ -24,7 +24,7 @@ TextureView::TextureView(QWidget *parent)
 void TextureView::mousePressEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
-        m_imagePosition = widgetToWorld(event->localPos());
+        m_imagePosition = -widgetToWorld(event->localPos());
     }
     else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
         setMouseTracking(true);
@@ -148,7 +148,6 @@ void TextureView::initializeGL()
     GL_CHECK(m_vao.release());
 
     printOpenGLInfo();
-    qInfo() << "OpenGL Initialization done !\n";
 }
 
 void TextureView::resizeGL(int w, int h)
@@ -161,6 +160,11 @@ void TextureView::setDefaultScale(float s)
 {
     m_defaultScale = s;
     resetView();
+}
+
+void TextureView::setTextureRatio(float x, float y)
+{
+    m_textureRatio = QPointF(x, y);
 }
 
 QString TextureView::defaultVertexShader() const
@@ -215,14 +219,39 @@ void TextureView::resetView()
     update();
 }
 
-QPointF TextureView::widgetToNorm(const QPointF & pos) const
+QPointF TextureView::widgetToNorm(const QPointF &pos) const
 {
     return QPointF(1.f * pos.x() / width(), 1.f * pos.y() / height());
 }
 
-QPointF TextureView::widgetToWorld(const QPointF & pos) const
+QPointF TextureView::normToWidget(const QPointF &pos) const
+{
+    return QPointF(pos.x() * width(), pos.y() * height());
+}
+
+QPointF TextureView::widgetToClip(const QPointF &pos) const
 {
     return widgetToNorm(pos) * 2.f - QPointF(1.f, 1.f);
+}
+
+QPointF TextureView::clipToWidget(const QPointF &pos) const
+{
+    return normToWidget((pos + QPointF(1.f, 1.f)) / 2.f);
+}
+
+QPointF TextureView::widgetToWorld(const QPointF &pos) const
+{
+    QPointF clipPoint = widgetToClip(pos);
+    QVector3D clipPos(clipPoint.x(), -clipPoint.y(), 0.f);
+    QVector3D worldPos = viewMatrix().inverted() * clipPos;
+    return QPointF(worldPos.x(), worldPos.y());
+}
+
+QPointF TextureView::worldToWidget(const QPointF &pos) const
+{
+    QVector3D worldPos(pos.x(), pos.y(), 0.f);
+    QVector3D clipPos = viewMatrix() * worldPos;
+    return clipToWidget(QPointF(clipPos.x(), -clipPos.y()));
 }
 
 QOpenGLVertexArrayObject & TextureView::vaoObject()
@@ -230,9 +259,17 @@ QOpenGLVertexArrayObject & TextureView::vaoObject()
     return m_vao;
 }
 
+QMatrix4x4 TextureView::worldMatrix() const
+{
+    // Warning : if not identity must update coordinates convert methods !
+    return QMatrix4x4();
+}
+
 QMatrix4x4 TextureView::viewMatrix() const
 {
     QMatrix4x4 view;
+
+    view.scale(m_textureRatio.x(), m_textureRatio.y());
 
     // Inverse Y scale to account for OpenGL Y axis (bottom top)
     view.scale(m_imageScale, -m_imageScale);
@@ -242,4 +279,10 @@ QMatrix4x4 TextureView::viewMatrix() const
         m_imagePosition.y() + m_moveDelta.y());
 
     return view;
+}
+
+QMatrix4x4 TextureView::projMatrix() const
+{
+    // Warning : if not identity must update coordinates convert methods !
+    return QMatrix4x4();
 }

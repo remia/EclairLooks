@@ -7,7 +7,6 @@
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLBuffer>
-#include <QtGui/QOpenGLTexture>
 
 
 class Image;
@@ -22,7 +21,7 @@ class WaveformWidget : public TextureView
     void initializeGL() override;
     void paintGL() override;
 
-    void updateTexture(QOpenGLTexture &tex);
+    void updateTexture(GLint tex);
 
     void setScopeType(const std::string &type);
 
@@ -36,7 +35,8 @@ class WaveformWidget : public TextureView
     float m_alpha;
     std::string m_scopeType;
 
-    QOpenGLTexture * m_textureSrc;
+    GLint m_textureId = -1;
+    QSize m_textureSize;
 
     QOpenGLShaderProgram m_programScope;
     QOpenGLVertexArrayObject m_vaoScope;

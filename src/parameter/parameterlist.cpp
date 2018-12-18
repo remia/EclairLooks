@@ -24,7 +24,7 @@ ParameterList::VecCIt ParameterList::end() const
 bool ParameterList::HasName(const std::string &name) const
 {
     for (auto &p : m_params) {
-        if (p->name == name)
+        if (p->name() == name)
             return true;
     }
 
@@ -37,21 +37,8 @@ bool ParameterList::Delete(const std::string & name)
         return false;
 
     std::remove_if(m_params.begin(), m_params.end(), [&](auto &p) {
-        return p->name == name;
+        return p->name() == name;
     });
-
-    return true;
-}
-
-bool ParameterList::Set(const Parameter &op)
-{
-    if (!HasName(op.name))
-        return false;
-
-    for (auto &p : m_params)
-        if (p->name == op.name)
-            *p = op;
-
 
     return true;
 }

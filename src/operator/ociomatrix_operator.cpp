@@ -10,7 +10,7 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOMatrix::OCIOMatrix()
 {
-    AddParameter(Matrix4x4Parameter("Matrix"), "Matrix Transform");
+    AddParameterByCategory<Matrix4x4Parameter>("Matrix", "Matrix");
 
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
@@ -25,6 +25,11 @@ ImageOperator * OCIOMatrix::OpCreate() const
 std::string OCIOMatrix::OpName() const
 {
     return "OCIO Matrix";
+}
+
+std::string OCIOMatrix::OpLabel() const
+{
+    return "Matrix";
 }
 
 void OCIOMatrix::OpApply(Image & img)
@@ -45,9 +50,9 @@ bool OCIOMatrix::OpIsIdentity() const
 void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
 {
     try {
-        if (op.name == "Matrix") {
+        if (op.name() == "Matrix") {
             auto p = static_cast<const Matrix4x4Parameter *>(&op);
-            m_transform->setMatrix(p->value);
+            m_transform->setMatrix(p->value().data());
         }
 
         m_processor = m_config->getProcessor(m_transform);

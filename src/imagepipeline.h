@@ -28,12 +28,14 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     Image &GetInput();
     Image &GetOutput();
 
+    void SetName(const std::string &name);
+
     uint8_t OperatorCount() const;
     ImageOperator &GetOperator(uint8_t index);
 
-    void AddOperator(ImageOperator * op, int8_t index = -1);
     template <typename T> T * AddOperator();
-    void ReplaceOperator(ImageOperator * op, int8_t index);
+    ImageOperator *AddOperator(ImageOperator * op, int8_t index = -1);
+    ImageOperator* ReplaceOperator(ImageOperator * op, int8_t index);
     bool DeleteOperator(uint8_t index);
 
     void Reset();
@@ -47,6 +49,8 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     Image m_inputImg;
     Image m_outputImg;
     VecT m_operators;
+
+    std::string m_name = "unamed";
 };
 
 

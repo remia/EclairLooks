@@ -63,12 +63,9 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     using IP = ImagePipeline;
     using IW = ImageWidget;
 
-    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::setImage, m_imageWidget, _1));
-    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, _1));
-    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateCurve, this, _1));
-    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateCube, this, _1));
-
-    m_imageWidget->Subscribe<IW::Update>(std::bind(&WaveformWidget::updateTexture, m_waveformWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::resetImage, m_imageWidget, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, SideBySide::A, _1));
+    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateScope, this, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
 }
@@ -119,22 +116,26 @@ void DevWidget::initScopeView()
     QObject::connect(
         m_scopeTab, &QTabBar::tabBarClicked,
         [&, this](int index) {
-            QString tabText = this->m_scopeTab->tabText(index);
+            QString tabText = m_scopeTab->tabText(index);
 
             if (tabText == "W") {
-                this->m_scopeStack->setCurrentWidget(m_waveformWidget);
-                this->m_waveformWidget->setScopeType("Waveform");
+                m_scopeStack->setCurrentWidget(m_waveformWidget);
+                m_waveformWidget->setScopeType("Waveform");
             }
             else if (tabText == "P") {
-                this->m_scopeStack->setCurrentWidget(m_waveformWidget);
-                this->m_waveformWidget->setScopeType("Parade");
+                m_scopeStack->setCurrentWidget(m_waveformWidget);
+                m_waveformWidget->setScopeType("Parade");
             }
             else if (tabText == "N") {
-                this->m_scopeStack->setCurrentWidget(m_neutralsWidget);
+                m_scopeStack->setCurrentWidget(m_neutralsWidget);
             }
             else if (tabText == "C") {
-                this->m_scopeStack->setCurrentWidget(m_cubeWidget);
+                m_scopeStack->setCurrentWidget(m_cubeWidget);
             }
+
+            // Need to manually update the scope because it's not updated
+            // when not visible.
+            updateScope(m_mainWindow->pipeline()->GetOutput());
         }
     );
 }
@@ -144,16 +145,21 @@ void DevWidget::initOperatorsView()
     m_operatorsWidget->setDevWidget(this);
 }
 
-void DevWidget::updateCurve(const Image &img)
+void DevWidget::updateScope(const Image &img)
 {
-    *m_imageCompute = *m_imageRamp;
-    pipeline()->ComputeImage(*m_imageCompute);
-    m_neutralsWidget->drawCurve(0, *m_imageCompute);
-}
-
-void DevWidget::updateCube(const Image &img)
-{
-    *m_imageCompute = *m_imageLattice;
-    pipeline()->ComputeImage(*m_imageCompute);
-    m_cubeWidget->drawCube(*m_imageCompute);
+    if (m_scopeStack->currentWidget() == m_neutralsWidget) {
+        qInfo() << "Compute Ramp (curve scope)";
+        *m_imageCompute = *m_imageRamp;
+        pipeline()->ComputeImage(*m_imageCompute);
+        m_neutralsWidget->drawCurve(0, *m_imageCompute);
+    }
+    else if (m_scopeStack->currentWidget() == m_cubeWidget) {
+        qInfo() << "Compute Lattice (cube scope)";
+        *m_imageCompute = *m_imageLattice;
+        pipeline()->ComputeImage(*m_imageCompute);
+        m_cubeWidget->drawCube(*m_imageCompute);
+    }
+    else if (m_scopeStack->currentWidget() == m_waveformWidget) {
+        m_waveformWidget->updateTexture(m_imageWidget->texture());
+    }
 }

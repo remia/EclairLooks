@@ -14,46 +14,57 @@ LookViewWidget::LookViewWidget(QWidget *parent)
 {
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
-    setSelectionMode(QAbstractItemView::SingleSelection);
+    setSelectionMode(QAbstractItemView::ContiguousSelection);
 }
 
 void LookViewWidget::mousePressEvent(QMouseEvent *event)
 {
     QListWidgetItem * item = itemAt(event->pos());
     if (!item)
-        clearSelection();
+        setCurrentIndex(QModelIndex());
 
     QListWidget::mousePressEvent(event);
 }
 
 void LookViewWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (currentRow() >= 0) {
-        switch (event->key()) {
-            case Qt::Key_Backspace:
-                removeSelection(currentRow());
-                break;
-            default:
-                QListWidget::keyPressEvent(event);
-        }
+    switch (event->key()) {
+        case Qt::Key_Backspace: {
+            if (!m_readOnly)
+                qDeleteAll(selectedItems());
+        } break;
+        default:
+            break;
     }
-    else {
-        QListWidget::keyPressEvent(event);
-    }
+
+    QListWidget::keyPressEvent(event);
 }
 
 void LookViewWidget::startDrag(Qt::DropActions supportedActions)
 {
-    QListWidgetItem* item = currentItem();
-    LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(item));
-
     QMimeData *mimeData = new QMimeData();
-    mimeData->setUrls(QList<QUrl>() << QUrl::fromLocalFile(w->path()));
 
+    // For some reasons, if more than one urls is present when
+    // QMimeData::setUrls() is called, the drag & drop will not work.
+    // Don't really know why, looks like a Qt bug
+    // QList<QUrl> urls;
+    QStringList urls;
+
+    QList<QListWidgetItem *> items = selectedItems();
+    for (auto item : items) {
+        LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(item));
+        urls << w->path();
+    }
+
+    LookViewItemWidget * w = static_cast<LookViewItemWidget *>(itemWidget(currentItem()));
     QDrag *drag = new QDrag(this);
+    mimeData->setText(urls.join(";"));
     drag->setMimeData(mimeData);
     drag->setPixmap(*w->image());
-    drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
+    drag->setHotSpot(QPoint(drag->pixmap().width() / 2, drag->pixmap().height() / 2));
+
+    Qt::DropAction defaultDropAction = Qt::IgnoreAction;
+    drag->exec(supportedActions, defaultDropAction);
 }
 
 void LookViewWidget::setLookWidget(LookWidget *lw)
@@ -106,17 +117,12 @@ int LookViewWidget::indexLook(const QString &path) const
     return -1;
 }
 
-void LookViewWidget::updateSupportedExtensions(const QStringList extensions)
-{
-    m_SupportedExtensions = extensions;
-}
-
 void LookViewWidget::appendFolder(const QString &path)
 {
     clear();
 
     QDir dir(path);
-    dir.setNameFilters(m_SupportedExtensions);
+    dir.setNameFilters(m_lookWidget->supportedLookExtensions());
     for (auto & entry : dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QString entryPath = entry.absoluteFilePath();
         addLook(entryPath);
@@ -128,6 +134,14 @@ void LookViewWidget::appendFolder(const QString &path)
 void LookViewWidget::appendLook(const QString &path)
 {
     addLook(path);
+}
+
+void LookViewWidget::updateView()
+{
+    for (uint16_t i = 0; i < count(); ++i) {
+        LookViewItemWidget *w = static_cast<LookViewItemWidget*>(itemWidget(item(i)));
+        w->setImage(QPixmap::fromImage(computeThumbnail(w->path())));
+    }
 }
 
 void LookViewWidget::removeSelection(int selectedRow)
@@ -148,6 +162,10 @@ void LookViewWidget::addLook(const QString &path)
         return;
     }
 
+    QFileInfo info(path);
+    if (!info.exists())
+        return;
+
     QListWidgetItem *item = new QListWidgetItem();
 
     if (m_displayMode != DisplayMode::Minimized) {
@@ -162,7 +180,6 @@ void LookViewWidget::addLook(const QString &path)
         setItemWidget(item, widget);
     }
     else {
-        QFileInfo info(path);
         item->setText(info.fileName());
         item->setData(Qt::UserRole, path);
         addItem(item);
@@ -215,6 +232,9 @@ const QPixmap * LookViewItemWidget::image() const
 void LookViewItemWidget::setImage(const QPixmap & img)
 {
     m_pixmap = img;
+
+    if (m_thumbnail)
+        m_thumbnail->setPixmap(m_pixmap);
 }
 
 void LookViewItemWidget::setup()

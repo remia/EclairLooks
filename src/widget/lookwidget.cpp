@@ -1,29 +1,34 @@
 #include "lookwidget.h"
 #include "uiloader.h"
-#include "lookbrowserwidget.h"
+#include "browserwidget.h"
 #include "lookviewtabwidget.h"
 #include "lookviewwidget.h"
 #include "lookdetailwidget.h"
 #include "lookselectionwidget.h"
+#include "settingwidget.h"
 #include "../settings.h"
 #include "../image.h"
 #include "../imagepipeline.h"
 #include "../mainwindow.h"
 #include "../operator/imageoperatorlist.h"
 #include "../operator/ociofiletransform_operator.h"
+#include "../utils/types.h"
 
 #include <QtWidgets/QtWidgets>
 #include <QFile>
 
 using std::placeholders::_1;
-using LB = LookBrowserWidget;
+using BW = BrowserWidget;
 using LV = LookViewTabWidget;
+using LD = LookDetailWidget;
+using P = Parameter;
 
 
 LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     : QWidget(parent), m_mainWindow(mw), m_isFullScreen(false), m_proxySize(125, 125)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
+    m_pipeline->SetName("look");
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
     m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
 
@@ -32,16 +37,15 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     //
 
     QWidget * w = setupUi();
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
-    setLayout(layout);
 
-    m_browserWidget = findChild<LookBrowserWidget*>("lookBrowserWidget");
+    m_browserWidget = findChild<BrowserWidget*>("lookBrowserWidget");
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_selectWidget = findChild<LookSelectionWidget*>("lookSelectionWidget");
-    m_browserSearch = findChild<QLineEdit*>("lookBrowserSearch");
+    m_settingWidget = findChild<QWidget*>("lookSettingWidget");
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     m_vSplitter = findChild<QSplitter*>("hSplitter");
@@ -52,8 +56,9 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     m_hSplitterView->setSizes(QList<int>({80000, 20000}));
 
     setupPipeline();
+    setupBrowser();
+    setupSetting();
 
-    m_browserWidget->setLookWidget(this);
     m_viewTabWidget->setLookWidget(this);
     m_detailWidget->setLookWidget(this);
     m_selectWidget->setLookWidget(this);
@@ -62,15 +67,18 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     // Connections
     //
 
-    QObject::connect(m_browserSearch, &QLineEdit::textChanged, m_browserWidget, &LookBrowserWidget::filterList);
+    auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_browserWidget->setRootPath(lookBasePath()); });
+    auto lookTonemap = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT");
+    lookTonemap->Subscribe<P::UpdateValue>(std::bind(&LookWidget::updateToneMap, this));
 
-    m_browserWidget->Subscribe<LB::Select>(std::bind(&LookViewTabWidget::showFolder, m_viewTabWidget, _1));
+    m_browserWidget->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
 
-    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 0));
-    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 0));
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::A));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::A));
 
-    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LookDetailWidget::resetView, m_detailWidget, 1));
-    m_selectWidget->Subscribe<LV::Select>(std::bind(&LookDetailWidget::showDetail, m_detailWidget, _1, 1));
+    m_selectWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::B));
+    m_selectWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::B));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)
@@ -107,6 +115,18 @@ LookViewTabWidget * LookWidget::lookViewTabWidget()
     return m_viewTabWidget;
 }
 
+QStringList LookWidget::supportedLookExtensions()
+{
+    QStringList extensions = OCIOFileTransform().SupportedExtensions();
+    QListIterator<QString> itr(extensions);
+    while (itr.hasNext()) {
+        QString current = itr.next();
+        extensions << "*." + current;
+    }
+
+    return extensions;
+}
+
 void LookWidget::toggleFullScreen()
 {
     if (!m_isFullScreen) {
@@ -122,19 +142,43 @@ void LookWidget::toggleFullScreen()
         m_hSplitter->restoreState(m_hSplitterState);
         m_vSplitter->restoreState(m_vSplitterState);
         m_isFullScreen = false;
+
+        // User can browse through list while in full screen with shortcuts,
+        // we need to re-center the view on current item when fullscreen
+        // mode is disabled.
+        if (LookViewWidget *view = m_viewTabWidget->currentView())
+            view->scrollToItem(view->currentItem(), QAbstractItemView::PositionAtCenter);
     }
 }
 
-QString LookWidget::rootPath()
+QString LookWidget::lookBasePath() const
 {
-    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Base Folder").value;
+    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder")->value();
     return QString::fromStdString(val);
 }
 
-QString LookWidget::tonemapPath()
+QString LookWidget::tonemapPath() const
 {
-    std::string val = m_mainWindow->settings()->GetParameter<FilePathParameter>("Look Tonemap LUT").value;
+    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT")->value();
     return QString::fromStdString(val);
+}
+
+bool LookWidget::tonemapEnabled() const
+{
+    if (!m_settings)
+        return false;
+
+    return m_settings->Get<CheckBoxParameter>("Tone Mapping")->value();
+}
+
+void LookWidget::setImage(const Image &img)
+{
+    if (!img)
+        return;
+
+    m_image = std::make_unique<Image>(img);
+    m_imageProxy = std::make_unique<Image>(*m_image);
+    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
 }
 
 Image & LookWidget::fullImage()
@@ -169,13 +213,16 @@ TupleT<bool, Image &> LookWidget::lookPreviewLattice(const QString &lookPath)
 
 TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)
 {
-    if (auto op = m_mainWindow->operators()->CreateFromPath(lookPath.toStdString())) {
-        m_pipeline->ReplaceOperator(op, 0);
-        m_pipeline->SetInput(img);
-        return { true, m_pipeline->GetOutput() };
-    }
+    ImageOperator &op = m_pipeline->GetOperator(0);
+    auto opPath = op.GetParameter<FilePathParameter>("LUT");
+    std::string currentPath = opPath->value();
+    std::string requestPath = lookPath.toStdString();
 
-    return { false, img };
+    if (currentPath != requestPath)
+        opPath->setValue(requestPath);
+
+    m_pipeline->SetInput(img);
+    return { true, m_pipeline->GetOutput() };
 }
 
 QWidget * LookWidget::setupUi()
@@ -186,36 +233,63 @@ QWidget * LookWidget::setupUi()
     return loader.load(&file, this);
 }
 
-QStringList LookWidget::GetSupportedExtensions() 
-{
-    if (m_SupportedExtensions.isEmpty()) {
-        QStringList extensions = OCIOFileTransform().SupportedExtensions();
-        QListIterator<QString> itr(extensions);
-        while (itr.hasNext()) {
-            QString current = itr.next();
-            extensions << "*." + current;
-        }
-        m_SupportedExtensions = extensions;
-        return m_SupportedExtensions;
-    }else{
-        return m_SupportedExtensions;
-    }
-}
-
 void LookWidget::setupPipeline()
 {
-    if (!m_mainWindow->pipeline()->GetInput())
-        return;
-
-    m_image = std::make_unique<Image>(m_mainWindow->pipeline()->GetInput());
-    m_imageProxy = std::make_unique<Image>(*m_image);
-    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
+    setImage(m_mainWindow->pipeline()->GetInput());
 
     m_pipeline->AddOperator<OCIOFileTransform>();
+    m_pipeline->AddOperator<OCIOFileTransform>();
 
-    if (!tonemapPath().isEmpty()) {
-        if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString()); op != nullptr) {
-            m_pipeline->AddOperator(op);
-        }
+    updateToneMap();
+}
+
+void LookWidget::setupBrowser()
+{
+    m_browserWidget->setRootPath(lookBasePath());
+    m_browserWidget->setExtFilter(supportedLookExtensions());
+}
+
+void LookWidget::setupSetting()
+{
+    m_settings = new Settings();
+
+    CheckBoxParameter *p = m_settings->Add<CheckBoxParameter>("Tone Mapping", true);
+    toggleToneMap(p->value());
+
+    p->Subscribe<Parameter::UpdateValue>([this](const Parameter &p){
+        const CheckBoxParameter & cb = static_cast<const CheckBoxParameter&>(p);
+        toggleToneMap(cb.value());
+    });
+
+    QVBoxLayout *layout = new QVBoxLayout(m_settingWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(new SettingWidget(m_settings));
+}
+
+void LookWidget::updateViews()
+{
+    m_detailWidget->updateView(SideBySide::A);
+    m_detailWidget->updateView(SideBySide::B);
+    m_viewTabWidget->updateViews();
+}
+
+void LookWidget::toggleToneMap(bool v)
+{
+    ImageOperator &op = m_pipeline->GetOperator(1);
+    op.GetParameter<CheckBoxParameter>("Enabled")->setValue(v);
+
+    updateViews();
+}
+
+void LookWidget::updateToneMap()
+{
+    if (tonemapPath().isEmpty())
+        return;
+
+    if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString())) {
+        op = m_pipeline->ReplaceOperator(op, 1);
+        op->GetParameter<CheckBoxParameter>("Enabled")->setValue(tonemapEnabled());
     }
+
+    updateViews();
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLExtraFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLBuffer>
@@ -8,7 +8,7 @@
 #include <QtWidgets/QOpenGLWidget>
 
 
-class TextureView : public QOpenGLWidget, public QOpenGLFunctions
+class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
 {
   public:
     TextureView(QWidget *parent = nullptr);
@@ -26,15 +26,23 @@ class TextureView : public QOpenGLWidget, public QOpenGLFunctions
 
   protected:
     void setDefaultScale(float s);
+    void setTextureRatio(float x, float y);
 
     QString defaultVertexShader() const;
     QString defaultFragmentShader() const;
 
     QPointF widgetToNorm(const QPointF &pos) const;
+    QPointF normToWidget(const QPointF &pos) const;
+    QPointF widgetToClip(const QPointF & pos) const;
+    QPointF clipToWidget(const QPointF &pos) const;
     QPointF widgetToWorld(const QPointF & pos) const;
+    QPointF worldToWidget(const QPointF &pos) const;
 
     QOpenGLVertexArrayObject & vaoObject();
+
+    QMatrix4x4 worldMatrix() const;
     QMatrix4x4 viewMatrix() const;
+    QMatrix4x4 projMatrix() const;
 
     void resetView();
 
@@ -46,8 +54,9 @@ class TextureView : public QOpenGLWidget, public QOpenGLFunctions
 
     QPointF m_imagePosition;
     float m_imageScale;
+    QPointF m_textureRatio;
     QPointF m_clickPosition;
     QPointF m_moveDelta;
 
-    float m_defaultScale;
+    float m_defaultScale = 1.f;
 };

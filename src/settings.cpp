@@ -7,8 +7,6 @@
 Settings::Settings()
 {
     m_settings = std::make_unique<QSettings>();
-
-    Parameter *p = nullptr;
 }
 
 Settings::~Settings()

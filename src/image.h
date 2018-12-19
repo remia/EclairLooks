@@ -62,7 +62,7 @@ class Image
   public:
     Image to_type(PixelType type) const;
 
-    Image resize(uint16_t width, uint16_t height, bool keepAspectRatio = true) const;
+    Image resize(uint16_t w, uint16_t h, bool keepAspectRatio = true, const std::string &filter = "") const;
 
     bool read(const std::string &path);
     bool write(const std::string &path, PixelType type = PixelType::Uint16) const;

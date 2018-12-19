@@ -151,24 +151,20 @@ Image Image::to_type(PixelType t) const
     return res;
 }
 
-Image Image::resize(uint16_t in_width, uint16_t in_height, bool keepAspectRatio) const
+Image Image::resize(uint16_t w, uint16_t h, bool keepAspectRatio, const std::string &filter) const
 {
-    uint16_t w = in_width;
-    uint16_t h = in_height;
-
-    if (keepAspectRatio) {
-        float ar = float(width()) / float(height());
-
-        if (ar >= 1.0)
-            h = int(height() * h / width());
-        else
-            w = (width() * w / height());
-    }
-
-    ROI roi (0, w, 0, h, 0, 1, 0, channels());
+    ImageSpec spec = m_imgBuf->spec();
+    spec.width = w;
+    spec.height = h;
 
     Image res;
-    ImageBufAlgo::resize(*res.m_imgBuf, *m_imgBuf, "", 0.0f, roi);
+    res.m_imgBuf = std::make_unique<ImageBuf>(spec);
+
+    if (keepAspectRatio)
+        ImageBufAlgo::fit(*res.m_imgBuf, *m_imgBuf, filter, 0.0f, true);
+    else
+        ImageBufAlgo::resize(*res.m_imgBuf, *m_imgBuf, filter, 0.0f);
+
     return res;
 }
 
@@ -178,6 +174,7 @@ bool Image::read(const std::string &path)
         return false;
 
     m_imgBuf.reset(new ImageBuf(path));
+
     if (!m_imgBuf->read(0, 0, true, TypeDesc::FLOAT)) {
         qWarning() << "Could not open image !";
         return false;
@@ -342,7 +339,6 @@ std::vector<std::string> Image::SupportedExtensions()
 
     std::string exts;
     OIIO::getattribute("extension_list", exts);
-    qInfo() << QString::fromStdString(exts);
 
     // Format : "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
     std::vector<std::string> formats;

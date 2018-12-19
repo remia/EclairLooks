@@ -62,6 +62,8 @@ class LookViewItemWidget : public QWidget
     const QPixmap * image() const;
     void setImage(const QPixmap & img);
 
+    QSize sizeHint() const override;
+
     void setup();
 
   private:

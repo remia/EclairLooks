@@ -141,6 +141,7 @@ void LookViewWidget::updateView()
     for (uint16_t i = 0; i < count(); ++i) {
         LookViewItemWidget *w = static_cast<LookViewItemWidget*>(itemWidget(item(i)));
         w->setImage(QPixmap::fromImage(computeThumbnail(w->path())));
+        item(i)->setSizeHint(w->sizeHint());
     }
 }
 
@@ -235,6 +236,11 @@ void LookViewItemWidget::setImage(const QPixmap & img)
 
     if (m_thumbnail)
         m_thumbnail->setPixmap(m_pixmap);
+}
+
+QSize LookViewItemWidget::sizeHint() const
+{
+    return m_thumbnail->sizeHint() + QSize(0, 16);
 }
 
 void LookViewItemWidget::setup()

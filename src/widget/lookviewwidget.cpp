@@ -194,12 +194,12 @@ QImage LookViewWidget::computeThumbnail(const QString &path)
         res = QImage(
             img.pixels(), img.width(), img.height(),
             img.width() * img.channels() * 1,
-            QImage::Format_RGB888);
+            QImage::Format_RGBA8888);
     }
     else {
         res = QImage(
             img.width(), img.height(),
-            QImage::Format_RGB888);
+            QImage::Format_RGBA8888);
         res.fill(Qt::red);
     }
 

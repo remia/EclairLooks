@@ -114,6 +114,9 @@ void ImageWidget::paintGL()
         GL_CHECK(glClearColor(0.0, 0.0, 0.0, 0.0));
         GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
+        GL_CHECK(glEnable(GL_BLEND));
+        GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
         bool texComplete = m_textureA.isStorageAllocated() && m_textureB.isStorageAllocated();
         if (!texComplete)
             return;

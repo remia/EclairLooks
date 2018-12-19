@@ -86,5 +86,8 @@ class Image
     Image operator/(const Image &rhs);
 
   private:
+    void to_rgba_format();
+
+  private:
     UPtr<OIIO::ImageBuf> m_imgBuf;
 };

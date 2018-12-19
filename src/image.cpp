@@ -183,6 +183,8 @@ bool Image::read(const std::string &path)
     const ImageSpec &spec = m_imgBuf->nativespec();
     Image::PrintMetadata(path, spec);
 
+    to_rgba_format();
+
     return true;
 }
 
@@ -226,6 +228,8 @@ Image Image::FromBuffer(void * buffer, size_t size)
         res.m_imgBuf->pixel_stride(),
         res.m_imgBuf->scanline_stride(),
         res.m_imgBuf->z_stride());
+
+    res.to_rgba_format();
 
     return res;
 }
@@ -397,4 +401,20 @@ Image Image::operator /(const Image & rhs)
     Image res = *this;
     ImageBufAlgo::div(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return res;
+}
+
+void Image::to_rgba_format()
+{
+    if (channels() == 1) {
+        int channelorder[] = { 0, 0, 0, -1 /*use a float value*/ };
+        float channelvalues[] = { 0 /*ignore*/, 0 /*ignore*/, 0 /*ignore*/, 1.0 };
+        std::string channelnames[] = { "R", "G", "B", "A" };
+        ImageBufAlgo::channels(*m_imgBuf, *m_imgBuf, 4, channelorder, channelvalues, channelnames);
+    }
+    else if (channels() == 3) {
+        int channelorder[] = { 0, 1, 2, -1 /*use a float value*/ };
+        float channelvalues[] = { 0 /*ignore*/, 0 /*ignore*/, 0 /*ignore*/, 1.0 };
+        std::string channelnames[] = { "", "", "", "A" };
+        ImageBufAlgo::channels(*m_imgBuf, *m_imgBuf, 4, channelorder, channelvalues, channelnames);
+    }
 }

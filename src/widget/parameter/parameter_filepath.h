@@ -47,6 +47,7 @@ class ParameterFilePathWidget : public ParameterWidget
                              std::string currentText = le->text().toStdString();
                              if (currentText != p->value()) {
                                  p->setValue(currentText);
+                                 UpdateLineEdit(*p);
                              }
                          });
     }
@@ -56,14 +57,26 @@ class ParameterFilePathWidget : public ParameterWidget
     {
         const FilePathParameter *fpp = static_cast<const FilePathParameter *>(&p);
 
-        QFileInfo fileInfo(QString::fromStdString(fpp->value()));
-        if (!fileInfo.exists())
+        QString path = QString::fromStdString(fpp->value());
+        m_lineEdit->setText(path);
+        m_toolButton->setText("...");
+        UpdateLineEdit(p);
+    }
+
+  private:
+    void UpdateLineEdit(const Parameter &p)
+    {
+        const FilePathParameter *fpp = static_cast<const FilePathParameter *>(&p);
+
+        using PathType = FilePathParameter::PathType;
+        QString path = QString::fromStdString(fpp->value());
+        bool fileMissing = m_filePathParam->pathType() == PathType::File && !QFileInfo::exists(path);
+        bool dirMissing  = m_filePathParam->pathType() == PathType::Folder && !QDir(path).exists();
+
+        if (fileMissing || dirMissing)
             m_lineEdit->setStyleSheet(QString("color: red"));
         else
             m_lineEdit->setStyleSheet("");
-
-        m_lineEdit->setText(fileInfo.filePath());
-        m_toolButton->setText("...");
     }
 
   private:

@@ -32,7 +32,7 @@ enum class RampType
     BLUE
 };
 
-namespace OIIO_NAMESPACE { class ImageBuf; }
+namespace OIIO_NAMESPACE { class ImageBuf; class ImageSpec; }
 
 class Image
 {
@@ -73,19 +73,16 @@ class Image
     static Image Ramp1D(uint16_t size, float min = 0.f, float max = 1.f, RampType t = RampType::NEUTRAL);
     static Image Lattice(uint16_t size, uint16_t maxwidth = 512);
 
+    static void PrintMetadata(const std::string &filepath, const OIIO::ImageSpec &spec);
     static std::vector<std::string> SupportedExtensions();
 
   public:
     explicit operator bool() const;
 
     Image operator+(const Image &rhs);
-
     Image operator-(const Image &rhs);
-
     Image operator*(const Image &rhs);
-
     Image operator*(float v) const;
-
     Image operator/(const Image &rhs);
 
   private:

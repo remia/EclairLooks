@@ -35,7 +35,6 @@ class LookWidget : public QWidget
     QString tonemapPath() const;
     bool tonemapEnabled() const;
 
-    void setImage(const Image &img);
     Image & fullImage();
     Image & proxyImage();
 
@@ -52,6 +51,8 @@ class LookWidget : public QWidget
 
     TupleT<bool, Image &> _lookPreview(const QString &lookPath, Image &img);
 
+    void updateImage(const Image &img);
+    void resetViews();
     void updateViews();
     void toggleToneMap(bool v);
     void updateToneMap();
@@ -61,13 +62,14 @@ class LookWidget : public QWidget
 
     Settings *m_settings = nullptr;
 
-    BrowserWidget *m_browserWidget;
+    BrowserWidget *m_lookBrowser;
+    BrowserWidget *m_imageBrowser;
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
     LookSelectionWidget *m_selectWidget;
     QWidget *m_settingWidget;
 
-    bool m_isFullScreen;
+    bool m_isFullScreen = false;
     QSplitter *m_hSplitter;
     QSplitter *m_vSplitter;
     QSplitter *m_hSplitterView;

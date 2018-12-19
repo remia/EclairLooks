@@ -35,6 +35,7 @@ int main(int argc, char **argv)
     // Settings
     Settings settings;
     settings.Add<FilePathParameter>("Default Image", "", "Choose an image", "");
+    settings.Add<FilePathParameter>("Image Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
     settings.Add<FilePathParameter>("Look Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
     settings.Add<FilePathParameter>("Look Tonemap LUT", "", "Choose a LUT", "");
 

@@ -25,7 +25,7 @@ using P = Parameter;
 
 
 LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
-    : QWidget(parent), m_mainWindow(mw), m_isFullScreen(false), m_proxySize(125, 125)
+    : QWidget(parent), m_mainWindow(mw), m_proxySize(125, 70)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
     m_pipeline->SetName("look");
@@ -41,7 +41,8 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(w);
 
-    m_browserWidget = findChild<BrowserWidget*>("lookBrowserWidget");
+    m_lookBrowser = findChild<BrowserWidget*>("lookBrowserWidget");
+    m_imageBrowser = findChild<BrowserWidget*>("imageBrowserWidget");
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_selectWidget = findChild<LookSelectionWidget*>("lookSelectionWidget");
@@ -68,11 +69,18 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     //
 
     auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
-    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_browserWidget->setRootPath(lookBasePath()); });
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(lookBasePath()); });
     auto lookTonemap = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT");
     lookTonemap->Subscribe<P::UpdateValue>(std::bind(&LookWidget::updateToneMap, this));
+    auto imageRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder");
+    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(imageBasePath()); });
 
-    m_browserWidget->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
+    m_lookBrowser->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
+    m_imageBrowser->Subscribe<BW::Select>([this](const QString &path) {
+        updateImage(Image::FromFile(path.toStdString()));
+        resetViews();
+        updateViews();
+    });
 
     m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::A));
     m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::A));
@@ -117,14 +125,11 @@ LookViewTabWidget * LookWidget::lookViewTabWidget()
 
 QStringList LookWidget::supportedLookExtensions()
 {
-    QStringList extensions = OCIOFileTransform().SupportedExtensions();
-    QListIterator<QString> itr(extensions);
-    while (itr.hasNext()) {
-        QString current = itr.next();
-        extensions << "*." + current;
-    }
+    QStringList res;
+    for (QString &ext : OCIOFileTransform().SupportedExtensions())
+        res << "*." + ext;
 
-    return extensions;
+    return res;
 }
 
 void LookWidget::toggleFullScreen()
@@ -157,6 +162,12 @@ QString LookWidget::lookBasePath() const
     return QString::fromStdString(val);
 }
 
+QString LookWidget::imageBasePath() const
+{
+    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder")->value();
+    return QString::fromStdString(val);
+}
+
 QString LookWidget::tonemapPath() const
 {
     std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT")->value();
@@ -169,16 +180,6 @@ bool LookWidget::tonemapEnabled() const
         return false;
 
     return m_settings->Get<CheckBoxParameter>("Tone Mapping")->value();
-}
-
-void LookWidget::setImage(const Image &img)
-{
-    if (!img)
-        return;
-
-    m_image = std::make_unique<Image>(img);
-    m_imageProxy = std::make_unique<Image>(*m_image);
-    *m_imageProxy = m_imageProxy->resize(m_proxySize.width(), m_proxySize.height());
 }
 
 Image & LookWidget::fullImage()
@@ -235,7 +236,7 @@ QWidget * LookWidget::setupUi()
 
 void LookWidget::setupPipeline()
 {
-    setImage(m_mainWindow->pipeline()->GetInput());
+    updateImage(m_mainWindow->pipeline()->GetInput());
 
     m_pipeline->AddOperator<OCIOFileTransform>();
     m_pipeline->AddOperator<OCIOFileTransform>();
@@ -245,8 +246,14 @@ void LookWidget::setupPipeline()
 
 void LookWidget::setupBrowser()
 {
-    m_browserWidget->setRootPath(lookBasePath());
-    m_browserWidget->setExtFilter(supportedLookExtensions());
+    m_lookBrowser->setRootPath(lookBasePath());
+    m_lookBrowser->setExtFilter(supportedLookExtensions());
+
+    QStringList imgExts;
+    for (auto ext : Image::SupportedExtensions())
+        imgExts << "*." + QString::fromStdString(ext);
+    m_imageBrowser->setRootPath(imageBasePath());
+    m_imageBrowser->setExtFilter(imgExts);
 }
 
 void LookWidget::setupSetting()
@@ -264,6 +271,22 @@ void LookWidget::setupSetting()
     QVBoxLayout *layout = new QVBoxLayout(m_settingWidget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(new SettingWidget(m_settings));
+}
+
+void LookWidget::updateImage(const Image &img)
+{
+    if (!img)
+        return;
+
+    m_image = std::make_unique<Image>(img);
+    m_imageProxy = std::make_unique<Image>(*m_image);
+    *m_imageProxy = m_imageProxy->resize(
+        m_proxySize.width(), m_proxySize.height(), true, "box");
+}
+
+void LookWidget::resetViews()
+{
+    m_detailWidget->resetViews();
 }
 
 void LookWidget::updateViews()

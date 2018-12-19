@@ -46,6 +46,13 @@ void LookDetailWidget::setLookWidget(LookWidget *lw)
     m_neutralsWidget->installEventFilter(m_lookWidget);
 }
 
+void LookDetailWidget::resetViews()
+{
+    Image &img  = m_lookWidget->fullImage();
+    m_imageWidget->updateImage(SideBySide::A, img);
+    m_imageWidget->updateImage(SideBySide::B, img);
+}
+
 void LookDetailWidget::clearView(SideBySide c)
 {
     m_cmap[c] = "";

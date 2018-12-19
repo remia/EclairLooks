@@ -37,7 +37,18 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="BrowserWidget" name="lookBrowserWidget" native="true"/>
+        <widget class="QTabWidget" name="tabWidget">
+         <widget class="BrowserWidget" name="lookBrowserWidget">
+          <attribute name="title">
+           <string>Looks</string>
+          </attribute>
+         </widget>
+         <widget class="BrowserWidget" name="imageBrowserWidget">
+          <attribute name="title">
+           <string>Images</string>
+          </attribute>
+         </widget>
+        </widget>
        </item>
        <item>
         <widget class="QWidget" name="lookSettingWidget" native="true"/>

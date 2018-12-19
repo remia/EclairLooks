@@ -28,12 +28,13 @@ class LookDetailWidget : public QWidget
   public:
     void setLookWidget(LookWidget *lw);
 
+    void resetViews();
     void clearView(SideBySide c);
     void updateView(SideBySide c);
     void showDetail(const QString &path, SideBySide c);
 
   private:
-    LookWidget *m_lookWidget;
+    LookWidget *m_lookWidget = nullptr;
     ImageWidget *m_imageWidget;
     NeutralWidget *m_neutralsWidget;
     CubeWidget *m_cubeWidget;

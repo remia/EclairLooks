@@ -19,6 +19,14 @@ class BrowserModel : public QFileSystemModel
     {
         return 1;
     }
+
+    QVariant data(const QModelIndex &index, int role) const override
+    {
+        if (role == Qt::ToolTipRole)
+            role = Qt::DisplayRole;
+
+        return QFileSystemModel::data(index, role);
+    }
 };
 
 // ----------------------------------------------------------------------------

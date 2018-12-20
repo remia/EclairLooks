@@ -20,9 +20,10 @@ class QGraphicsPathItem;
 struct CurveItems {
     Image image;
     QGraphicsPathItem *curve[3];
+    QGraphicsTextItem *curveName;
+    QGraphicsLineItem *curveLegend;
     QGraphicsLineItem *cursorHLine[3];
     QGraphicsLineItem *cursorVLine;
-    QGraphicsTextItem *cursorName;
     QGraphicsTextItem *cursorRGBValues;
     QString name;
 };

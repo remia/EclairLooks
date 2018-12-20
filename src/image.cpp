@@ -12,37 +12,6 @@ using namespace OIIO;
 
 // ----------------------------------------------------------------------------
 
-void PrintImageMetadata(const std::string &filepath, ImageSpec spec)
-{
-    qInfo() << "File -" << QString::fromStdString(filepath);
-    qInfo() << "Dimensions :" << spec.width << "x" << spec.height << "~" << spec.nchannels;
-    qInfo() << "Type :" << spec.format.elementsize() * 8 << "bits" << (spec.format.is_floating_point() ? "Float" : "Integer");
-
-    for (size_t i = 0; i < spec.channelnames.size(); ++i)
-        qInfo() << "Channel " << i << ":" << QString::fromStdString(spec.channelnames[i]);
-
-    qInfo() << "-----------------";
-    for (const ParamValue &p : spec.extra_attribs) {
-        QDebug info = qInfo();
-        info << p.name().c_str() << "\t";
-
-        if (p.type() == TypeString)
-            info << *(const char **)p.data();
-        else if (p.type() == TypeFloat)
-            info << *(const float *)p.data();
-        else if (p.type() == TypeInt)
-            info << *(const int *)p.data();
-        else if (p.type() == TypeDesc::UINT)
-            info << *(const unsigned int *)p.data();
-        else if (p.type() == TypeMatrix) {
-            const float *f = (const float *)p.data();
-            info << f[0] << f[1] << f[2] << f[3] << f[4] << f[5] << f[6] << f[7] << f[8] << f[9] << f[10]
-                 << f[11] << f[12] << f[13] << f[14] << f[15];
-        }
-    }
-    qInfo() << "-----------------\n";
-}
-
 PixelType TypeDescToPixelType(TypeDesc type)
 {
     switch(type.basetype) {
@@ -182,24 +151,20 @@ Image Image::to_type(PixelType t) const
     return res;
 }
 
-Image Image::resize(uint16_t in_width, uint16_t in_height, bool keepAspectRatio) const
+Image Image::resize(uint16_t w, uint16_t h, bool keepAspectRatio, const std::string &filter) const
 {
-    uint16_t w = in_width;
-    uint16_t h = in_height;
-
-    if (keepAspectRatio) {
-        float ar = float(width()) / float(height());
-
-        if (ar >= 1.0)
-            h = int(height() * h / width());
-        else
-            w = (width() * w / height());
-    }
-
-    ROI roi (0, w, 0, h, 0, 1, 0, channels());
+    ImageSpec spec = m_imgBuf->spec();
+    spec.width = w;
+    spec.height = h;
 
     Image res;
-    ImageBufAlgo::resize(*res.m_imgBuf, *m_imgBuf, "", 0.0f, roi);
+    res.m_imgBuf = std::make_unique<ImageBuf>(spec);
+
+    if (keepAspectRatio)
+        ImageBufAlgo::fit(*res.m_imgBuf, *m_imgBuf, filter, 0.0f, true);
+    else
+        ImageBufAlgo::resize(*res.m_imgBuf, *m_imgBuf, filter, 0.0f);
+
     return res;
 }
 
@@ -209,13 +174,16 @@ bool Image::read(const std::string &path)
         return false;
 
     m_imgBuf.reset(new ImageBuf(path));
+
     if (!m_imgBuf->read(0, 0, true, TypeDesc::FLOAT)) {
         qWarning() << "Could not open image !";
         return false;
     }
 
     const ImageSpec &spec = m_imgBuf->nativespec();
-    PrintImageMetadata(path, spec);
+    Image::PrintMetadata(path, spec);
+
+    to_rgba_format();
 
     return true;
 }
@@ -250,7 +218,7 @@ Image Image::FromBuffer(void * buffer, size_t size)
 
     ImageSpec spec = in->spec();
     spec.set_format(TypeDesc::FLOAT);
-    PrintImageMetadata("Embeded", spec);
+    Image::PrintMetadata("Embeded", spec);
 
     Image res;
     res.m_imgBuf.reset(new ImageBuf(spec));
@@ -260,6 +228,8 @@ Image Image::FromBuffer(void * buffer, size_t size)
         res.m_imgBuf->pixel_stride(),
         res.m_imgBuf->scanline_stride(),
         res.m_imgBuf->z_stride());
+
+    res.to_rgba_format();
 
     return res;
 }
@@ -336,13 +306,43 @@ Image Image::Lattice(uint16_t size, uint16_t maxwidth)
     return res;
 }
 
+void Image::PrintMetadata(const std::string &filepath, const ImageSpec &spec)
+{
+    qInfo() << "File -" << QString::fromStdString(filepath);
+    qInfo() << "Dimensions :" << spec.width << "x" << spec.height << "~" << spec.nchannels;
+    qInfo() << "Type :" << spec.format.elementsize() * 8 << "bits" << (spec.format.is_floating_point() ? "Float" : "Integer");
+
+    for (size_t i = 0; i < spec.channelnames.size(); ++i)
+        qInfo() << "Channel " << i << ":" << QString::fromStdString(spec.channelnames[i]);
+
+    qInfo() << "-----------------";
+    for (const ParamValue &p : spec.extra_attribs) {
+        QDebug info = qInfo();
+        info << p.name().c_str() << "\t";
+
+        if (p.type() == TypeString)
+            info << *(const char **)p.data();
+        else if (p.type() == TypeFloat)
+            info << *(const float *)p.data();
+        else if (p.type() == TypeInt)
+            info << *(const int *)p.data();
+        else if (p.type() == TypeDesc::UINT)
+            info << *(const unsigned int *)p.data();
+        else if (p.type() == TypeMatrix) {
+            const float *f = (const float *)p.data();
+            info << f[0] << f[1] << f[2] << f[3] << f[4] << f[5] << f[6] << f[7] << f[8] << f[9] << f[10]
+                 << f[11] << f[12] << f[13] << f[14] << f[15];
+        }
+    }
+    qInfo() << "-----------------\n";
+}
+
 std::vector<std::string> Image::SupportedExtensions()
 {
     std::vector<std::string> res;
 
     std::string exts;
     OIIO::getattribute("extension_list", exts);
-    qInfo() << QString::fromStdString(exts);
 
     // Format : "tiff:tif;jpeg:jpg,jpeg;openexr:exr"
     std::vector<std::string> formats;
@@ -401,4 +401,20 @@ Image Image::operator /(const Image & rhs)
     Image res = *this;
     ImageBufAlgo::div(*res.m_imgBuf, *m_imgBuf, *rhs.m_imgBuf);
     return res;
+}
+
+void Image::to_rgba_format()
+{
+    if (channels() == 1) {
+        int channelorder[] = { 0, 0, 0, -1 /*use a float value*/ };
+        float channelvalues[] = { 0 /*ignore*/, 0 /*ignore*/, 0 /*ignore*/, 1.0 };
+        std::string channelnames[] = { "R", "G", "B", "A" };
+        ImageBufAlgo::channels(*m_imgBuf, *m_imgBuf, 4, channelorder, channelvalues, channelnames);
+    }
+    else if (channels() == 3) {
+        int channelorder[] = { 0, 1, 2, -1 /*use a float value*/ };
+        float channelvalues[] = { 0 /*ignore*/, 0 /*ignore*/, 0 /*ignore*/, 1.0 };
+        std::string channelnames[] = { "", "", "", "A" };
+        ImageBufAlgo::channels(*m_imgBuf, *m_imgBuf, 4, channelorder, channelvalues, channelnames);
+    }
 }

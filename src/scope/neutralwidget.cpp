@@ -10,10 +10,13 @@
 uint16_t grid_width = 640;
 uint16_t grid_height = 400;
 
+uint16_t legend_v_spacing = 35;
+
 QColor backgroundColor = QColor(200, 200, 200);
 QColor gridSmallColor = QColor(140, 140, 140);
 QColor gridLargeColor = QColor(100, 100, 100);
 QColor lineYColor = QColor(100, 100, 100);
+QColor legendColor = QColor(50, 50, 50);
 
 QColor lineRColorA = QColor(170, 25, 25);
 QColor lineGColorA = QColor(25, 170, 25);
@@ -102,9 +105,9 @@ void NeutralWidget::clearCurve(uint8_t id)
         m_scene->removeItem(items.cursorHLine[1]);
         m_scene->removeItem(items.cursorHLine[2]);
         m_scene->removeItem(items.cursorVLine);
-
         m_scene->removeItem(items.cursorRGBValues);
-        m_scene->removeItem(items.cursorName);
+        m_scene->removeItem(items.curveName);
+        m_scene->removeItem(items.curveLegend);
         m_curves.erase(id);
     }
 }
@@ -147,12 +150,15 @@ CurveItems NeutralWidget::initCurve(uint8_t id, QString path, const Image &img)
         items.cursorHLine[i] = m_scene->addLine(QLineF(), pen);
     }
 
-    pen.setColor(lineYColor);
     items.cursorRGBValues = m_scene->addText("");
-    items.cursorName = m_scene->addText("");
+    items.curveName = m_scene->addText("");
+    items.curveName->setTextWidth(grid_width / 2);
+    pen.setColor(lineYColor);
     items.cursorVLine = m_scene->addLine(QLineF(), pen);
-    items.name = path;
+    pen.setColor(legendColor);
+    items.curveLegend = m_scene->addLine(QLineF(), pen);
 
+    items.name = path;
     items.image = img;
 
     return items;
@@ -190,8 +196,8 @@ void NeutralWidget::drawGrid()
 
 void NeutralWidget::drawCurve(const CurveItems &items, uint8_t id)
 {
+    // Draw R,G,B curves
     const float * pix = items.image.pixels_asfloat();
-
     for (uint8_t c = 0; c < 3; ++c) {
         QPainterPath path;
         path.moveTo(0, grid_height - (grid_height * pix[c]));
@@ -199,13 +205,21 @@ void NeutralWidget::drawCurve(const CurveItems &items, uint8_t id)
         for (uint32_t i = 0; i < items.image.width(); ++i) {
             path.lineTo(
                 (1.0 * i / items.image.width()) * grid_width,
-                grid_height - (grid_height * pix[i * 3 + c]));
+                grid_height - (grid_height * pix[i * 3 + c])
+            );
         }
 
         items.curve[c]->setPath(path);
     }
-    items.cursorName->setHtml(QString("<font color=\"black\">%1</font>").arg(items.name));
-    items.cursorName->setPos(grid_width - (grid_width / 2), grid_height + 15 + (id * 25));
+
+    // Draw legends
+    uint16_t xmid = grid_width - (grid_width / 2);
+    uint16_t ypos = grid_height + 15 + (id * legend_v_spacing);
+    items.curveName->setHtml(QString("<font color=\"black\">%1</font>").arg(items.name));
+    items.curveName->setPos(xmid, ypos);
+
+    if (items.name != "")
+        items.curveLegend->setLine(xmid - 35, ypos + 12, xmid - 10, ypos + 12);
 }
 
 void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
@@ -247,7 +261,7 @@ void NeutralWidget::drawCursor(uint16_t x, uint16_t y)
                 .arg(QString::number(out[1], 'f', 5))
                 .arg(QString::number(out[2], 'f', 5)));
 
-        items.cursorRGBValues->setPos(25, grid_height + 15 + count * 25);
+        items.cursorRGBValues->setPos(25, grid_height + 15 + count * legend_v_spacing);
 
         count++;
     }

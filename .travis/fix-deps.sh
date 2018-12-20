@@ -20,7 +20,6 @@ libs_to_fix=(
     /usr/local/opt/ffmpeg/lib/libswscale.dylib
 )
 for lib in "${libs_to_fix[@]}"; do
-    echo "$lib"
 
     otool -L $lib | grep $_FFMPEG_CELLAR | while read -r line ; do
         install_path="$(cut -d' ' -f1 <<<"$line")"
@@ -28,5 +27,4 @@ for lib in "${libs_to_fix[@]}"; do
         sudo install_name_tool -change "$install_path" "$new_install_path" "$lib"
     done
 
-    echo "\n"
 done

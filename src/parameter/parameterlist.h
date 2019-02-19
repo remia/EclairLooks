@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utils/generic.h"
+#include <utils/generic.h>
 #include "parameter.h"
 
 

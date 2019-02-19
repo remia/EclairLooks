@@ -6,40 +6,70 @@ configure_file("version.h.in" "${CMAKE_CURRENT_LIST_DIR}/version.h" @ONLY)
 
 set(SOURCES
     main.cpp
-    mainwindow.cpp
-    image.cpp
-    imagepipeline.cpp
-    settings.cpp
-    widget/common/slider.cpp
-    widget/parameter/parameter_widget.cpp
-    widget/uiloader.cpp
-    widget/devwidget.cpp
-    widget/imagewidget.cpp
-    widget/logwidget.cpp
-    widget/textureview.cpp
-    widget/pipelinewidget.cpp
-    widget/operatorlistwidget.cpp
-    widget/operatorwidget.cpp
-    widget/browserwidget.cpp
-    widget/lookwidget.cpp
-    widget/lookviewtabwidget.cpp
-    widget/lookviewwidget.cpp
-    widget/lookdetailwidget.cpp
-    widget/lookselectionwidget.cpp
-    widget/settingwidget.cpp
+
+    # Core #
+    core/image.cpp
+    core/imagepipeline.cpp
+
+    # Gui #
+    gui/common/browser.cpp
+    gui/common/imageviewer.cpp
+    gui/common/setting.cpp
+    gui/common/slider.cpp
+    gui/common/textureview.cpp
+
+    gui/scope/cube.cpp
+    gui/scope/neutral.cpp
+    gui/scope/waveform.cpp
+
+    gui/view/dev/operator.cpp
+    gui/view/dev/operatorlist.cpp
+    gui/view/dev/pipeline.cpp
+    gui/view/dev/widget.cpp
+
+    gui/view/log/widget.cpp
+
+    gui/view/look/detail.cpp
+    gui/view/look/listview.cpp
+    gui/view/look/selection.cpp
+    gui/view/look/tabview.cpp
+    gui/view/look/widget.cpp
+
+    gui/mainwindow.cpp
+    gui/uiloader.cpp
+
+    # Operator #
+    operator/ctl/operator.cpp
+    operator/ctl/transform.cpp
+
+    operator/ocio/filetransform.cpp
+    operator/ocio/colorspace.cpp
+    operator/ocio/matrix.cpp
+
     operator/imageoperator.cpp
     operator/imageoperatorlist.cpp
-    operator/ociofiletransform_operator.cpp
-    operator/ociocolorspace_operator.cpp
-    operator/ociomatrix_operator.cpp
-    operator/ctl_operator.cpp
-    operator/ctl_transform.cpp
-    scope/cubewidget.cpp
-    scope/neutralwidget.cpp
-    scope/waveformwidget.cpp
+
+    # Parameter #
+    parameter/parameter.cpp
+    parameter/parameterlist.cpp
+    parameter/parameterseriallist.cpp
+    parameter/parameterwidget.cpp
+    parameter/checkbox/parameter.cpp
+    parameter/checkbox/widget.cpp
+    parameter/filepath/parameter.cpp
+    parameter/filepath/widget.cpp
+    parameter/matrix/parameter.cpp
+    parameter/matrix/widget.cpp
+    parameter/select/parameter.cpp
+    parameter/select/widget.cpp
+    parameter/slider/parameter.cpp
+    parameter/slider/widget.cpp
+    parameter/text/parameter.cpp
+    parameter/text/widget.cpp
+
+    # Utils #
     utils/chrono.cpp
     utils/pystring.cpp
-    parameter/parameterlist.cpp
 )
 
 qt5_add_resources(RESOURCES resources/res.qrc)
@@ -50,6 +80,8 @@ set(ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/hexa.icns)
 set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${RESOURCES} ${ICON})
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE

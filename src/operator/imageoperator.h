@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
-#include "../utils/event_source.h"
-#include "../parameter/parameterlist.h"
+#include <utils/event_source.h>
+#include <parameter/parameterlist.h>
 
 
 typedef EventDesc<

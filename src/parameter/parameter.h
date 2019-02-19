@@ -3,11 +3,14 @@
 #include <string>
 #include <vector>
 
-#include "../utils/generic.h"
-#include "../utils/event_source.h"
+#include <utils/generic.h>
+#include <utils/event_source.h>
 
 
 class Parameter ;
+class ParameterWidget;
+class QWidget;
+class QSettings;
 
 typedef EventDesc<
     FuncT<void(const Parameter &p)>,
@@ -17,51 +20,39 @@ class Parameter : public EventSource<PEvtDesc>
 {
   public:
     enum Evt { UpdateValue, UpdateSpecification };
-
-    enum class Type {
-        Unknown,
-        Button,
-        CheckBox,
-        Curve,
-        FilePath,
-        Matrix4x4,
-        Select,
-        Slider,
-        Text,
-    };
+    using TypeID = std::string;
 
   public:
     Parameter() = default;
-
-    Parameter(const std::string &name, Type t)
-        : m_name(name), m_display_name(name), m_type(t)
-    {
-    }
-
+    Parameter(const std::string &name);
     virtual ~Parameter() = default;
 
   public:
-    operator bool () const { return m_name != ""; }
+    operator bool() const;
 
   public:
-    std::string name() const { return m_name; }
+    std::string name() const;
 
-    std::string displayName() const { return m_display_name; }
-    void setDisplayName(const std::string &v) { m_display_name = v; }
+    std::string displayName() const;
+    void setDisplayName(const std::string &v);
 
-    Type type() const { return m_type; }
+  public:
+    virtual ParameterWidget *createWidget(QWidget * parent = nullptr);
+
+    virtual void load(const QSettings* setting) = 0;
+    virtual void save(QSettings* setting) const = 0;
+
+  protected:
+    virtual ParameterWidget *newWidget(QWidget* parent) = 0;
 
   private:
     std::string m_name;
     std::string m_display_name;
-    Type m_type;
 };
 
-#include "parameter_button.h"
-#include "parameter_checkbox.h"
-#include "parameter_curve.h"
-#include "parameter_filepath.h"
-#include "parameter_matrix.h"
-#include "parameter_select.h"
-#include "parameter_slider.h"
-#include "parameter_text.h"
+#include "checkbox/parameter.h"
+#include "filepath/parameter.h"
+#include "matrix/parameter.h"
+#include "select/parameter.h"
+#include "slider/parameter.h"
+#include "text/parameter.h"

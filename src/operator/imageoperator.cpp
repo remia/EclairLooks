@@ -1,13 +1,13 @@
 #include "imageoperator.h"
-#include "../imagepipeline.h"
-#include "../utils/generic.h"
-
-#include "ociomatrix_operator.h"
-#include "ociofiletransform_operator.h"
 
 #include <fstream>
 
 #include <QtCore/QDebug>
+
+#include <utils/generic.h>
+#include <utils/chrono.h>
+#include <core/imagepipeline.h>
+#include "ocio/filetransform.h"
 
 
 ImageOperator::ImageOperator()

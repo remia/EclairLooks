@@ -36,6 +36,7 @@
 
 # Folders
 build/
+.vscode/
 
 # Generated files
 src/version.h

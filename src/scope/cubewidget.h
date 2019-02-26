@@ -66,12 +66,11 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     InteractMode m_interactMode;
 
     float m_defaultScale = 1.f;
-    float m_cameraRadius;
+    float m_scale = 1.f;
     QPointF m_translate;
     QPointF m_rotate;
     QPointF m_lastPosition;
     QPointF m_moveDelta;
-    QVector3D m_cameraPosition;
 
     uint16_t m_cubeSize = 17;
 };

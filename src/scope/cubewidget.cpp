@@ -90,12 +90,7 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 
     switch (m_interactMode) {
         case InteractMode::Rotate:
-            // Rotation angle is in degree, here we have half a complete
-            // rotation around the axis when the mouse is dragged over the
-            // full width of the widget.
-            //m_moveDelta *= 180.f;
             m_rotate += m_moveDelta;
-            m_cameraPosition = QVector3D(cos(m_rotate.x())*cos(m_rotate.y()), sin(m_rotate.y()), sin(m_rotate.x())*cos(m_rotate.y()));
             break;
         case InteractMode::Drag:
             m_moveDelta.ry() *= -1.f;
@@ -110,7 +105,6 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 void CubeWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     setMouseTracking(false);
-    m_moveDelta = QPointF(0.f, 0.f);
 
     update();
 }
@@ -135,7 +129,7 @@ void CubeWidget::wheelEvent(QWheelEvent *event)
         delta = event->angleDelta().y() / 60.0;
 
     delta = std::clamp(delta, -0.2f, 0.2f);
-    m_cameraRadius += delta;
+    m_scale -= delta;
 
     update();
 }
@@ -224,11 +218,10 @@ void CubeWidget::resizeGL(int w, int h)
 void CubeWidget::resetView()
 {
     m_translate = QPointF(0.f, 0.f);
-    m_rotate = QPointF(0.f, 0.f);
+    m_rotate = QPointF(0.8f, 0.2f);
     m_lastPosition = QPointF(0.f, 0.f);
     m_moveDelta = QPointF(0.f, 0.f);
-    m_cameraRadius = 5.0f;
-    m_cameraPosition = QVector3D(cos(m_rotate.x())*cos(m_rotate.y()), sin(m_rotate.y()), sin(m_rotate.x())*cos(m_rotate.y()));
+    m_scale = 2.5f;
 
     update();
 }
@@ -492,17 +485,24 @@ void CubeWidget::setupSphere()
 QMatrix4x4 CubeWidget::setupMVP(const QMatrix4x4 &m) const
 {
     // 1. Model
-    QMatrix4x4 model = m;
+    QMatrix4x4 model;
+    model.translate(-0.5f, -0.5f, -0.5f);
+    model *= m;
 
     // 2. View
+    QVector3D pos = QVector3D(
+        cos(m_rotate.x()) * cos(m_rotate.y()),
+        sin(m_rotate.y()),
+        sin(m_rotate.x()) * cos(m_rotate.y()));
+
     QMatrix4x4 view;
     view.translate(m_translate.x(), m_translate.y());
+    view.lookAt(m_scale * pos, QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
 
     // 3. Projection
     float ratio = 1.f * width() / height();
     QMatrix4x4 projection;
     projection.perspective(45, ratio, 1., -1.);
-    projection.lookAt(m_cameraRadius*m_cameraPosition, QVector3D(0.5f, 0.5f, 0.5f), QVector3D(0.f, 1.f, 0.f));
 
     return projection * view * model;
 }

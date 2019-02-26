@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utils/generic.h"
-#include "parameter/parameterlist.h"
+#include <utils/generic.h>
+#include "parameterlist.h"
 
 
 class QSettings;

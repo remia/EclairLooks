@@ -20,7 +20,6 @@ class Parameter : public EventSource<PEvtDesc>
 {
   public:
     enum Evt { UpdateValue, UpdateSpecification };
-    using TypeID = std::string;
 
   public:
     Parameter() = default;

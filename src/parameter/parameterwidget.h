@@ -3,7 +3,7 @@
 #include <QtWidgets/QtWidgets>
 
 #include <utils/generic.h>
-#include <parameter/parameter.h>
+#include "parameter.h"
 
 
 class QVBoxLayout;

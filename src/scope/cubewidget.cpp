@@ -67,17 +67,12 @@ CubeWidget::CubeWidget(QWidget *parent)
 
 void CubeWidget::mousePressEvent(QMouseEvent *event)
 {
-    switch (event->button()) {
-        case Qt::LeftButton:
-            m_interactMode = InteractMode::Rotate;
-            break;
-        case Qt::MiddleButton:
-            m_interactMode = InteractMode::Drag;
-            break;
-        default:
-            break;
-    }
-
+    if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier)
+        m_interactMode = InteractMode::Drag;
+    else if (event->button() == Qt::MiddleButton)
+        m_interactMode = InteractMode::Drag;
+    else if (event->button() == Qt::LeftButton)
+        m_interactMode = InteractMode::Rotate;
     m_lastPosition = widgetToNorm(event->localPos());
     setMouseTracking(true);
 

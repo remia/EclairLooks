@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtCore/QTimer>
 #include <QtGui/QOpenGLExtraFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLVertexArrayObject>
@@ -71,6 +72,7 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     QPointF m_rotate;
     QPointF m_lastPosition;
     QPointF m_moveDelta;
+    QTimer m_timerRotate;
 
     uint16_t m_cubeSize = 17;
 };

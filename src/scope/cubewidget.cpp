@@ -63,6 +63,19 @@ CubeWidget::CubeWidget(QWidget *parent)
 {
     setFocusPolicy(Qt::ClickFocus);
     resetView();
+
+    // 16ms is approximatively 60 fps
+    m_timerRotate.setInterval(16);
+
+    QObject::connect(&m_timerRotate, &QTimer::timeout, [this](){
+         m_rotate += m_moveDelta;
+         m_moveDelta *= 0.975;
+
+         if (m_moveDelta.manhattanLength() <= 0.01)
+            m_timerRotate.stop();
+
+         update();
+    });
 }
 
 void CubeWidget::mousePressEvent(QMouseEvent *event)
@@ -73,7 +86,10 @@ void CubeWidget::mousePressEvent(QMouseEvent *event)
         m_interactMode = InteractMode::Drag;
     else if (event->button() == Qt::LeftButton)
         m_interactMode = InteractMode::Rotate;
+
+    m_timerRotate.stop();
     m_lastPosition = widgetToNorm(event->localPos());
+
     setMouseTracking(true);
 
     update();
@@ -99,6 +115,9 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
 
 void CubeWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (m_interactMode == InteractMode::Rotate)
+        m_timerRotate.start();
+
     setMouseTracking(false);
 
     update();

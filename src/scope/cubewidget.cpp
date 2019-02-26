@@ -93,8 +93,9 @@ void CubeWidget::mouseMoveEvent(QMouseEvent *event)
             // Rotation angle is in degree, here we have half a complete
             // rotation around the axis when the mouse is dragged over the
             // full width of the widget.
-            m_moveDelta *= 180.f;
+            //m_moveDelta *= 180.f;
             m_rotate += m_moveDelta;
+            m_cameraPosition = QVector3D(cos(m_rotate.x())*cos(m_rotate.y()), sin(m_rotate.y()), sin(m_rotate.x())*cos(m_rotate.y()));
             break;
         case InteractMode::Drag:
             m_moveDelta.ry() *= -1.f;
@@ -134,8 +135,7 @@ void CubeWidget::wheelEvent(QWheelEvent *event)
         delta = event->angleDelta().y() / 60.0;
 
     delta = std::clamp(delta, -0.2f, 0.2f);
-    m_scale += delta;
-    m_scale = std::clamp(m_scale, 0.1f, 25.f);
+    m_cameraRadius += delta;
 
     update();
 }
@@ -223,11 +223,12 @@ void CubeWidget::resizeGL(int w, int h)
 
 void CubeWidget::resetView()
 {
-    m_scale = m_defaultScale;
     m_translate = QPointF(0.f, 0.f);
     m_rotate = QPointF(0.f, 0.f);
     m_lastPosition = QPointF(0.f, 0.f);
     m_moveDelta = QPointF(0.f, 0.f);
+    m_cameraRadius = 5.0f;
+    m_cameraPosition = QVector3D(cos(m_rotate.x())*cos(m_rotate.y()), sin(m_rotate.y()), sin(m_rotate.x())*cos(m_rotate.y()));
 
     update();
 }
@@ -496,20 +497,12 @@ QMatrix4x4 CubeWidget::setupMVP(const QMatrix4x4 &m) const
     // 2. View
     QMatrix4x4 view;
     view.translate(m_translate.x(), m_translate.y());
-    view.scale(m_scale);
-
-    // Center on origin before rotation and restore initial position
-    // Remember, transformations in reverse order
-    view.translate(0.5, 0.5, 0.5);
-    view.rotate((m_rotate.x()), QVector3D(0.f, 1.f, 0.f));
-    view.rotate((m_rotate.y()), QVector3D(1.f, 0.f, 0.f));
-    view.translate(-0.5, -0.5, -0.5);
 
     // 3. Projection
     float ratio = 1.f * width() / height();
     QMatrix4x4 projection;
     projection.perspective(45, ratio, 1., -1.);
-    projection.lookAt(QVector3D(2.f, 1.f, 2.f), QVector3D(0.5f, 0.5f, 0.5f), QVector3D(0.f, 1.f, 0.f));
+    projection.lookAt(m_cameraRadius*m_cameraPosition, QVector3D(0.5f, 0.5f, 0.5f), QVector3D(0.f, 1.f, 0.f));
 
     return projection * view * model;
 }

@@ -65,12 +65,13 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     enum class InteractMode { Rotate, Drag };
     InteractMode m_interactMode;
 
-    float m_scale;
     float m_defaultScale = 1.f;
+    float m_cameraRadius;
     QPointF m_translate;
     QPointF m_rotate;
     QPointF m_lastPosition;
     QPointF m_moveDelta;
+    QVector3D m_cameraPosition;
 
     uint16_t m_cubeSize = 17;
 };

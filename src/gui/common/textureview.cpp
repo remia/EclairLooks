@@ -54,9 +54,9 @@ void TextureView::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
-void TextureView::mouseDoubleClickEvent(QMouseEvent * e)
+void TextureView::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (e->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton) {
         resetView();
     }
 

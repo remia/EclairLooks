@@ -27,16 +27,18 @@ SliderField::SliderField(Qt::Orientation orientation, Scale s, QWidget *parent)
     m_validator->setNotation(QDoubleValidator::StandardNotation);
     m_ledit->setValidator(m_validator);
 
+    m_ledit->setText(QString::number(value(), 'G', 5));
+
     QObject::connect(m_slider, QOverload<int>::of(&QSlider::valueChanged),
                      [&, le = m_ledit](int value) {
                          le->setText(QString::number(value, 'G', 5));
-                         emit valueChanged(value);
+                         emit valueChanged(SliderField::value());
                      });
 
     QObject::connect(m_ledit, QOverload<>::of(&QLineEdit::returnPressed),
                      [&, le = m_ledit]() {
                          setValue(le->text().toFloat());
-                         emit valueChanged(value());
+                         emit valueChanged(SliderField::value());
                      });
 }
 

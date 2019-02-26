@@ -12,9 +12,9 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
 
     UpdateWidget(*param);
 
-    QObject::connect(m_slider, QOverload<int>::of(&SliderField::valueChanged),
-                        [&, p = m_sliderParam](int value) {
-                            p->setValue(m_slider->value());
+    QObject::connect(m_slider, &SliderField::valueChanged,
+                        [&, p = m_sliderParam](float value) {
+                            p->setValue(value);
                         });
 }
 

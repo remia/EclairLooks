@@ -38,7 +38,7 @@ class SliderField : public QWidget
     bool showGradation() const;
 
   signals:
-    void valueChanged(int newValue);
+    void valueChanged(float newValue);
 
   private:
     Slider *m_slider;

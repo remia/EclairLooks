@@ -238,9 +238,9 @@ void CubeWidget::drawCube(const Image &img)
     uint16_t latticeCount = m_cubeSize * m_cubeSize * m_cubeSize;
     const float *pixels = img.pixels_asfloat();
     for(int i = 0; i < latticeCount; ++i) {
-        sphere_positions.push_back(pixels[i*3 + 2]);
-        sphere_positions.push_back(pixels[i*3 + 1]);
         sphere_positions.push_back(pixels[i*3 + 0]);
+        sphere_positions.push_back(pixels[i*3 + 1]);
+        sphere_positions.push_back(pixels[i*3 + 2]);
     }
 
     GL_CHECK(m_positionSphere.bind());

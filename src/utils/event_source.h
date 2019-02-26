@@ -18,13 +18,24 @@ struct EventProxy
     ConnectIdT ConnectionId;
 };
 
+// EventSource is a custom signals / slots implementation that allow direct
+// connection via callbacks between objects. Producers types must derive from
+// EventSource and specify an order tuple of signatures corresponding to
+// the events. Listeners then register themselves by calling Subscribe on a
+// given producer object.
+//
+// Note and ideas :
+// - Use a 3rd party implementation ?
+// - Event specification (function signatures) and description (enum symbols)
+//   are decoupled and should probably be paired
+// - This class is not thread safe
 template <typename EvtDesc> class EventSource
 {
   public:
     using SilentT = std::map<EventIdT, bool>;
     static const EventIdT InvalidEventT = std::numeric_limits<EventIdT>::max();
 
-public:
+  public:
     EventSource();
     EventSource(const EventSource &rhs) = delete;
     EventSource& operator=(const EventSource &rhs) = delete;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtCore/QTimer>
 #include <QtGui/QOpenGLExtraFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLVertexArrayObject>
@@ -65,12 +66,13 @@ class CubeWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
     enum class InteractMode { Rotate, Drag };
     InteractMode m_interactMode;
 
-    float m_scale;
     float m_defaultScale = 1.f;
+    float m_scale = 1.f;
     QPointF m_translate;
     QPointF m_rotate;
     QPointF m_lastPosition;
     QPointF m_moveDelta;
+    QTimer m_timerRotate;
 
     uint16_t m_cubeSize = 17;
 };

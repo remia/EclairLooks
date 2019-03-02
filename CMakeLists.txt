@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(ELook VERSION 0.2.0)
+project(ELook VERSION 0.2.1)
 
 
 # -----------------------------------------------------------------------------

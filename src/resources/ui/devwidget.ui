@@ -23,7 +23,21 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QScrollArea" name="lookWidget"/>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="BrowserWidget" name="lookBrowserWidget">
+        <attribute name="title">
+         <string>Looks</string>
+        </attribute>
+       </widget>
+       <widget class="BrowserWidget" name="imageBrowserWidget">
+        <attribute name="title">
+         <string>Images</string>
+        </attribute>
+       </widget>
+      </widget>
       <widget class="PipelineWidget" name="pipelineWidget" native="true"/>
       <widget class="QWidget" name="vLayout" native="true">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -126,6 +140,12 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>BrowserWidget</class>
+   <extends>QWidget</extends>
+   <header>browserwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>ImageWidget</class>
    <extends>QWidget</extends>

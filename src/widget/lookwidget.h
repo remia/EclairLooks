@@ -24,15 +24,11 @@ class LookWidget : public QWidget
     bool eventFilter(QObject *obj, QEvent *event) override;
 
   public:
-    LookViewTabWidget * lookViewTabWidget();
-
-    QStringList supportedLookExtensions();
+    MainWindow* mainWindow();
+    LookViewTabWidget* lookViewTabWidget();
 
     void toggleFullScreen();
 
-    QString lookBasePath() const;
-    QString imageBasePath() const;
-    QString tonemapPath() const;
     bool tonemapEnabled() const;
 
     Image & fullImage();

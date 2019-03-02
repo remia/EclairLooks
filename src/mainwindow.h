@@ -11,6 +11,9 @@ class LookWidget;
 class LogWidget;
 class SettingWidget;
 
+// Main gui class holding the different tabs of the application
+// TODO : must somewhere make a global application context (singleton)
+// enabling easy access to settings and other global parameters.
 class MainWindow : public QMainWindow
 {
   public:
@@ -32,6 +35,11 @@ class MainWindow : public QMainWindow
 
     void setSettings(Settings *s);
     Settings *settings();
+
+    QString lookBasePath() const;
+    QString imageBasePath() const;
+    QString tonemapPath() const;
+    QStringList supportedLookExtensions();
 
   private:
     void setupHelp();

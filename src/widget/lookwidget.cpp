@@ -69,11 +69,11 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     //
 
     auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
-    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(lookBasePath()); });
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(m_mainWindow->lookBasePath()); });
     auto lookTonemap = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT");
     lookTonemap->Subscribe<P::UpdateValue>(std::bind(&LookWidget::updateToneMap, this));
     auto imageRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder");
-    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(imageBasePath()); });
+    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(m_mainWindow->imageBasePath()); });
 
     m_lookBrowser->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
     m_imageBrowser->Subscribe<BW::Select>([this](const QString &path) {
@@ -118,18 +118,14 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
     }
 }
 
+MainWindow* LookWidget::mainWindow()
+{
+    return m_mainWindow;
+}
+
 LookViewTabWidget * LookWidget::lookViewTabWidget()
 {
     return m_viewTabWidget;
-}
-
-QStringList LookWidget::supportedLookExtensions()
-{
-    QStringList res;
-    for (QString &ext : OCIOFileTransform().SupportedExtensions())
-        res << "*." + ext;
-
-    return res;
 }
 
 void LookWidget::toggleFullScreen()
@@ -154,24 +150,6 @@ void LookWidget::toggleFullScreen()
         if (LookViewWidget *view = m_viewTabWidget->currentView())
             view->scrollToItem(view->currentItem(), QAbstractItemView::PositionAtCenter);
     }
-}
-
-QString LookWidget::lookBasePath() const
-{
-    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder")->value();
-    return QString::fromStdString(val);
-}
-
-QString LookWidget::imageBasePath() const
-{
-    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder")->value();
-    return QString::fromStdString(val);
-}
-
-QString LookWidget::tonemapPath() const
-{
-    std::string val = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT")->value();
-    return QString::fromStdString(val);
 }
 
 bool LookWidget::tonemapEnabled() const
@@ -246,13 +224,13 @@ void LookWidget::setupPipeline()
 
 void LookWidget::setupBrowser()
 {
-    m_lookBrowser->setRootPath(lookBasePath());
-    m_lookBrowser->setExtFilter(supportedLookExtensions());
+    m_lookBrowser->setRootPath(m_mainWindow->lookBasePath());
+    m_lookBrowser->setExtFilter(m_mainWindow->supportedLookExtensions());
 
     QStringList imgExts;
     for (auto ext : Image::SupportedExtensions())
         imgExts << "*." + QString::fromStdString(ext);
-    m_imageBrowser->setRootPath(imageBasePath());
+    m_imageBrowser->setRootPath(m_mainWindow->imageBasePath());
     m_imageBrowser->setExtFilter(imgExts);
 }
 
@@ -306,10 +284,10 @@ void LookWidget::toggleToneMap(bool v)
 
 void LookWidget::updateToneMap()
 {
-    if (tonemapPath().isEmpty())
+    if (m_mainWindow->tonemapPath().isEmpty())
         return;
 
-    if (auto op = m_mainWindow->operators()->CreateFromPath(tonemapPath().toStdString())) {
+    if (auto op = m_mainWindow->operators()->CreateFromPath(m_mainWindow->tonemapPath().toStdString())) {
         op = m_pipeline->ReplaceOperator(op, 1);
         op->GetParameter<CheckBoxParameter>("Enabled")->setValue(tonemapEnabled());
     }

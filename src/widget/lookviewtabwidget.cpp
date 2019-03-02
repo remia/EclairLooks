@@ -1,6 +1,7 @@
 #include "lookviewtabwidget.h"
 #include "lookviewwidget.h"
 #include "lookwidget.h"
+#include "../mainwindow.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -39,7 +40,7 @@ void LookViewTabWidget::showFolder(const QString &path)
     else
         dirPath = fileInfo.dir().absolutePath();
 
-    QDir rootDir(m_lookWidget->lookBasePath());
+    QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
     QString relPath = rootDir.relativeFilePath(dirPath);
 
     if (auto [exists, index] = tabExists(relPath); !exists) {

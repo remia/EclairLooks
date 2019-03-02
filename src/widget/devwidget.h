@@ -15,6 +15,7 @@ class WaveformWidget;
 class NeutralWidget;
 class CubeWidget;
 class OperatorListWidget;
+class BrowserWidget;
 class QTabBar;
 class QStackedWidget;
 
@@ -30,11 +31,11 @@ class DevWidget : public QWidget
     QStackedWidget *operatorArea();
 
   private:
+    void setupBrowser();
+    void setupPipelineView();
+    void setupOperatorsView();
+    void setupScopeView();
     QWidget * setupUi();
-
-    void initPipelineView();
-    void initOperatorsView();
-    void initScopeView();
 
     void updateScope(const Image &img);
 
@@ -51,6 +52,9 @@ class DevWidget : public QWidget
     WaveformWidget *m_waveformWidget;
     NeutralWidget *m_neutralsWidget;
     CubeWidget *m_cubeWidget;
+
+    BrowserWidget *m_lookBrowser;
+    BrowserWidget *m_imageBrowser;
 
     UPtr<Image> m_imageRamp;
     UPtr<Image> m_imageLattice;

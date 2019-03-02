@@ -74,21 +74,28 @@ void PipelineWidget::dropEvent(QDropEvent *e)
     else
         QListWidget::dropEvent(e);
 
-    for (auto op : operatorToAdd) {
-       m_devWidget->pipeline()->AddOperator(op);
-       initTransformationWidget(*op);
-
-       OperatorWidget *widget = new OperatorWidget(op);
-       m_devWidget->operatorArea()->insertWidget(count() - 1, widget);
-
-       setCurrentRow(count() - 1);
-       updateSelection(currentItem());
-    }
+    for (auto op : operatorToAdd)
+       addOperator(op);
 }
 
 void PipelineWidget::setDevWidget(DevWidget *w)
 {
     m_devWidget = w;
+}
+
+void PipelineWidget::addOperator(ImageOperator *op)
+{
+    if (!op)
+        return;
+
+    m_devWidget->pipeline()->AddOperator(op);
+    initTransformationWidget(*op);
+
+    OperatorWidget *widget = new OperatorWidget(op);
+    m_devWidget->operatorArea()->insertWidget(count() - 1, widget);
+
+    setCurrentRow(count() - 1);
+    updateSelection(currentItem());
 }
 
 void PipelineWidget::initTransformationWidget(ImageOperator &op)

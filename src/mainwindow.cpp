@@ -6,6 +6,7 @@
 #include "widget/lookwidget.h"
 #include "widget/logwidget.h"
 #include "widget/settingwidget.h"
+#include "operator/ociofiletransform_operator.h"
 
 #include <QtWidgets/QtWidgets>
 
@@ -126,6 +127,33 @@ void MainWindow::setSettings(Settings *s)
 Settings *MainWindow::settings()
 {
     return m_settings;
+}
+
+QString MainWindow::lookBasePath() const
+{
+    std::string val = m_settings->Get<FilePathParameter>("Look Base Folder")->value();
+    return QString::fromStdString(val);
+}
+
+QString MainWindow::imageBasePath() const
+{
+    std::string val = m_settings->Get<FilePathParameter>("Image Base Folder")->value();
+    return QString::fromStdString(val);
+}
+
+QString MainWindow::tonemapPath() const
+{
+    std::string val = m_settings->Get<FilePathParameter>("Look Tonemap LUT")->value();
+    return QString::fromStdString(val);
+}
+
+QStringList MainWindow::supportedLookExtensions()
+{
+    QStringList res;
+    for (QString &ext : OCIOFileTransform().SupportedExtensions())
+        res << "*." + ext;
+
+    return res;
 }
 
 void MainWindow::setupHelp()

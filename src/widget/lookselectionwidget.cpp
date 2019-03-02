@@ -1,6 +1,7 @@
 #include "lookselectionwidget.h"
 #include "lookviewwidget.h"
 #include "lookwidget.h"
+#include "../mainwindow.h"
 #include "../operator/imageoperator.h"
 
 #include <QtWidgets/QtWidgets>
@@ -113,7 +114,7 @@ void LookSelectionWidget::saveSelection()
         QListWidgetItem * item = m_viewWidget->item(i);
         QString path = item->data(Qt::UserRole).toString();
 
-        QDir rootDir(m_lookWidget->lookBasePath());
+        QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
         QString relPath = rootDir.relativeFilePath(path);
         s << relPath << endl;
     }
@@ -139,7 +140,7 @@ void LookSelectionWidget::loadSelection()
         if (line.isEmpty())
             continue;
 
-        QDir rootDir(m_lookWidget->lookBasePath());
+        QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
         QDir lookPath = rootDir.filePath(line);
         m_viewWidget->appendLook(lookPath.absolutePath());
     }

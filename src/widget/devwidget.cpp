@@ -1,9 +1,11 @@
 #include "devwidget.h"
 #include "uiloader.h"
 #include "pipelinewidget.h"
+#include "browserwidget.h"
 #include "imagewidget.h"
 #include "operatorwidget.h"
 #include "operatorlistwidget.h"
+#include "../settings.h"
 #include "../mainwindow.h"
 #include "../imagepipeline.h"
 #include "../operator/imageoperatorlist.h"
@@ -38,6 +40,8 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     m_operatorsWidget = findChild<OperatorListWidget*>("operatorListWidget");
     m_scopeStack = findChild<QStackedWidget*>("scopeStack");
     m_scopeTab = findChild<QTabBar*>("scopeBar");
+    m_lookBrowser = findChild<BrowserWidget*>("lookBrowserWidget");
+    m_imageBrowser = findChild<BrowserWidget*>("imageBrowserWidget");
 
     m_waveformWidget = new WaveformWidget();
     m_neutralsWidget = new NeutralWidget();
@@ -51,9 +55,10 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     QSplitter *hSplitterBottom = findChild<QSplitter*>("hSplitterBottom");
     hSplitterBottom->setSizes(QList<int>({15000, 55000, 30000}));
 
-    initPipelineView();
-    initScopeView();
-    initOperatorsView();
+    setupPipelineView();
+    setupScopeView();
+    setupOperatorsView();
+    setupBrowser();
 
     //
     // Connections
@@ -62,12 +67,27 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     using std::placeholders::_1;
     using IP = ImagePipeline;
     using IW = ImageWidget;
+    using BW = BrowserWidget;
+    using P = Parameter;
 
     m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::resetImage, m_imageWidget, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, SideBySide::A, _1));
     m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateScope, this, _1));
 
     m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
+
+    auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(m_mainWindow->lookBasePath()); });
+    auto imageRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder");
+    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(m_mainWindow->imageBasePath()); });
+
+    m_lookBrowser->Subscribe<BW::Select>([this](const QString &path) {
+        if (ImageOperator *op = operators()->CreateFromPath(path.toStdString()))
+            m_pipelineWidget->addOperator(op);
+    });
+    m_imageBrowser->Subscribe<BW::Select>([this](const QString &path) {
+        m_mainWindow->pipeline()->SetInput(Image::FromFile(path.toStdString()));
+    });
 }
 
 ImagePipeline *DevWidget::pipeline()
@@ -93,12 +113,24 @@ QWidget* DevWidget::setupUi()
     return loader.load(&file, this);
 }
 
-void DevWidget::initPipelineView()
+void DevWidget::setupBrowser()
+{
+    m_lookBrowser->setRootPath(m_mainWindow->lookBasePath());
+    m_lookBrowser->setExtFilter(m_mainWindow->supportedLookExtensions());
+
+    QStringList imgExts;
+    for (auto ext : Image::SupportedExtensions())
+        imgExts << "*." + QString::fromStdString(ext);
+    m_imageBrowser->setRootPath(m_mainWindow->imageBasePath());
+    m_imageBrowser->setExtFilter(imgExts);
+}
+
+void DevWidget::setupPipelineView()
 {
     m_pipelineWidget->setDevWidget(this);
 }
 
-void DevWidget::initScopeView()
+void DevWidget::setupScopeView()
 {
     m_scopeStack->addWidget(m_waveformWidget);
     m_scopeStack->addWidget(m_neutralsWidget);
@@ -140,7 +172,7 @@ void DevWidget::initScopeView()
     );
 }
 
-void DevWidget::initOperatorsView()
+void DevWidget::setupOperatorsView()
 {
     m_operatorsWidget->setDevWidget(this);
 }

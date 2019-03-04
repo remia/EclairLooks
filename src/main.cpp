@@ -5,14 +5,14 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QFile>
 
-#include "mainwindow.h"
-#include "imagepipeline.h"
-#include "settings.h"
+#include <core/imagepipeline.h>
+#include <parameter/parameterseriallist.h>
+#include <gui/mainwindow.h>
 #include "operator/imageoperatorlist.h"
-#include "operator/ociomatrix_operator.h"
-#include "operator/ociofiletransform_operator.h"
-#include "operator/ociocolorspace_operator.h"
-#include "operator/ctl_operator.h"
+#include "operator/ocio/matrix.h"
+#include "operator/ocio/filetransform.h"
+#include "operator/ocio/colorspace.h"
+#include "operator/ctl/operator.h"
 
 
 int main(int argc, char **argv)
@@ -33,11 +33,12 @@ int main(int argc, char **argv)
     QSurfaceFormat::setDefaultFormat(format);
 
     // Settings
-    Settings settings;
-    settings.Add<FilePathParameter>("Default Image", "", "Choose an image", "");
-    settings.Add<FilePathParameter>("Image Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
-    settings.Add<FilePathParameter>("Look Base Folder", "", "Choose a folder", "", FilePathParameter::PathType::Folder);
-    settings.Add<FilePathParameter>("Look Tonemap LUT", "", "Choose a LUT", "");
+    using FP = FilePathParameter;
+    ParameterSerialList settings;
+    settings.Add<FP>("Default Image", "", "Choose an image", "");
+    settings.Add<FP>("Image Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
+    settings.Add<FP>("Look Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
+    settings.Add<FP>("Look Tonemap LUT", "", "Choose a LUT", "");
 
     // Pipeline & Operators
     ImagePipeline pipeline;
@@ -83,12 +84,7 @@ int main(int argc, char **argv)
     mainWindow.setSettings(&settings);
     mainWindow.setup();
     mainWindow.show();
-
-    // Move window to the center of the screen
-    QRect screenGeometry = QApplication::desktop()->screenGeometry();
-    int x = (screenGeometry.width() - mainWindow.width()) / 2;
-    int y = (screenGeometry.height() - mainWindow.height()) / 2;
-    mainWindow.move(x, y);
+    mainWindow.centerOnScreen();
 
     pipeline.Init();
 

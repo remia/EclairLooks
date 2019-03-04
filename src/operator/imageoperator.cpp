@@ -1,13 +1,13 @@
 #include "imageoperator.h"
-#include "../imagepipeline.h"
-#include "../utils/generic.h"
-
-#include "ociomatrix_operator.h"
-#include "ociofiletransform_operator.h"
 
 #include <fstream>
 
 #include <QtCore/QDebug>
+
+#include <utils/generic.h>
+#include <utils/chrono.h>
+#include <core/imagepipeline.h>
+#include "ocio/filetransform.h"
 
 
 ImageOperator::ImageOperator()
@@ -63,13 +63,12 @@ void ImageOperator::Apply(Image & img)
     float isolate_color = m_paramList.Get<SliderParameter>("Color")->value() / 100.f;
 
     const Image img_orig = img;
-    Image img_apply = img;
-    Image img_contrast = img;
-    Image img_color = img;
-
-    OpApply(img_apply);
 
     if (isolate_cts != 1.0f || isolate_color != 1.0f) {
+        Image img_apply = img;
+        Image img_contrast = img;
+        Image img_color = img;
+        OpApply(img_apply);
 
         // Compute 1D LUT, ie. the contrast component of the operator
         uint32_t lut_1d_size = 8192;
@@ -146,10 +145,12 @@ void ImageOperator::Apply(Image & img)
         }
     }
     else {
-        img = img_apply;
+        OpApply(img);
     }
 
-    float opacity = m_paramList.Get<SliderParameter>("Opacity")->value();
-    float a = opacity / 100.0f;
-    img = img_orig * (1.0f - a) + img * a;
+    float opacity = m_paramList.Get<SliderParameter>("Opacity")->value() / 100.f;
+    if(opacity != 1.0) {
+        float a = opacity / 100.0f;
+        img = img_orig * (1.0f - a) + img * a;
+    }
 }

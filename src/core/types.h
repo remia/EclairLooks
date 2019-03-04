@@ -22,6 +22,7 @@ struct Point2D
 
 using Point2F = Point2D<float>;
 
+// ----------------------------------------------------------------------------
 
 template <typename T>
 struct Color

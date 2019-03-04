@@ -18,6 +18,11 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
                         });
 }
 
+SliderField* ParameterSliderWidget::sliderField()
+{
+    return m_slider;
+}
+
 void ParameterSliderWidget::updateWidget(const Parameter &p)
 {
     const SliderParameter *sp = static_cast<const SliderParameter *>(&p);

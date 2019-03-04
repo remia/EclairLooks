@@ -175,9 +175,6 @@ void ImageWidget::resetImage(const Image &img)
 
 void ImageWidget::updateImage(SideBySide sbs, const Image &img)
 {
-    Chrono c;
-    c.start();
-
     QOpenGLTexture::PixelType pixelType;
     QOpenGLTexture::PixelFormat pixelFormat;
     std::array<QOpenGLTexture::SwizzleValue, 4> sw;

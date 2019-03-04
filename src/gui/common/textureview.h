@@ -53,10 +53,10 @@ class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
     QOpenGLBuffer m_texCoords;
 
     QPointF m_imagePosition;
-    float m_imageScale;
-    QPointF m_textureRatio;
     QPointF m_clickPosition;
     QPointF m_moveDelta;
+    QPointF m_textureRatio;
 
+    float m_imageScale;
     float m_defaultScale = 1.f;
 };

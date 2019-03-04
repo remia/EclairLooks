@@ -9,7 +9,7 @@ class ParameterMatrixWidget : public ParameterWidget
     ParameterMatrixWidget(Parameter *param, QWidget *parent = nullptr);
 
   public:
-    void UpdateWidget(const Parameter &p) override;
+    void updateWidget(const Parameter &p) override;
 
   private:
     // MatrixParameter *m_matrixParam;

@@ -9,7 +9,7 @@ class ParameterTextWidget : public ParameterWidget
     ParameterTextWidget(Parameter *param, QWidget *parent = nullptr);
 
   public:
-    void UpdateWidget(const Parameter &p) override;
+    void updateWidget(const Parameter &p) override;
 
   private:
     TextParameter *m_textParam;

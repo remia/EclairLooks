@@ -14,7 +14,7 @@ class ParameterWidget : public QWidget
     ParameterWidget(Parameter *param, QWidget *parent = nullptr);
 
   public:
-    virtual void UpdateWidget(const Parameter &p) = 0;
+    virtual void updateWidget(const Parameter &p) = 0;
 
   protected:
     Parameter *m_param;

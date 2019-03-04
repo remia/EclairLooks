@@ -19,7 +19,7 @@ ParameterFilePathWidget::ParameterFilePathWidget(Parameter *param, QWidget *pare
     hLayout->addWidget(m_toolButton);
     m_layout->addLayout(hLayout);
 
-    UpdateWidget(*param);
+    updateWidget(*param);
 
     QObject::connect(m_toolButton, &QToolButton::clicked,
                         [&, p = m_filePathParam, w = this, le = m_lineEdit]() {
@@ -50,7 +50,7 @@ ParameterFilePathWidget::ParameterFilePathWidget(Parameter *param, QWidget *pare
                         });
 }
 
-void ParameterFilePathWidget::UpdateWidget(const Parameter &p)
+void ParameterFilePathWidget::updateWidget(const Parameter &p)
 {
     const FilePathParameter *fpp = static_cast<const FilePathParameter *>(&p);
 

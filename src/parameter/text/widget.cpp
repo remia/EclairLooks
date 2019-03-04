@@ -10,7 +10,7 @@ ParameterTextWidget::ParameterTextWidget(Parameter *param, QWidget *parent)
     m_textEdit = new QTextEdit();
     m_layout->addWidget(m_textEdit);
 
-    UpdateWidget(*param);
+    updateWidget(*param);
 
     QObject::connect(m_textEdit, &QTextEdit::textChanged,
                      [&, p = m_textParam, te = m_textEdit]() {
@@ -18,7 +18,7 @@ ParameterTextWidget::ParameterTextWidget(Parameter *param, QWidget *parent)
                      });
 }
 
-void ParameterTextWidget::UpdateWidget(const Parameter &p)
+void ParameterTextWidget::updateWidget(const Parameter &p)
 {
     const TextParameter *tp = static_cast<const TextParameter *>(&p);
     m_textEdit->setText(QString::fromStdString(tp->defaultValue()));

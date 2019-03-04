@@ -10,7 +10,7 @@ ParameterCheckBoxWidget::ParameterCheckBoxWidget(Parameter *param, QWidget *pare
     m_checkBox = new QCheckBox();
     m_layout->addWidget(m_checkBox);
 
-    UpdateWidget(*param);
+    updateWidget(*param);
 
     QObject::connect(m_checkBox, &QCheckBox::clicked,
                         [&, p = m_checkBoxParam, cb = m_checkBox]() {
@@ -18,7 +18,7 @@ ParameterCheckBoxWidget::ParameterCheckBoxWidget(Parameter *param, QWidget *pare
                         });
 }
 
-void ParameterCheckBoxWidget::UpdateWidget(const Parameter &p)
+void ParameterCheckBoxWidget::updateWidget(const Parameter &p)
 {
     const CheckBoxParameter *cbp = static_cast<const CheckBoxParameter *>(&p);
     m_checkBox->setCheckState(cbp->value() ? Qt::Checked : Qt::Unchecked);

@@ -12,14 +12,14 @@ ParameterSelectWidget::ParameterSelectWidget(Parameter *param, QWidget *parent)
     m_comboBox = new QComboBox();
     m_layout->addWidget(m_comboBox);
 
-    UpdateWidget(*param);
+    updateWidget(*param);
 
     QObject::connect(
         m_comboBox, QOverload<const QString &>::of(&QComboBox::activated),
         [&, p = m_selectParam](const QString &text) { p->setValue(text.toStdString()); });
 }
 
-void ParameterSelectWidget::UpdateWidget(const Parameter &p)
+void ParameterSelectWidget::updateWidget(const Parameter &p)
 {
     const SelectParameter *sp = static_cast<const SelectParameter *>(&p);
 

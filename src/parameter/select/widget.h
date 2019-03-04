@@ -9,7 +9,7 @@ class ParameterSelectWidget : public ParameterWidget
     ParameterSelectWidget(Parameter *param, QWidget *parent = nullptr);
 
   public:
-    void UpdateWidget(const Parameter &p) override;
+    void updateWidget(const Parameter &p) override;
 
   private:
     SelectParameter *m_selectParam;

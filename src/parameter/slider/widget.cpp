@@ -10,7 +10,7 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
     m_slider = new SliderField(Qt::Horizontal, Scale::Linear);
     m_layout->addWidget(m_slider);
 
-    UpdateWidget(*param);
+    updateWidget(*param);
 
     QObject::connect(m_slider, &SliderField::valueChanged,
                         [&, p = m_sliderParam](float value) {
@@ -18,7 +18,7 @@ ParameterSliderWidget::ParameterSliderWidget(Parameter *param, QWidget *parent)
                         });
 }
 
-void ParameterSliderWidget::UpdateWidget(const Parameter &p)
+void ParameterSliderWidget::updateWidget(const Parameter &p)
 {
     const SliderParameter *sp = static_cast<const SliderParameter *>(&p);
 

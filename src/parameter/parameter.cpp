@@ -18,8 +18,8 @@ ParameterWidget *Parameter::createWidget(QWidget *parent)
 {
     ParameterWidget* w = newWidget(parent);
 
-    auto c1 = Subscribe<Parameter::UpdateValue>(std::bind(&ParameterWidget::UpdateWidget, w, _1));
-    auto c2 = Subscribe<Parameter::UpdateSpecification>(std::bind(&ParameterWidget::UpdateWidget, w, _1));
+    auto c1 = Subscribe<Parameter::UpdateValue>(std::bind(&ParameterWidget::updateWidget, w, _1));
+    auto c2 = Subscribe<Parameter::UpdateSpecification>(std::bind(&ParameterWidget::updateWidget, w, _1));
 
     QObject::connect(w, &QWidget::destroyed, [&, this, c1, c2]() {
         Unsubscribe<Parameter::UpdateValue>(c1);

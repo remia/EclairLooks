@@ -10,7 +10,7 @@ class ParameterSliderWidget : public ParameterWidget
     ParameterSliderWidget(Parameter *param, QWidget *parent = nullptr);
 
   public:
-    void UpdateWidget(const Parameter &p) override;
+    void updateWidget(const Parameter &p) override;
 
   private:
     SliderParameter *m_sliderParam;

@@ -14,7 +14,8 @@ class SliderParameter : public Parameter
   public:
     SliderParameter() = default;
     SliderParameter(const std::string &name, float value, float min, float max,
-                    float step, Scale scale = Scale::Linear);
+                    float step, Scale scale = Scale::Linear,
+                    Legend legend = Legend::ShowTicks);
 
   public:
     float value() const;

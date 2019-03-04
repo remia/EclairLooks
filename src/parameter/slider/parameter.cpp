@@ -5,9 +5,9 @@
 
 
 SliderParameter::SliderParameter(const std::string &name, float value, float min,
-                                 float max, float step, Scale scale)
+                                 float max, float step, Scale scale, Legend legend)
     : Parameter(name), m_value(value), m_default_value(value), m_min(min), m_max(max),
-      m_step(step), m_scale(scale)
+      m_step(step), m_scale(scale), m_legend(legend)
 {
 }
 

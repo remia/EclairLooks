@@ -12,6 +12,7 @@ set(SOURCES
     core/imagepipeline.cpp
 
     # Gui #
+    gui/common/common.cpp
     gui/common/browser.cpp
     gui/common/imageviewer.cpp
     gui/common/setting.cpp

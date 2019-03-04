@@ -6,12 +6,11 @@
 
 class ParameterList
 {
-  using VecT = std::vector<UPtr<Parameter>>;
-
 public:
   ParameterList() = default;
 
 public:
+  using VecT = UPtrV<Parameter>;
   using VecIt  = VecT::iterator;
   using VecCIt = VecT::const_iterator;
   VecIt begin();

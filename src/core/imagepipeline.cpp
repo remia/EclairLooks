@@ -55,7 +55,7 @@ ImageOperator &ImagePipeline::GetOperator(uint8_t index)
 
 ImageOperator* ImagePipeline::AddOperator(ImageOperator * op, int8_t index)
 {
-    VecCIt pos = m_operators.end();
+    auto pos = m_operators.end();
     if (index >= 0) {
         pos = m_operators.begin();
         std::advance(pos, index);

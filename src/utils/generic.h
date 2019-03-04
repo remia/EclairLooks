@@ -7,10 +7,14 @@
 #include <any>
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 
 template <typename T>
 using UPtr = std::unique_ptr<T>;
+
+template <typename T>
+using UPtrV = std::vector<std::unique_ptr<T>>;
 
 template <typename T>
 using FuncT = std::function<T>;

@@ -14,10 +14,6 @@ typedef EventDesc<
 class ImagePipeline : public EventSource<IPEvtDesc>
 {
   public:
-    using VecT = std::vector<UPtr<ImageOperator>>;
-    using VecIt  = VecT::iterator;
-    using VecCIt = VecT::const_iterator;
-
     enum Evt { NewInput = 0, Update };
 
   public:
@@ -48,7 +44,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
   private:
     Image m_inputImg;
     Image m_outputImg;
-    VecT m_operators;
+    UPtrV<ImageOperator> m_operators;
 
     std::string m_name = "unamed";
 };

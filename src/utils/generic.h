@@ -64,3 +64,7 @@ template <class T> constexpr std::string_view type_name()
 
 template<typename T> const T& constant(T& _) { return const_cast<const T&>(_); }
 template<typename T> T& variable(const T& _) { return const_cast<T&>(_); }
+
+template <typename T> int sign(T val) {
+    return (val > T(0)) - (val < T(0));
+}

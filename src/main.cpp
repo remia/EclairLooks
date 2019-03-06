@@ -5,15 +5,43 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QFile>
 
-#include <core/imagepipeline.h>
-#include <parameter/parameterseriallist.h>
+#include <context.h>
 #include <gui/mainwindow.h>
-#include "operator/imageoperatorlist.h"
-#include "operator/ocio/matrix.h"
-#include "operator/ocio/filetransform.h"
-#include "operator/ocio/colorspace.h"
-#include "operator/ctl/operator.h"
+#include <operator/ocio/matrix.h>
+#include <operator/ocio/filetransform.h>
+#include <operator/ocio/colorspace.h>
+#include <operator/ctl/operator.h>
 
+
+void setupContext()
+{
+    // Settings
+    using FP = FilePathParameter;
+    ParameterSerialList& s = Context::getInstance().settings();
+    s.Add<FP>("Default OCIO Config", "", "Choose an ocio config file", "");
+    s.Add<FP>("Default Image", "", "Choose an image", "");
+    s.Add<FP>("Image Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
+    s.Add<FP>("Look Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
+    s.Add<FP>("Look Tonemap LUT", "", "Choose a LUT", "");
+
+    // Pipeline
+    ImagePipeline& p = Context::getInstance().pipeline();
+    p.SetName("main");
+
+    QFile f = QFile(":/images/stresstest.exr");
+    QByteArray blob;
+    if (f.open(QIODevice::ReadOnly))
+        blob = f.readAll();
+    if (Image img = Image::FromBuffer((void *) blob.data(), blob.count()))
+        p.SetInput(img);
+
+    // Operators
+    ImageOperatorList& o = Context::getInstance().operators();
+    o.Register<OCIOMatrix>();
+    o.Register<OCIOFileTransform>();
+    o.Register<OCIOColorSpace>();
+    o.Register<CTLTransform>();
+}
 
 int main(int argc, char **argv)
 {
@@ -32,39 +60,13 @@ int main(int argc, char **argv)
     format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 
-    // Settings
-    using FP = FilePathParameter;
-    ParameterSerialList settings;
-    settings.Add<FP>("Default Image", "", "Choose an image", "");
-    settings.Add<FP>("Image Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
-    settings.Add<FP>("Look Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
-    settings.Add<FP>("Look Tonemap LUT", "", "Choose a LUT", "");
+    setupContext();
 
-    // Pipeline & Operators
-    ImagePipeline pipeline;
-    pipeline.SetName("main");
-
-    // First try to load image from application settings
-    // If this fails, use default embeded image
-    std::string imgPath = settings.Get<FilePathParameter>("Default Image")->value();
-    Image img = Image::FromFile(imgPath);
-
-    if (!img) {
-        QFile f = QFile(":/images/stresstest.exr");
-        if (f.open(QIODevice::ReadOnly)) {
-            QByteArray blob = f.readAll();
-            img = Image::FromBuffer((void *) blob.data(), blob.count());
-        }
-    }
-
-    if (img)
-        pipeline.SetInput(img);
-
-    ImageOperatorList operators;
-    operators.Register<OCIOMatrix>();
-    operators.Register<OCIOFileTransform>();
-    operators.Register<OCIOColorSpace>();
-    operators.Register<CTLTransform>();
+    std::string imgPath =
+        Context::getInstance().settings()
+        .Get<FilePathParameter>("Default Image")->value();
+    if(Image img = Image::FromFile(imgPath))
+        Context::getInstance().pipeline().SetInput(img);
 
     QApplication app(argc, argv);
 
@@ -80,14 +82,11 @@ int main(int argc, char **argv)
     app.setStyleSheet(cssString);
 
     MainWindow mainWindow;
-    mainWindow.setPipeline(&pipeline);
-    mainWindow.setOperators(&operators);
-    mainWindow.setSettings(&settings);
     mainWindow.setup();
     mainWindow.show();
     mainWindow.centerOnScreen();
 
-    pipeline.Init();
+    Context::getInstance().pipeline().Init();
 
     return app.exec();
 }

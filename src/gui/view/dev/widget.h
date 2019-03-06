@@ -5,10 +5,7 @@
 #include <utils/generic.h>
 
 
-class MainWindow;
-class ImagePipeline;
 class Image;
-class ImageOperatorList;
 class ImageWidget;
 class PipelineWidget;
 class WaveformWidget;
@@ -22,13 +19,10 @@ class QStackedWidget;
 class DevWidget : public QWidget
 {
   public:
-    DevWidget(MainWindow *mw, QWidget *parent = nullptr);
+    DevWidget(QWidget *parent = nullptr);
 
   public:
-    ImagePipeline *pipeline();
-    ImageOperatorList *operators();
-
-    QStackedWidget *operatorArea();
+    QStackedWidget *operatorWidget();
     PipelineWidget *pipelineWidget();
 
   private:
@@ -41,8 +35,6 @@ class DevWidget : public QWidget
     void updateScope(const Image &img);
 
   private:
-    MainWindow *m_mainWindow;
-
     ImageWidget *m_imageWidget;
     PipelineWidget *m_pipelineWidget;
     QStackedWidget *m_operatorWidget;

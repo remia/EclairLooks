@@ -2,7 +2,7 @@
 
 #include <QtWidgets/QtWidgets>
 
-#include <parameter/parameterseriallist.h>
+#include <context.h>
 #include <gui/mainwindow.h>
 #include "listview.h"
 #include "widget.h"
@@ -42,7 +42,12 @@ void LookViewTabWidget::showFolder(const QString &path)
     else
         dirPath = fileInfo.dir().absolutePath();
 
-    QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
+    QString basePath = QString::fromStdString(
+        Context::getInstance().settings()
+        .Get<FilePathParameter>("Look Base Folder")->value()
+    );
+
+    QDir rootDir(basePath);
     QString relPath = rootDir.relativeFilePath(dirPath);
 
     if (auto [exists, index] = tabExists(relPath); !exists) {

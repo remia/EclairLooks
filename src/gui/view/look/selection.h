@@ -37,7 +37,6 @@ class LookSelectionWidget : public QWidget, public EventSource<LVEvtDesc>
     void loadSelection();
 
   private:
-    LookWidget *m_lookWidget;
     LookViewWidget *m_viewWidget;
 
     QToolButton *m_saveBtn;

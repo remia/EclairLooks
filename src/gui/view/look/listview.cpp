@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QtWidgets>
 
+#include <context.h>
 #include <core/image.h>
 #include <gui/common/imageviewer.h>
 #include <gui/mainwindow.h>
@@ -124,7 +125,7 @@ void LookViewWidget::appendFolder(const QString &path)
     clear();
 
     QDir dir(path);
-    dir.setNameFilters(m_lookWidget->mainWindow()->supportedLookExtensions());
+    dir.setNameFilters(Context::getInstance().supportedLookExtensions());
     for (auto & entry : dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QString entryPath = entry.absoluteFilePath();
         addLook(entryPath);

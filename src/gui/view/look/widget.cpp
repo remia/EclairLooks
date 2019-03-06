@@ -3,11 +3,9 @@
 #include <QtWidgets/QtWidgets>
 #include <QFile>
 
+#include <context.h>
 #include <core/types.h>
 #include <core/image.h>
-#include <core/imagepipeline.h>
-#include <parameter/parameterseriallist.h>
-#include <operator/imageoperatorlist.h>
 #include <operator/ocio/filetransform.h>
 #include <gui/mainwindow.h>
 #include <gui/uiloader.h>
@@ -25,9 +23,8 @@ using LV = LookViewTabWidget;
 using LD = LookDetailWidget;
 using P = Parameter;
 
-
-LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
-    : QWidget(parent), m_mainWindow(mw), m_proxySize(125, 70)
+LookWidget::LookWidget(QWidget *parent)
+    : QWidget(parent), m_settings(new ParameterSerialList()), m_proxySize(125, 70)
 {
     m_pipeline = std::make_unique<ImagePipeline>();
     m_pipeline->SetName("look");
@@ -62,6 +59,8 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     setupBrowser();
     setupSetting();
 
+    updateToneMap();
+
     m_viewTabWidget->setLookWidget(this);
     m_detailWidget->setLookWidget(this);
     m_selectWidget->setLookWidget(this);
@@ -70,12 +69,28 @@ LookWidget::LookWidget(MainWindow *mw, QWidget *parent)
     // Connections
     //
 
-    auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
-    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(m_mainWindow->lookBasePath()); });
-    auto lookTonemap = m_mainWindow->settings()->Get<FilePathParameter>("Look Tonemap LUT");
+    ParameterSerialList& settings = Context::getInstance().settings();
+
+    auto lookRootPath = settings.Get<FilePathParameter>("Look Base Folder");
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &p){
+        m_lookBrowser->setRootPath(
+            QString::fromStdString(
+                static_cast<const FilePathParameter&>(p).value()
+            )
+        );
+    });
+
+    auto lookTonemap = settings.Get<FilePathParameter>("Look Tonemap LUT");
     lookTonemap->Subscribe<P::UpdateValue>(std::bind(&LookWidget::updateToneMap, this));
-    auto imageRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder");
-    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(m_mainWindow->imageBasePath()); });
+
+    auto imageRootPath = settings.Get<FilePathParameter>("Image Base Folder");
+    imageRootPath->Subscribe<P::UpdateValue>([this](auto &p){
+        m_imageBrowser->setRootPath(
+            QString::fromStdString(
+                static_cast<const FilePathParameter&>(p).value()
+            )
+        );
+    });
 
     m_lookBrowser->Subscribe<BW::Select>(std::bind(&LV::showFolder, m_viewTabWidget, _1));
     m_imageBrowser->Subscribe<BW::Select>([this](const QString &path) {
@@ -120,11 +135,6 @@ bool LookWidget::eventFilter(QObject *obj, QEvent *event)
     }
 }
 
-MainWindow* LookWidget::mainWindow()
-{
-    return m_mainWindow;
-}
-
 LookViewTabWidget * LookWidget::lookViewTabWidget()
 {
     return m_viewTabWidget;
@@ -157,9 +167,6 @@ void LookWidget::toggleFullScreen()
 
 bool LookWidget::tonemapEnabled() const
 {
-    if (!m_settings)
-        return false;
-
     return m_settings->Get<CheckBoxParameter>("Tone Mapping")->value();
 }
 
@@ -175,25 +182,25 @@ Image & LookWidget::proxyImage()
 
 TupleT<bool, Image &>LookWidget::lookPreview(const QString &lookPath)
 {
-    return _lookPreview(lookPath, fullImage());
+    return lookPreview(lookPath, fullImage());
 }
 
 TupleT<bool, Image &> LookWidget::lookPreviewProxy(const QString &lookPath)
 {
-    return _lookPreview(lookPath, proxyImage());
+    return lookPreview(lookPath, proxyImage());
 }
 
 TupleT<bool, Image &> LookWidget::lookPreviewRamp(const QString &lookPath)
 {
-    return _lookPreview(lookPath, *m_imageRamp);
+    return lookPreview(lookPath, *m_imageRamp);
 }
 
 TupleT<bool, Image &> LookWidget::lookPreviewLattice(const QString &lookPath)
 {
-    return _lookPreview(lookPath, *m_imageLattice);
+    return lookPreview(lookPath, *m_imageLattice);
 }
 
-TupleT<bool, Image &> LookWidget::_lookPreview(const QString &lookPath, Image &img)
+TupleT<bool, Image &> LookWidget::lookPreview(const QString &lookPath, Image &img)
 {
     ImageOperator &op = m_pipeline->GetOperator(0);
     auto opPath = op.GetParameter<FilePathParameter>("LUT");
@@ -217,30 +224,28 @@ QWidget * LookWidget::setupUi()
 
 void LookWidget::setupPipeline()
 {
-    updateImage(m_mainWindow->pipeline()->GetInput());
+    updateImage(Context::getInstance().pipeline().GetInput());
 
     m_pipeline->AddOperator<OCIOFileTransform>();
     m_pipeline->AddOperator<OCIOFileTransform>();
-
-    updateToneMap();
 }
 
 void LookWidget::setupBrowser()
 {
-    m_lookBrowser->setRootPath(m_mainWindow->lookBasePath());
-    m_lookBrowser->setExtFilter(m_mainWindow->supportedLookExtensions());
+    ParameterSerialList& s = Context::getInstance().settings();
+
+    m_lookBrowser->setRootPath(QString::fromStdString(s.Get<FilePathParameter>("Look Base Folder")->value()));
+    m_lookBrowser->setExtFilter(Context::getInstance().supportedLookExtensions());
 
     QStringList imgExts;
     for (auto ext : Image::SupportedExtensions())
         imgExts << "*." + QString::fromStdString(ext);
-    m_imageBrowser->setRootPath(m_mainWindow->imageBasePath());
+    m_imageBrowser->setRootPath(QString::fromStdString(s.Get<FilePathParameter>("Image Base Folder")->value()));
     m_imageBrowser->setExtFilter(imgExts);
 }
 
 void LookWidget::setupSetting()
 {
-    m_settings = new ParameterSerialList();
-
     CheckBoxParameter *p = m_settings->Add<CheckBoxParameter>("Tone Mapping", true);
     toggleToneMap(p->value());
 
@@ -251,7 +256,8 @@ void LookWidget::setupSetting()
 
     QVBoxLayout *layout = new QVBoxLayout(m_settingWidget);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(new SettingWidget(m_settings));
+    SettingWidget *sw = new SettingWidget(m_settings);
+    layout->addWidget(sw);
 }
 
 void LookWidget::updateImage(const Image &img)
@@ -287,10 +293,14 @@ void LookWidget::toggleToneMap(bool v)
 
 void LookWidget::updateToneMap()
 {
-    if (m_mainWindow->tonemapPath().isEmpty())
+    QString path = QString::fromStdString(
+        Context::getInstance().settings()
+        .Get<FilePathParameter>("Look Tonemap LUT")->value()
+    );
+    if (path.isEmpty())
         return;
 
-    if (auto op = m_mainWindow->operators()->CreateFromPath(m_mainWindow->tonemapPath().toStdString())) {
+    if (auto op = Context::getInstance().operators().CreateFromPath(path.toStdString())) {
         op = m_pipeline->ReplaceOperator(op, 1);
         op->GetParameter<CheckBoxParameter>("Enabled")->setValue(tonemapEnabled());
     }

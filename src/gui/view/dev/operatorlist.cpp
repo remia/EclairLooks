@@ -5,7 +5,7 @@
 #include <QtGui/QDragEnterEvent>
 #include <QtWidgets/QtWidgets>
 
-#include <operator/imageoperatorlist.h>
+#include <context.h>
 #include "widget.h"
 #include "pipeline.h"
 
@@ -43,6 +43,6 @@ void OperatorListWidget::setDevWidget(DevWidget *w)
     m_devWidget = w;
 
     clear();
-    for (auto &name : w->operators()->Operators())
+    for (auto &name : Context::getInstance().operators().Operators())
         addItem(new QListWidgetItem(QString::fromStdString(name)));
 }

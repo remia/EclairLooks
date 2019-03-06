@@ -5,8 +5,7 @@
 #include <QtGui/QDragEnterEvent>
 #include <QtWidgets/QtWidgets>
 
-#include <core/imagepipeline.h>
-#include <operator/imageoperatorlist.h>
+#include <context.h>
 #include <gui/common/imageviewer.h>
 #include "widget.h"
 #include "operator.h"
@@ -64,6 +63,11 @@ void PipelineWidget::dropEvent(QDropEvent *e)
         QListWidget::dropEvent(e);
 }
 
+void PipelineWidget::setPipeline(ImagePipeline *p)
+{
+    m_pipeline = p;
+}
+
 void PipelineWidget::setDevWidget(DevWidget *w)
 {
     m_devWidget = w;
@@ -71,7 +75,8 @@ void PipelineWidget::setDevWidget(DevWidget *w)
 
 void PipelineWidget::addFromFile(const std::string &path)
 {
-    if (ImageOperator *op = m_devWidget->operators()->CreateFromPath(path))
+    ImageOperatorList& ops = Context::getInstance().operators();
+    if (ImageOperator *op = ops.CreateFromPath(path))
         addOperator(*op);
     else
         qDebug() << "Dropped file not supported" << QString::fromStdString(path) << "\n";
@@ -79,7 +84,8 @@ void PipelineWidget::addFromFile(const std::string &path)
 
 void PipelineWidget::addFromName(const std::string &name)
 {
-    if (ImageOperator *op = m_devWidget->operators()->CreateFromName(name))
+    ImageOperatorList& ops = Context::getInstance().operators();
+    if (ImageOperator *op = ops.CreateFromName(name))
         addOperator(*op);
     else
         qDebug() << "Dropped text not recognized" << QString::fromStdString(name) << "\n";
@@ -96,8 +102,8 @@ void PipelineWidget::addOperator(ImageOperator &op)
         item->setToolTip(QString::fromStdString(op.OpDesc()));
     });
 
-    m_devWidget->pipeline()->AddOperator(&op);
-    m_devWidget->operatorArea()->insertWidget(count() - 1, new OperatorWidget(&op));
+    m_pipeline->AddOperator(&op);
+    m_devWidget->operatorWidget()->insertWidget(count() - 1, new OperatorWidget(&op));
 
     setCurrentRow(count() - 1);
     updateSelection(currentItem());
@@ -107,14 +113,14 @@ void PipelineWidget::updateSelection(QListWidgetItem *item)
 {
     int selectedRow = row(item);
 
-    if (selectedRow < 0 || selectedRow >= m_devWidget->pipeline()->OperatorCount())
+    if (selectedRow < 0 || selectedRow >=m_pipeline->OperatorCount())
         return;
-    if (!m_devWidget->operatorArea())
+    if (!m_devWidget->operatorWidget())
         return;
-    if (!m_devWidget->operatorArea()->widget(selectedRow))
+    if (!m_devWidget->operatorWidget()->widget(selectedRow))
         return;
 
-    m_devWidget->operatorArea()->setCurrentIndex(selectedRow);
+    m_devWidget->operatorWidget()->setCurrentIndex(selectedRow);
 }
 
 void PipelineWidget::disableSelection(int selectedRow)
@@ -122,19 +128,19 @@ void PipelineWidget::disableSelection(int selectedRow)
     // NOTE : we should also track the operator state to choose new styles on enable /
     // disable From the CSS would be perfect, I think we have to subclass QListWidgetItem
     // and add new property that will be accessible from the CSS ?
-    auto &op = m_devWidget->pipeline()->GetOperator(selectedRow);
+    auto &op =m_pipeline->GetOperator(selectedRow);
     auto param  = op.GetParameter<CheckBoxParameter>("Enabled");
     param->setValue(!param->value());
 }
 
 void PipelineWidget::removeSelection(int selectedRow)
 {
-    if (selectedRow <= m_devWidget->pipeline()->OperatorCount()) {
+    if (selectedRow <=m_pipeline->OperatorCount()) {
         takeItem(selectedRow);
-        QWidget *widget = m_devWidget->operatorArea()->widget(selectedRow);
-        m_devWidget->operatorArea()->removeWidget(widget);
+        QWidget *widget = m_devWidget->operatorWidget()->widget(selectedRow);
+        m_devWidget->operatorWidget()->removeWidget(widget);
         delete widget;
 
-        m_devWidget->pipeline()->DeleteOperator(selectedRow);
+       m_pipeline->DeleteOperator(selectedRow);
     }
 }

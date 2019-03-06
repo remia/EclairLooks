@@ -3,9 +3,7 @@
 #include <QtWidgets/QtWidgets>
 
 #include <version.h>
-#include <core/imagepipeline.h>
-#include <operator/ocio/filetransform.h>
-#include <parameter/parameterseriallist.h>
+#include <context.h>
 #include <gui/common/setting.h>
 #include <gui/view/dev/widget.h>
 #include <gui/view/look/widget.h>
@@ -13,7 +11,7 @@
 
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_pipeline(nullptr), m_operators(nullptr), m_settings(nullptr)
+    : QMainWindow(parent)
 {
     setWindowTitle(ELOOK_VERSION_PRETTY);
 
@@ -57,17 +55,15 @@ QSize MainWindow::sizeHint() const
 
 void MainWindow::setup()
 {
-    if (!m_pipeline || !m_operators)
-        return;
-
     //
     // Setup
     //
 
     m_logWidget = new LogWidget();
-    m_devWidget = new DevWidget(this);
+    m_devWidget = new DevWidget();
     m_lookWidget = new LookWidget(this);
-    m_settingWidget = new SettingWidget(m_settings, "General");
+    m_settingWidget = new SettingWidget(
+        &Context::getInstance().settings(), "General");
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_devWidget, "Dev");
@@ -95,7 +91,7 @@ void MainWindow::setup()
         exportAction, &QAction::triggered,
         [this]() {
             QString fileName = QFileDialog::getSaveFileName(this, tr("Save 3DLUT"), "", tr("Cube Files (*.cube)"));
-            m_pipeline->ExportLUT(fileName.toStdString(), 64);
+            Context::getInstance().pipeline().ExportLUT(fileName.toStdString(), 64);
         }
     );
 }
@@ -107,63 +103,6 @@ void MainWindow::centerOnScreen()
     int x = (screenGeometry.width() - width()) / 2;
     int y = (screenGeometry.height() - height()) / 2;
     move(x, y);
-}
-
-void MainWindow::setPipeline(ImagePipeline *p)
-{
-    m_pipeline = p;
-}
-
-ImagePipeline *MainWindow::pipeline()
-{
-    return m_pipeline;
-}
-
-void MainWindow::setOperators(ImageOperatorList *l)
-{
-    m_operators = l;
-}
-
-ImageOperatorList *MainWindow::operators()
-{
-    return m_operators;
-}
-
-void MainWindow::setSettings(ParameterSerialList *s)
-{
-    m_settings = s;
-}
-
-ParameterSerialList *MainWindow::settings()
-{
-    return m_settings;
-}
-
-QString MainWindow::lookBasePath() const
-{
-    std::string val = m_settings->Get<FilePathParameter>("Look Base Folder")->value();
-    return QString::fromStdString(val);
-}
-
-QString MainWindow::imageBasePath() const
-{
-    std::string val = m_settings->Get<FilePathParameter>("Image Base Folder")->value();
-    return QString::fromStdString(val);
-}
-
-QString MainWindow::tonemapPath() const
-{
-    std::string val = m_settings->Get<FilePathParameter>("Look Tonemap LUT")->value();
-    return QString::fromStdString(val);
-}
-
-QStringList MainWindow::supportedLookExtensions()
-{
-    QStringList res;
-    for (QString &ext : OCIOFileTransform().SupportedExtensions())
-        res << "*." + ext;
-
-    return res;
 }
 
 void MainWindow::setupHelp()

@@ -6,6 +6,7 @@ configure_file("version.h.in" "${CMAKE_CURRENT_LIST_DIR}/version.h" @ONLY)
 
 set(SOURCES
     main.cpp
+    context.cpp
 
     # Core #
     core/image.cpp

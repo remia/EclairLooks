@@ -3,9 +3,9 @@
 #include <QtWidgets/QtWidgets>
 #include <QFile>
 
+#include <context.h>
 #include <core/imagepipeline.h>
 #include <operator/imageoperatorlist.h>
-#include <parameter/parameterseriallist.h>
 #include <gui/common/browser.h>
 #include <gui/common/imageviewer.h>
 #include <gui/mainwindow.h>
@@ -18,8 +18,8 @@
 #include "operatorlist.h"
 
 
-DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
-    : QWidget(parent), m_mainWindow(mw)
+DevWidget::DevWidget(QWidget *parent)
+    : QWidget(parent)
 {
     m_imageRamp = std::make_unique<Image>(Image::Ramp1D(4096));
     m_imageLattice = std::make_unique<Image>(Image::Lattice(17));
@@ -71,36 +71,41 @@ DevWidget::DevWidget(MainWindow *mw, QWidget *parent)
     using BW = BrowserWidget;
     using P = Parameter;
 
-    m_mainWindow->pipeline()->Subscribe<IP::NewInput>(std::bind(&ImageWidget::resetImage, m_imageWidget, _1));
-    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, SideBySide::A, _1));
-    m_mainWindow->pipeline()->Subscribe<IP::Update>(std::bind(&DevWidget::updateScope, this, _1));
+    ImagePipeline& pipeline = Context::getInstance().pipeline();
+    ParameterSerialList& settings = Context::getInstance().settings();
 
-    m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, m_mainWindow->pipeline(), _1));
+    pipeline.Subscribe<IP::NewInput>(std::bind(&ImageWidget::resetImage, m_imageWidget, _1));
+    pipeline.Subscribe<IP::Update>(std::bind(&ImageWidget::updateImage, m_imageWidget, SideBySide::A, _1));
+    pipeline.Subscribe<IP::Update>(std::bind(&DevWidget::updateScope, this, _1));
 
-    auto lookRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Look Base Folder");
-    lookRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_lookBrowser->setRootPath(m_mainWindow->lookBasePath()); });
-    auto imageRootPath = m_mainWindow->settings()->Get<FilePathParameter>("Image Base Folder");
-    imageRootPath->Subscribe<P::UpdateValue>([this](auto &param){ m_imageBrowser->setRootPath(m_mainWindow->imageBasePath()); });
+    m_imageWidget->Subscribe<IW::DropImage>(std::bind(&ImagePipeline::SetInput, &pipeline, _1));
+
+    auto lookRootPath = settings.Get<FilePathParameter>("Look Base Folder");
+    lookRootPath->Subscribe<P::UpdateValue>([this](auto &p){
+        m_lookBrowser->setRootPath(
+            QString::fromStdString(
+                static_cast<const FilePathParameter&>(p).value()
+            )
+        );
+    });
+    auto imageRootPath = settings.Get<FilePathParameter>("Image Base Folder");
+    imageRootPath->Subscribe<P::UpdateValue>([this](auto &p){
+        m_imageBrowser->setRootPath(
+            QString::fromStdString(
+                static_cast<const FilePathParameter&>(p).value()
+            )
+        );
+    });
 
     m_lookBrowser->Subscribe<BW::Select>([this](const QString &path) {
         m_pipelineWidget->addFromFile(path.toStdString());
     });
-    m_imageBrowser->Subscribe<BW::Select>([this](const QString &path) {
-        m_mainWindow->pipeline()->SetInput(Image::FromFile(path.toStdString()));
+    m_imageBrowser->Subscribe<BW::Select>([&pipeline](const QString &path) {
+        pipeline.SetInput(Image::FromFile(path.toStdString()));
     });
 }
 
-ImagePipeline *DevWidget::pipeline()
-{
-    return m_mainWindow->pipeline();
-}
-
-ImageOperatorList *DevWidget::operators()
-{
-    return m_mainWindow->operators();
-}
-
-QStackedWidget* DevWidget::operatorArea()
+QStackedWidget* DevWidget::operatorWidget()
 {
     return m_operatorWidget;
 }
@@ -120,18 +125,21 @@ QWidget* DevWidget::setupUi()
 
 void DevWidget::setupBrowser()
 {
-    m_lookBrowser->setRootPath(m_mainWindow->lookBasePath());
-    m_lookBrowser->setExtFilter(m_mainWindow->supportedLookExtensions());
+    ParameterSerialList& s = Context::getInstance().settings();
+
+    m_lookBrowser->setRootPath(QString::fromStdString(s.Get<FilePathParameter>("Look Base Folder")->value()));
+    m_lookBrowser->setExtFilter(Context::getInstance().supportedLookExtensions());
 
     QStringList imgExts;
     for (auto ext : Image::SupportedExtensions())
         imgExts << "*." + QString::fromStdString(ext);
-    m_imageBrowser->setRootPath(m_mainWindow->imageBasePath());
+    m_imageBrowser->setRootPath(QString::fromStdString(s.Get<FilePathParameter>("Image Base Folder")->value()));
     m_imageBrowser->setExtFilter(imgExts);
 }
 
 void DevWidget::setupPipelineView()
 {
+    m_pipelineWidget->setPipeline(&Context::getInstance().pipeline());
     m_pipelineWidget->setDevWidget(this);
 }
 
@@ -172,7 +180,7 @@ void DevWidget::setupScopeView()
 
             // Need to manually update the scope because it's not updated
             // when not visible.
-            updateScope(m_mainWindow->pipeline()->GetOutput());
+            updateScope(Context::getInstance().pipeline().GetOutput());
         }
     );
 }
@@ -184,16 +192,18 @@ void DevWidget::setupOperatorsView()
 
 void DevWidget::updateScope(const Image &img)
 {
+    ImagePipeline& pipeline = Context::getInstance().pipeline();
+
     if (m_scopeStack->currentWidget() == m_neutralsWidget) {
         qInfo() << "Compute Ramp (curve scope)";
         *m_imageCompute = *m_imageRamp;
-        pipeline()->ComputeImage(*m_imageCompute);
+        pipeline.ComputeImage(*m_imageCompute);
         m_neutralsWidget->drawCurve(0, *m_imageCompute);
     }
     else if (m_scopeStack->currentWidget() == m_cubeWidget) {
         qInfo() << "Compute Lattice (cube scope)";
         *m_imageCompute = *m_imageLattice;
-        pipeline()->ComputeImage(*m_imageCompute);
+        pipeline.ComputeImage(*m_imageCompute);
         m_cubeWidget->drawCube(*m_imageCompute);
     }
     else if (m_scopeStack->currentWidget() == m_waveformWidget) {

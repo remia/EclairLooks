@@ -6,26 +6,24 @@
 #include <utils/generic.h>
 
 
-class ParameterSerialList;
 class Image;
 class ImagePipeline;
-class MainWindow;
 class BrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
 class LookSelectionWidget;
+class ParameterSerialList;
 class QSplitter;
 
 class LookWidget : public QWidget
 {
   public:
-    LookWidget(MainWindow *mw, QWidget *parent = nullptr);
+    LookWidget(QWidget *parent = nullptr);
 
   public:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
   public:
-    MainWindow* mainWindow();
     LookViewTabWidget* lookViewTabWidget();
 
     void toggleFullScreen();
@@ -35,6 +33,7 @@ class LookWidget : public QWidget
     Image & fullImage();
     Image & proxyImage();
 
+    TupleT<bool, Image &> lookPreview(const QString &lookPath, Image &img);
     TupleT<bool, Image &> lookPreview(const QString &lookPath);
     TupleT<bool, Image &> lookPreviewProxy(const QString &lookPath);
     TupleT<bool, Image &> lookPreviewRamp(const QString &lookPath);
@@ -46,8 +45,6 @@ class LookWidget : public QWidget
     void setupSetting();
     QWidget* setupUi();
 
-    TupleT<bool, Image &> _lookPreview(const QString &lookPath, Image &img);
-
     void updateImage(const Image &img);
     void resetViews();
     void updateViews();
@@ -55,8 +52,6 @@ class LookWidget : public QWidget
     void updateToneMap();
 
   private:
-    MainWindow *m_mainWindow;
-
     ParameterSerialList *m_settings = nullptr;
 
     BrowserWidget *m_lookBrowser;

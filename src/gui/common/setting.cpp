@@ -19,7 +19,7 @@ SettingWidget::SettingWidget(ParameterSerialList *settings, const QString &heade
 
     for (auto & p : m_settings->Parameters()) {
         QLabel * label = new QLabel(QString::fromStdString(p->displayName()));
-        ParameterWidget *paramWidget = p->createWidget();
+        ParameterWidget *paramWidget = p->createWidget(this);
         paramWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
         fLayout->addRow(label, paramWidget);
     }

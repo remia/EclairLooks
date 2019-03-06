@@ -3,6 +3,7 @@
 #include <QtWidgets/QtWidgets>
 #include <QFile>
 
+#include <context.h>
 #include <operator/imageoperator.h>
 #include <gui/mainwindow.h>
 #include "listview.h"
@@ -70,8 +71,7 @@ void LookSelectionWidget::dropEvent(QDropEvent *e)
 
 void LookSelectionWidget::setLookWidget(LookWidget *lw)
 {
-    m_lookWidget = lw;
-    m_viewWidget->setLookWidget(m_lookWidget);
+    m_viewWidget->setLookWidget(lw);
 }
 
 LookViewWidget * LookSelectionWidget::viewWidget()
@@ -111,11 +111,16 @@ void LookSelectionWidget::saveSelection()
         return;
     QTextStream s(&file);
 
+    QString basePath = QString::fromStdString(
+        Context::getInstance().settings()
+        .Get<FilePathParameter>("Look Base Folder")->value()
+    );
+
     for (uint16_t i = 0; i < m_viewWidget->count(); ++i) {
         QListWidgetItem * item = m_viewWidget->item(i);
         QString path = item->data(Qt::UserRole).toString();
 
-        QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
+        QDir rootDir(basePath);
         QString relPath = rootDir.relativeFilePath(path);
         s << relPath << endl;
     }
@@ -135,13 +140,18 @@ void LookSelectionWidget::loadSelection()
     if (!file.open(QIODevice::ReadOnly))
         return;
 
+    QString basePath = QString::fromStdString(
+        Context::getInstance().settings()
+        .Get<FilePathParameter>("Look Base Folder")->value()
+    );
+
     QTextStream s(&file);
     while (!s.atEnd()) {
         QString line = s.readLine().trimmed();
         if (line.isEmpty())
             continue;
 
-        QDir rootDir(m_lookWidget->mainWindow()->lookBasePath());
+        QDir rootDir(basePath);
         QDir lookPath = rootDir.filePath(line);
         m_viewWidget->appendLook(lookPath.absolutePath());
     }

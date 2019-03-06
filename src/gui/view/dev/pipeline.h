@@ -4,6 +4,7 @@
 
 
 class DevWidget;
+class ImagePipeline;
 class ImageOperator;
 
 // This is a representation of the image processing pipeline
@@ -22,9 +23,10 @@ class PipelineWidget : public QListWidget
     void dropEvent(QDropEvent *event) override;
 
   public:
+    void setPipeline(ImagePipeline *p);
     void setDevWidget(DevWidget *w);
-    void addOperator(ImageOperator *op);
 
+    void addOperator(ImageOperator *op);
     void addFromFile(const std::string &path);
     void addFromName(const std::string &name);
 
@@ -36,5 +38,6 @@ class PipelineWidget : public QListWidget
     void removeSelection(int selectedRow);
 
   private:
+    ImagePipeline *m_pipeline = nullptr;
     DevWidget *m_devWidget = nullptr;
 };

@@ -141,6 +141,8 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
     for (int i = 0; i < m_config->getNumColorSpaces(); i++) {
         auto colorspaceName = m_config->getColorSpaceNameByIndex(i);
         auto colorspace = m_config->getColorSpace(colorspaceName);
+        if (colorspace->getFamily() == std::string("Utility/Aliases"))
+            continue;
 
         colorspaces.push_back(colorspaceName);
         colorspacesDescs.push_back(showDesc(colorspace));

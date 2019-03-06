@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     // This need to be placed right after QApplication initialization
     // See : http://doc.qt.io/qt-5/qcoreapplication.html#locale-settings
     QLocale::setDefault(QLocale("C"));
+    setlocale(LC_NUMERIC, "C");
 
     QFile cssFile(":/css/application.css");
     cssFile.open(QFile::ReadOnly);

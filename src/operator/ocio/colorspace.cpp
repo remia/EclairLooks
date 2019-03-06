@@ -6,6 +6,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QDebug>
 
+#include <context.h>
 #include <core/image.h>
 #include <core/imagepipeline.h>
 
@@ -27,7 +28,9 @@ OCIOColorSpace::OCIOColorSpace()
 
 ImageOperator *OCIOColorSpace::OpCreate() const
 {
-    return new OCIOColorSpace();
+    OCIOColorSpace *op = new OCIOColorSpace();
+    op->SetConfig(Context::getInstance().settings().Get<FilePathParameter>("Default OCIO Config")->value());
+    return op;
 }
 
 ImageOperator *OCIOColorSpace::OpCreateFromPath(const std::string &filepath) const
@@ -114,7 +117,7 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
     // We have to mute events when updating config to prevent infinite
     // recursion. Indeed, updating the filepath parameter will trigger
     // OpUpdateParamCallback.
-    {
+    try {
         auto m = EventMute(this, { UpdateParam, Update });
 
         // When changing config, clear all parameters first
@@ -127,6 +130,10 @@ void OCIOColorSpace::SetConfig(const std::string &configpath)
 
         m_config = OCIO::Config::CreateFromFile(configpath.c_str());
         GetParameter<FilePathParameter>("Config File")->setValue(configpath);
+    }
+    catch (OCIO::Exception &exception) {
+        qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+        return;
     }
 
     auto showDesc = [](auto v){

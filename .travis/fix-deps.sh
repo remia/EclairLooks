@@ -4,27 +4,36 @@
 # I'm not sure but there might be a version related issue (eg. libavcodec.58.dylib vs libavocdec.58.X.X.dylib)
 # https://bugreports.qt.io/browse/QTBUG-56814
 
-_FFMPEG_CELLAR=$(brew list ffmpeg | grep bin/ffmpeg | sed -e "s/\/bin\/ffmpeg//")
-_FFMPEG_OPT="/usr/local/opt/ffmpeg"
+set -x
 
-_FFMPEG_CELLAR_SED=$(echo $_FFMPEG_CELLAR | sed -e 's/[]\/$*.^[]/\\&/g')
-_FFMPEG_OPT_SED=$(echo $_FFMPEG_OPT | sed -e 's/[]\/$*.^[]/\\&/g')
-
-libs_to_fix=(
-    /usr/local/opt/ffmpeg/lib/libavcodec.dylib
-    /usr/local/opt/ffmpeg/lib/libavdevice.dylib
-    /usr/local/opt/ffmpeg/lib/libavfilter.dylib
-    /usr/local/opt/ffmpeg/lib/libavformat.dylib
-    /usr/local/opt/ffmpeg/lib/libavresample.dylib
-    /usr/local/opt/ffmpeg/lib/libswresample.dylib
-    /usr/local/opt/ffmpeg/lib/libswscale.dylib
+formula_to_fix=(
+    ffmpeg
+    nettle
 )
-for lib in "${libs_to_fix[@]}"; do
 
-    otool -L $lib | grep $_FFMPEG_CELLAR | while read -r line ; do
-        install_path="$(cut -d' ' -f1 <<<"$line")"
-        new_install_path="$(echo $install_path | sed -e "s/$_FFMPEG_CELLAR_SED/$_FFMPEG_OPT_SED/")"
-        sudo install_name_tool -change "$install_path" "$new_install_path" "$lib"
+for formula in "${formula_to_fix[@]}"; do
+    cellar_path=$(brew --cellar $formula)
+    full_path=$(brew info $formula | grep "^$cellar_path.*\*$" | cut -d' ' -f1)
+    lib_path=$full_path'/lib'
+    libs_to_fix=$(find $lib_path -type f -maxdepth 1 | grep "^.*\.dylib$")
+    
+    cellar_sed=$(echo $full_path | sed -e 's/[]\/$*.^[]/\\&/g')
+    opt_sed=$(brew --prefix $formula | sed -e 's/[]\/$*.^[]/\\&/g')
+
+    OIFS=$IFS
+    IFS=$'\n'
+    libs_to_fix=$libs_to_fix
+
+    for lib in $libs_to_fix
+    do
+
+        otool -L $lib | grep "[[:space:]]$full_path" | while read -r line ; do
+            install_path="$(cut -d' ' -f1 <<<"$line")"
+            install_path="$(echo $install_path | tr -d '[:space:]')"
+            new_install_path="$(echo $install_path | sed -e "s/$cellar_sed/$opt_sed/")"
+            sudo install_name_tool -change "$install_path" "$new_install_path" "$lib"
+        done
+
     done
 
 done

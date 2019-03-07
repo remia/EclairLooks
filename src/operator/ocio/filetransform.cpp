@@ -62,7 +62,10 @@ std::string OCIOFileTransform::OpName() const
 std::string OCIOFileTransform::OpLabel() const
 {
     QFileInfo fileInfo(m_transform->getSrc());
-    return "FT - " + fileInfo.fileName().toStdString();
+    if (!fileInfo.absoluteFilePath().isEmpty())
+        return "FT - " + fileInfo.fileName().toStdString();
+    else
+        return "FT";
 }
 
 std::string OCIOFileTransform::OpDesc() const

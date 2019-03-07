@@ -22,6 +22,9 @@ class DevWidget : public QWidget
     DevWidget(QWidget *parent = nullptr);
 
   public:
+    void showEvent(QShowEvent *event) override;
+
+  public:
     QStackedWidget *operatorWidget();
     PipelineWidget *pipelineWidget();
 

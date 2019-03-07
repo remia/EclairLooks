@@ -105,6 +105,13 @@ DevWidget::DevWidget(QWidget *parent)
     });
 }
 
+void DevWidget::showEvent(QShowEvent *event)
+{
+    // When we first switch on this widget, OpenGL context is initialized
+    // All update event prior to this did nothing so we need to redraw scopes
+    updateScope(Context::getInstance().pipeline().GetOutput());
+}
+
 QStackedWidget* DevWidget::operatorWidget()
 {
     return m_operatorWidget;
@@ -178,8 +185,7 @@ void DevWidget::setupScopeView()
                 m_scopeStack->setCurrentWidget(m_cubeWidget);
             }
 
-            // Need to manually update the scope because it's not updated
-            // when not visible.
+            // Need to manually update the scope because it's not updated when not visible.
             updateScope(Context::getInstance().pipeline().GetOutput());
         }
     );

@@ -146,7 +146,7 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
 
         qInfo() << "OCIOFileTransform init - (" << QString::fromStdString(lutpath)
                 << ") : " << fixed << qSetRealNumberPrecision(2)
-                << c.ellapsed(Chrono::MILLISECONDS) / 1000.f << "sec.\n";
+                << c.ellapsed(Chrono::MILLISECONDS) << "msec.\n";
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }

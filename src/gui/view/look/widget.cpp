@@ -23,6 +23,13 @@ using LV = LookViewTabWidget;
 using LD = LookDetailWidget;
 using P = Parameter;
 
+// TODO : fix memory leak on m_settings, should not be that problematic because
+// it only leaks on application exit, hence when memory is reclaimed anyway.
+// Cannot delete it right in the destructor because SettingWidget
+// (and children ParameterWidget) use it on destruction to unconnect callbacks.
+// These widget are destructed in the base class QObject / QWidget, after
+// LookWidget destructor, signal QWidget::destroyed is not a solution either
+// because it's called before destruction.
 LookWidget::LookWidget(QWidget *parent)
     : QWidget(parent), m_settings(new ParameterSerialList()), m_proxySize(125, 70)
 {

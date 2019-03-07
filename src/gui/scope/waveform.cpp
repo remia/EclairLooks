@@ -123,6 +123,8 @@ void WaveformWidget::paintGL()
 void WaveformWidget::updateTexture(GLint tex)
 {
     makeCurrent();
+    if (!context())
+        return;
 
     m_textureId = tex;
 

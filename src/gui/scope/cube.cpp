@@ -162,15 +162,10 @@ void CubeWidget::keyPressEvent(QKeyEvent *event)
 
 void CubeWidget::initializeGL()
 {
-    if (m_isInitialized)
-        return;
-
     initializeOpenGLFunctions();
 
     setupCube();
     setupSphere();
-
-    m_isInitialized = true;
 }
 
 void CubeWidget::paintGL()
@@ -249,10 +244,9 @@ void CubeWidget::setDefaultScale(float s)
 
 void CubeWidget::drawCube(const Image &img)
 {
-    if (!m_isInitialized)
-        return;
-
     makeCurrent();
+    if (!context())
+        return;
 
     std::vector<GLfloat> sphere_positions;
     uint16_t latticeCount = m_cubeSize * m_cubeSize * m_cubeSize;
@@ -274,10 +268,9 @@ void CubeWidget::drawCube(const Image &img)
 
 void CubeWidget::clearCube()
 {
-    if (!m_isInitialized)
-        return;
-
     makeCurrent();
+    if (!context())
+        return;
 
     std::vector<GLfloat> sphere_positions;
     for (int x = 0; x < m_cubeSize; ++x) {

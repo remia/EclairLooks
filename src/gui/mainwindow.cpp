@@ -66,8 +66,8 @@ void MainWindow::setup()
         &Context::getInstance().settings(), "General");
 
     m_tabWidget = new QTabWidget();
-    m_tabWidget->addTab(m_devWidget, "Dev");
     m_tabWidget->addTab(m_lookWidget, "Look");
+    m_tabWidget->addTab(m_devWidget, "Dev");
     m_tabWidget->addTab(m_settingWidget, "Setting");
     m_tabWidget->addTab(m_logWidget, "Log");
     setCentralWidget(m_tabWidget);

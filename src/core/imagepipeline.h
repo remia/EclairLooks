@@ -32,6 +32,7 @@ class ImagePipeline : public EventSource<IPEvtDesc>
     template <typename T> T * AddOperator();
     ImageOperator *AddOperator(ImageOperator * op, int8_t index = -1);
     ImageOperator* ReplaceOperator(ImageOperator * op, int8_t index);
+    int8_t FindOperator(const ImageOperator * op);
     bool DeleteOperator(uint8_t index);
 
     void Reset();

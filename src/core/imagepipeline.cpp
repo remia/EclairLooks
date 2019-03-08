@@ -82,6 +82,15 @@ ImageOperator* ImagePipeline::ReplaceOperator(ImageOperator * op, int8_t index)
     return m_operators[index].get();
 }
 
+int8_t ImagePipeline::FindOperator(const ImageOperator * op)
+{
+    for (int i = 0; i < m_operators.size(); ++i)
+        if (m_operators[i].get() == op)
+            return i;
+
+    return -1;
+}
+
 bool ImagePipeline::DeleteOperator(uint8_t index)
 {
     if (index >= m_operators.size()) {

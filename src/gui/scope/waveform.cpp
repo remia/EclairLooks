@@ -240,12 +240,24 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
     GL_CHECK(m_programScope.bind());
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
+    // Turn off any filtering that could produce colors not in the original
+    // image, this is needed because we access the texture using normalized
+    // coordinates. Then restore originals parameters.
+    GLint minFilter, magFilter;
+    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter));
+    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
         GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
         GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSize.width()));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSize.height()));
         GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));
+
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
 
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CHECK(m_programScope.release());

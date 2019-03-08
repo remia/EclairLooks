@@ -26,18 +26,16 @@ static std::string vertexShaderSource = R"(
         int y = gl_VertexID / width;
         vec2 pix = vec2(x, y) / vec2(width, height);
 
-        float R = 255.0 * texture(v_tex, vec2(pix.x, 1.0f - pix.y))[0];
-        float G = 255.0 * texture(v_tex, vec2(pix.x, 1.0f - pix.y))[1];
-        float B = 255.0 * texture(v_tex, vec2(pix.x, 1.0f - pix.y))[2];
+        vec4 col = 255.0 * texture(v_tex, vec2(pix.x, 1.0f - pix.y));
 
-        float Y = (R * 0.299) + (G * 0.587) + (B * 0.114);
-        float Cr = ((R - Y) * 0.713) + 128;
-        float Cb = ((B - Y) * 0.564) + 128;
+        float Y = (col.r * 0.299) + (col.g * 0.587) + (col.b * 0.114);
+        float Cr = ((col.r - Y) * 0.713) + 128;
+        float Cb = ((col.b - Y) * 0.564) + 128;
 
         Cr/= 255.0;
         Cb/= 255.0;
 
-        gl_Position = vec4(Cr, Cb, 0.0, 1.0);
+        gl_Position = vec4(Cb, Cr, 0.0, 1.0);
         gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
         gl_Position.y *= -1.;
         gl_Position = matrix * gl_Position;
@@ -236,12 +234,25 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
     GL_CHECK(m_programScope.bind());
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
+        // Turn off any filtering that could produce colors not in the original
+    // image, this is needed because we access the texture using normalized
+    // coordinates. Then restore originals parameters.
+    GLint minFilter, magFilter;
+    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter));
+    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+
+
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
         GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
         //GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSize.width()));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSize.height()));
         GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));
+
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
 
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CHECK(m_programScope.release());

@@ -13,6 +13,7 @@
 #include <gui/scope/waveform.h>
 #include <gui/scope/neutral.h>
 #include <gui/scope/cube.h>
+#include <gui/scope/vectorscope.h>
 #include "pipeline.h"
 #include "operator.h"
 #include "operatorlist.h"
@@ -44,9 +45,12 @@ DevWidget::DevWidget(QWidget *parent)
     m_lookBrowser = findChild<BrowserWidget*>("lookBrowserWidget");
     m_imageBrowser = findChild<BrowserWidget*>("imageBrowserWidget");
 
+    //There might be a memleak here !!!! 
+
     m_waveformWidget = new WaveformWidget();
     m_neutralsWidget = new NeutralWidget();
     m_cubeWidget = new CubeWidget();
+    m_vectorscopeWidget = new VectorScopeWidget();
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
@@ -155,15 +159,17 @@ void DevWidget::setupScopeView()
     m_scopeStack->addWidget(m_waveformWidget);
     m_scopeStack->addWidget(m_neutralsWidget);
     m_scopeStack->addWidget(m_cubeWidget);
+    m_scopeStack->addWidget(m_vectorscopeWidget);
     m_scopeStack->setCurrentWidget(m_waveformWidget);
 
-    // NOTE : ideally we should make no assomptions of what scope mode are
+    // NOTE : ideally we should make no assumptions of what scope mode are
     // available and discover them from the ScopeWidget class directly.
     m_scopeTab->setExpanding(false);
     m_scopeTab->addTab("W");
     m_scopeTab->addTab("P");
     m_scopeTab->addTab("N");
     m_scopeTab->addTab("C");
+    m_scopeTab->addTab("V");
 
     QObject::connect(
         m_scopeTab, &QTabBar::tabBarClicked,
@@ -183,6 +189,9 @@ void DevWidget::setupScopeView()
             }
             else if (tabText == "C") {
                 m_scopeStack->setCurrentWidget(m_cubeWidget);
+            }
+            else if (tabText == "V") {
+                m_scopeStack->setCurrentWidget(m_vectorscopeWidget);
             }
 
             // Need to manually update the scope because it's not updated when not visible.
@@ -214,5 +223,8 @@ void DevWidget::updateScope(const Image &img)
     }
     else if (m_scopeStack->currentWidget() == m_waveformWidget) {
         m_waveformWidget->updateTexture(m_imageWidget->texture());
+    }
+    else if (m_scopeStack->currentWidget() == m_vectorscopeWidget) {
+        m_vectorscopeWidget->updateTexture(m_imageWidget->texture());
     }
 }

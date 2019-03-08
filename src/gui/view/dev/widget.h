@@ -15,6 +15,7 @@ class OperatorListWidget;
 class BrowserWidget;
 class QTabBar;
 class QStackedWidget;
+class VectorScopeWidget;
 
 class DevWidget : public QWidget
 {
@@ -46,6 +47,7 @@ class DevWidget : public QWidget
     QStackedWidget *m_scopeStack;
     QTabBar *m_scopeTab;
     WaveformWidget *m_waveformWidget;
+    VectorScopeWidget *m_vectorscopeWidget;
     NeutralWidget *m_neutralsWidget;
     CubeWidget *m_cubeWidget;
 

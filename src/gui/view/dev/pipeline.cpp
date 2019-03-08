@@ -98,8 +98,12 @@ void PipelineWidget::addOperator(ImageOperator &op)
     addItem(item);
 
     op.Subscribe<ImageOperator::Update>([item, &op](){
+        bool enabled = op.GetParameter<CheckBoxParameter>("Enabled")->value();
+        QColor color = enabled ? QColor("#d7d6d5") : QColor("gray");
+
         item->setText(QString::fromStdString(op.OpLabel()));
         item->setToolTip(QString::fromStdString(op.OpDesc()));
+        item->setForeground(QBrush(color));
     });
 
     m_pipeline->AddOperator(&op);

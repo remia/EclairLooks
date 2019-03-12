@@ -181,15 +181,20 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_vaoLegend.create());
     GL_CHECK(m_vaoLegend.bind());
 
-    // (G, R, B)
+    // (R, G, B)
     std::vector<GLfloat> vertices = {
-        0.0f,  0.0f, 0.0f, 
+        0.9f,  0.0f, 0.0f, 
         1.0f,  0.0f, 0.0f,
-        0.0f,  0.0f, 0.0f, 
+        0.0f,  0.9f, 0.0f, 
         0.0f,  1.0f, 0.0f,
-        0.0f,  0.0f, 0.0f, 
+        0.0f,  0.0f, 0.9f, 
         0.0f,  0.0f, 1.0f,
-
+        0.9f,  0.9f, 0.0f, 
+        1.0f,  1.0f, 0.0f,
+        0.0f,  0.9f, 0.9f, 
+        0.0f,  1.0f, 1.0f,
+        0.9f,  0.0f, 0.9f, 
+        1.0f,  0.0f, 1.0f,
     };
 
     GL_CHECK(m_verticesLegend.destroy());
@@ -198,7 +203,7 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_verticesLegend.allocate(vertices.data(), vertices.size() * sizeof(GLfloat)));
     GL_CHECK(glEnableVertexAttribArray(UnderlyingT(AttributeLocation::Position)));
     GL_CHECK(glVertexAttribPointer(
-        UnderlyingT(AttributeLocation::Position), 2, GL_FLOAT, GL_FALSE, 0, 0));
+        UnderlyingT(AttributeLocation::Position), 3, GL_FLOAT, GL_FALSE, 0, 0));
 
     GL_CHECK(m_vaoLegend.release());
 }
@@ -230,7 +235,7 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
 
     GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
     GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
-    GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
+    GL_CHECK(glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat)));
 
     GL_CHECK(m_programLegend.release());
     GL_CHECK(m_vaoLegend.release());

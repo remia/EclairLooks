@@ -19,7 +19,6 @@ static std::string vertexShaderSource = R"(
     uniform sampler2D v_tex;
     uniform int width;
     uniform int height;
-    uniform int bitdepth;
 
     void main() {
         int x = gl_VertexID % width;
@@ -41,6 +40,33 @@ static std::string vertexShaderSource = R"(
         gl_Position = matrix * gl_Position;
 
         color = vec3(1.0, 1.0, 1.0);
+    }
+)";
+
+static std::string legendVertexShaderSource = R"(
+    #version 410 core
+    in vec3 inputcol;
+    out vec3 color;
+
+    uniform mat4 matrix;
+
+    void main() {
+
+        vec3 col = 255.0 * inputcol;
+
+        float Y = (col.r * 0.299) + (col.g * 0.587) + (col.b * 0.114);
+        float Cr = ((col.r - Y) * 0.713) + 128;
+        float Cb = ((col.b - Y) * 0.564) + 128;
+
+        Cr/= 255.0;
+        Cb/= 255.0;
+
+        gl_Position = vec4(Cb, Cr, 0.0, 1.0);
+        gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
+        gl_Position.y *= -1.;
+        gl_Position = matrix * gl_Position;
+
+        color = vec3(1.0, 0.0, 0.0);
     }
 )";
 
@@ -141,7 +167,7 @@ void VectorScopeWidget::setScopeType(const std::string &type)
 void VectorScopeWidget::initLegend()
 {
     m_programLegend.removeAllShaders();
-    m_programLegend.addShaderFromSourceCode(QOpenGLShader::Vertex, defaultVertexShader());
+    m_programLegend.addShaderFromSourceCode(QOpenGLShader::Vertex, legendVertexShaderSource.c_str());
     m_programLegend.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSolidSource.c_str());
     m_programLegend.link();
     if (!m_programLegend.isLinked())
@@ -155,28 +181,15 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_vaoLegend.create());
     GL_CHECK(m_vaoLegend.bind());
 
-    // 10 lines with 5 steps each
-    std::vector<GLfloat> vertices;
+    // (G, R, B)
+    std::vector<GLfloat> vertices = {
+        0.0f,  0.0f, 0.0f, 
+        1.0f,  0.0f, 0.0f,
+        0.0f,  0.0f, 0.0f, 
+        0.0f,  1.0f, 0.0f,
+        0.0f,  0.0f, 0.0f, 
+        0.0f,  0.0f, 1.0f,
 
-    uint16_t line_count = 10;
-    uint16_t line_step = 4;
-    for (int i = 0; i < line_count; ++i) {
-        float y = (i / (line_count - 1.f)) * 2.f - 1.f;
-        vertices.push_back(-1.0f); // A.x
-        vertices.push_back(y);     // A.y
-        vertices.push_back(1.0f);  // B.x
-        vertices.push_back(y);     // B.y
-
-        if (i == line_count - 1)
-            break;
-
-        for (int j = 0; j < line_step; ++j) {
-            float y_offset = j / (line_step - 1.f) * (2.f / line_count);
-            vertices.push_back(-1.0f);                // A.x
-            vertices.push_back(y + y_offset);         // A.y
-            vertices.push_back(-1.0f + (1.f / 25.f)); // B.x
-            vertices.push_back(y + y_offset);         // B.y
-        }
     };
 
     GL_CHECK(m_verticesLegend.destroy());
@@ -204,7 +217,6 @@ void VectorScopeWidget::initScope()
     GL_CHECK(m_scopeMatrixUniform = m_programScope.uniformLocation("matrix"));
     GL_CHECK(m_scopeResolutionWUniform = m_programScope.uniformLocation("width"));
     GL_CHECK(m_scopeResolutionHUniform = m_programScope.uniformLocation("height"));
-    GL_CHECK(m_scopeChannelUniform = m_programScope.uniformLocation("channel"));
 
     GL_CHECK(m_vaoScope.destroy());
     GL_CHECK(m_vaoScope.create());
@@ -213,15 +225,15 @@ void VectorScopeWidget::initScope()
 void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
 {
     // Draw legend
-    //GL_CHECK(m_vaoLegend.bind());
-    //GL_CHECK(m_programLegend.bind());
+    GL_CHECK(m_vaoLegend.bind());
+    GL_CHECK(m_programLegend.bind());
 
-    //GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
-    //    GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
-    //    GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
+    GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
+    GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
+    GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
 
-    //GL_CHECK(m_programLegend.release());
-    //GL_CHECK(m_vaoLegend.release());
+    GL_CHECK(m_programLegend.release());
+    GL_CHECK(m_vaoLegend.release());
 
     // Fill in waveform
     if (m_textureId == -1)
@@ -246,7 +258,6 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
 
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
         GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
-        //GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSize.width()));
         GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSize.height()));
         GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));

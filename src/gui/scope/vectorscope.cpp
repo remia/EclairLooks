@@ -233,9 +233,37 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
     GL_CHECK(m_vaoLegend.bind());
     GL_CHECK(m_programLegend.bind());
 
-    GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
     GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
-    GL_CHECK(glDrawArrays(GL_LINES, 0, m_verticesLegend.size() / sizeof(GLfloat)));
+
+    for (int i = 0; i < 6; i++) {
+        switch (i) {
+            case 0:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 0.f,
+                                                         0.f, 1.f));
+                break;
+            case 1:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 1.f,
+                                                         0.f, 1.f));
+                break;
+            case 2:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 0.f,
+                                                         1.f, 1.f));
+                break;
+            case 3:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f,
+                                                         0.f, 1.f));
+                break;
+            case 4:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 1.f,
+                                                         1.f, 1.f));
+                break;
+            case 5:
+                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 0.f,
+                                                         1.f, 1.f));
+                break;
+        }
+        GL_CHECK(glDrawArrays(GL_LINES, 2 * i, 2));
+    }
 
     GL_CHECK(m_programLegend.release());
     GL_CHECK(m_vaoLegend.release());

@@ -102,7 +102,14 @@ void ImageWidget::initializeGL()
 
 void ImageWidget::resizeGL(int w, int h)
 {
-    updateAspectRatio();
+
+    // Aspect ratio adaptation
+    QSize dstSize  = this->size();
+    QSize srcSize  = QSize(m_textureA.width(), m_textureA.height());
+    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
+    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
+
+    updateAspectRatio(srcRatio, dstRatio, dstSize);
     TextureView::resizeGL(w, h);
 }
 
@@ -166,7 +173,13 @@ void ImageWidget::resetImage(const Image &img)
     createTexture(m_textureA, img);
     createTexture(m_textureB, img);
 
-    updateAspectRatio();
+        // Aspect ratio adaptation
+    QSize dstSize = this->size();
+    QSize srcSize = QSize(m_textureA.width(), m_textureA.height());
+    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
+    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
+
+    updateAspectRatio(srcRatio, dstRatio, dstSize);
 
     resetView();
 
@@ -206,20 +219,6 @@ void ImageWidget::updateImage(SideBySide sbs, const Image &img)
 GLint ImageWidget::texture()
 {
     return m_textureA.textureId();
-}
-
-void ImageWidget::updateAspectRatio()
-{
-    // Aspect ratio adaptation
-    QSize dstSize = this->size();
-    QSize srcSize = QSize(m_textureA.width(), m_textureA.height());
-    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
-    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
-
-    if (dstRatio > srcRatio)
-        setTextureRatio((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
-    else
-        setTextureRatio(1.0, (dstSize.width() / srcRatio) / dstSize.height());
 }
 
 void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)

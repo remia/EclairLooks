@@ -27,6 +27,7 @@ class TextureView : public QOpenGLWidget, public QOpenGLExtraFunctions
   protected:
     void setDefaultScale(float s);
     void setTextureRatio(float x, float y);
+    void updateAspectRatio(float srcRatio, float dstRatio, QSize dstSize);
 
     QString defaultVertexShader() const;
     QString defaultFragmentShader() const;

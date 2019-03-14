@@ -20,6 +20,7 @@ class VectorScopeWidget : public TextureView
     void keyPressEvent(QKeyEvent *event) override;
     void initializeGL() override;
     void paintGL() override;
+    void resizeGL(int width, int height) override;
 
     void updateTexture(GLint tex);
 
@@ -29,7 +30,7 @@ class VectorScopeWidget : public TextureView
     void initLegend();
     void initScope();
 
-    void drawGraph(const QMatrix4x4 &m, uint8_t mode);
+    void drawGraph(const QMatrix4x4 &m);
 
   private:
     float m_alpha;

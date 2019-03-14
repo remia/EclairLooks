@@ -168,6 +168,21 @@ void TextureView::setTextureRatio(float x, float y)
     m_textureRatio = QPointF(x, y);
 }
 
+/**
+    Update aspect ratio for the texture currently displayed on a openGL resize event
+
+    @srcRatio aspect ratio of input texture
+    @dstRatio aspect ratio to be kept
+    @dstSize viewport size
+*/
+void TextureView::updateAspectRatio(float srcRatio, float dstRatio, QSize dstSize)
+{
+    if (dstRatio > srcRatio)
+        setTextureRatio((srcRatio * dstSize.height()) / dstSize.width(), 1.0);
+    else
+        setTextureRatio(1.0, (dstSize.width() / srcRatio) / dstSize.height());
+}
+
 QString TextureView::defaultVertexShader() const
 {
     std::string source = R"(

@@ -96,9 +96,19 @@ static std::string fragmentShaderSolidSource = R"(
 )";
 
 VectorScopeWidget::VectorScopeWidget(QWidget *parent)
-    : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform")
+    : TextureView(parent), m_alpha(0.1f), m_scopeType("Vectorscope")
 {
 
+}
+
+void VectorScopeWidget::resizeGL(int w, int h)
+{
+    // Aspect ratio adaptation
+    QSize dstSize = this->size();
+    float srcRatio = 1.0f;
+    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
+    updateAspectRatio(srcRatio, dstRatio, dstSize);
+    TextureView::resizeGL(w, h);
 }
 
 void VectorScopeWidget::keyPressEvent(QKeyEvent *event)
@@ -137,9 +147,9 @@ void VectorScopeWidget::paintGL()
     GL_CHECK(glEnable(GL_BLEND));
     GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    for (uint8_t i = 0; i < 3; ++i){
-        drawGraph(viewMatrix(), i);
-    }
+    //for (uint8_t i = 0; i < 3; ++i){
+    drawGraph(viewMatrix());
+    //}
 }
 
 void VectorScopeWidget::updateTexture(GLint tex)
@@ -227,7 +237,7 @@ void VectorScopeWidget::initScope()
     GL_CHECK(m_vaoScope.create());
 }
 
-void VectorScopeWidget::drawGraph(const QMatrix4x4 &m , uint8_t mode)
+void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
 {
     // Draw legend
     GL_CHECK(m_vaoLegend.bind());

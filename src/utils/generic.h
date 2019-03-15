@@ -26,6 +26,9 @@ template <typename ...T>
 using TupleT = std::tuple<T...>;
 
 template <typename T>
+using VecT = std::vector<T>;
+
+template <typename T>
 OptT<T> GetAny(const std::any & any) {
     try {
         return OptT<T>(std::any_cast<T>(any));

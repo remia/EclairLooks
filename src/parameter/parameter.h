@@ -36,6 +36,9 @@ class Parameter : public EventSource<PEvtDesc>
     void setDisplayName(const std::string &v);
 
   public:
+    // This is the model, gui should be decoupled by maybe using a registry class
+    // eg. RegisterWidget<SliderParameter, SliderWidget>
+    //     WidgetFactory::widgetFromParameter(parameter)
     virtual ParameterWidget *createWidget(QWidget * parent = nullptr);
 
     virtual void load(const QSettings* setting) = 0;

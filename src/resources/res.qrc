@@ -1,7 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/hexa.png</file>
+        <file>icons/chain.png</file>
         <file>icons/close.png</file>
+        <file>icons/reset.png</file>
         <file>css/application.css</file>
         <file>ui/devwidget.ui</file>
         <file>ui/lookwidget.ui</file>

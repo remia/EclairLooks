@@ -8,6 +8,7 @@
 #include "imageoperator.h"
 
 
+// OperatorRegistry ?
 class ImageOperatorList
 {
     using OpKeyT = std::string;

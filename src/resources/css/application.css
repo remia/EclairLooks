@@ -77,11 +77,6 @@ QTabBar::tab:selected, QTabBar::tab:hover {
     color: #e0c31e;
 }
 
-QTabBar::tab:selected {
-    /* This mess up the text rendering */
-    /* font-weight: bold; */
-}
-
 
 /*
  * *******************************
@@ -130,7 +125,6 @@ QListWidget::item:hover {
 
 QSlider::groove:horizontal {
     border: 1px solid #333;
-    background: gray;
     height: 6px;
     border-radius: 4px;
 }

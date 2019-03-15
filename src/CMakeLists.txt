@@ -49,6 +49,12 @@ set(SOURCES
     operator/ocio/colorspace.cpp
     operator/ocio/matrix.cpp
 
+    operator/curve/curve.cpp
+    operator/curve/graphic.cpp
+    operator/curve/operator.cpp
+    operator/curve/parameter.cpp
+    operator/curve/widget.cpp
+
     operator/imageoperator.cpp
     operator/imageoperatorlist.cpp
 

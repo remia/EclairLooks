@@ -45,13 +45,6 @@ DevWidget::DevWidget(QWidget *parent)
     m_lookBrowser = findChild<BrowserWidget*>("lookBrowserWidget");
     m_imageBrowser = findChild<BrowserWidget*>("imageBrowserWidget");
 
-    //There might be a memleak here !!!! 
-
-    m_waveformWidget = new WaveformWidget();
-    m_neutralsWidget = new NeutralWidget();
-    m_cubeWidget = new CubeWidget();
-    m_vectorscopeWidget = new VectorScopeWidget();
-
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
     QSplitter *vSplitter = findChild<QSplitter*>("vSplitter");
     vSplitter->setSizes(QList<int>({65000, 35000}));
@@ -156,6 +149,11 @@ void DevWidget::setupPipelineView()
 
 void DevWidget::setupScopeView()
 {
+    m_waveformWidget = new WaveformWidget();
+    m_neutralsWidget = new NeutralWidget();
+    m_cubeWidget = new CubeWidget();
+    m_vectorscopeWidget = new VectorScopeWidget();
+
     m_scopeStack->addWidget(m_waveformWidget);
     m_scopeStack->addWidget(m_neutralsWidget);
     m_scopeStack->addWidget(m_cubeWidget);

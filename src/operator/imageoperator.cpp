@@ -13,10 +13,14 @@
 ImageOperator::ImageOperator()
 {
     AddParameter<CheckBoxParameter>("Enabled", true);
+
+    // Could be in a mix category...
     AddParameter<SliderParameter>("Opacity", 100.0f, 0.0f, 100.0f, 1.0f);
     AddParameter<SliderParameter>("Contrast", 100.0f, 0.0f, 100.0f, 1.0f);
     AddParameter<SliderParameter>("Color", 100.0f, 0.0f, 100.0f, 1.0);
     // AddParameter<SliderParameter>("Log", 100.0f, 0.0001f, 10000.0f, 1.0f, SliderParameter::Scale::Log);
+
+    // Then we add the keyers category here... !
 
     using std::placeholders::_1;
     Subscribe<UpdateParam>(std::bind(&ImageOperator::OpUpdateParamCallback, this, _1));

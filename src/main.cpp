@@ -11,6 +11,7 @@
 #include <operator/ocio/filetransform.h>
 #include <operator/ocio/colorspace.h>
 #include <operator/ctl/operator.h>
+#include <operator/curve/operator.h>
 
 
 void setupContext()
@@ -41,6 +42,7 @@ void setupContext()
     o.Register<OCIOFileTransform>();
     o.Register<OCIOColorSpace>();
     o.Register<CTLTransform>();
+    o.Register<CurveOperator>();
 }
 
 int main(int argc, char **argv)

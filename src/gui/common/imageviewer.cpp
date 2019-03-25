@@ -102,14 +102,10 @@ void ImageWidget::initializeGL()
 
 void ImageWidget::resizeGL(int w, int h)
 {
-
     // Aspect ratio adaptation
-    QSize dstSize  = this->size();
-    QSize srcSize  = QSize(m_textureA.width(), m_textureA.height());
-    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
-    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
+    float srcRatio = 1.0f * m_textureA.width() / m_textureA.height();
+    setAspectRatio(srcRatio);
 
-    updateAspectRatio(srcRatio, dstRatio, dstSize);
     TextureView::resizeGL(w, h);
 }
 
@@ -173,13 +169,9 @@ void ImageWidget::resetImage(const Image &img)
     createTexture(m_textureA, img);
     createTexture(m_textureB, img);
 
-        // Aspect ratio adaptation
-    QSize dstSize = this->size();
-    QSize srcSize = QSize(m_textureA.width(), m_textureA.height());
-    float srcRatio = 1.0f * srcSize.width() / srcSize.height();
-    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
-
-    updateAspectRatio(srcRatio, dstRatio, dstSize);
+    // Aspect ratio adaptation
+    float srcRatio = 1.0f * m_textureA.width() / m_textureA.height();
+    setAspectRatio(srcRatio);
 
     resetView();
 

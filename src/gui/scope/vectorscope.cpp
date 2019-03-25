@@ -103,11 +103,8 @@ VectorScopeWidget::VectorScopeWidget(QWidget *parent)
 
 void VectorScopeWidget::resizeGL(int w, int h)
 {
-    // Aspect ratio adaptation
-    QSize dstSize = this->size();
-    float srcRatio = 1.0f;
-    float dstRatio = 1.0f * dstSize.width() / dstSize.height();
-    updateAspectRatio(srcRatio, dstRatio, dstSize);
+    setAspectRatio(1.0f);
+
     TextureView::resizeGL(w, h);
 }
 

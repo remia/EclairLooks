@@ -182,20 +182,20 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_vaoLegend.create());
     GL_CHECK(m_vaoLegend.bind());
 
-    // (R, G, B)
+    // R, G, B values for 75% and 100% signals
     std::vector<GLfloat> vertices = {
-        0.75f,  0.0f, 0.0f, 
-        1.0f,  0.0f, 0.0f,
-        0.0f,  0.75f, 0.0f, 
-        0.0f,  1.0f, 0.0f,
-        0.0f,  0.0f, 0.75f, 
-        0.0f,  0.0f, 1.0f,
-        0.75f,  0.75f, 0.0f, 
-        1.0f,  1.0f, 0.0f,
-        0.0f,  0.75f, 0.75f, 
-        0.0f,  1.0f, 1.0f,
-        0.75f,  0.0f, 0.9f, 
-        1.0f,  0.0f, 1.0f,
+        0.75f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f, 0.75f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.75f,
+        0.0f, 0.0f, 1.0f,
+        0.75f, 0.75f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 0.75f, 0.75f,
+        0.0f, 1.0f, 1.0f,
+        0.75f, 0.0f, 0.75f,
+        1.0f, 0.0f, 1.0f,
     };
 
     GL_CHECK(m_verticesLegend.destroy());

@@ -96,7 +96,7 @@ static std::string fragmentShaderSolidSource = R"(
 )";
 
 VectorScopeWidget::VectorScopeWidget(QWidget *parent)
-    : TextureView(parent), m_alpha(0.1f), m_scopeType("Vectorscope")
+    : TextureView(parent), m_alpha(0.1f)
 {
 
 }
@@ -162,12 +162,6 @@ void VectorScopeWidget::updateTexture(GLint tex)
 
     doneCurrent();
 
-    update();
-}
-
-void VectorScopeWidget::setScopeType(const std::string &type)
-{
-    m_scopeType = type;
     update();
 }
 

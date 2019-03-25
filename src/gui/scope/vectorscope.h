@@ -24,8 +24,6 @@ class VectorScopeWidget : public TextureView
 
     void updateTexture(GLint tex);
 
-    void setScopeType(const std::string &type);
-
   private:
     void initLegend();
     void initScope();
@@ -34,7 +32,6 @@ class VectorScopeWidget : public TextureView
 
   private:
     float m_alpha;
-    std::string m_scopeType;
 
     GLint m_textureId = -1;
     QSize m_textureSize;

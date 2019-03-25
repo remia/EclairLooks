@@ -39,7 +39,6 @@ class ImageWidget : public TextureView, public EventSource<IWEvtDesc>
     GLint texture();
 
   private:
-    void updateAspectRatio();
 
     void createTexture(QOpenGLTexture &tex, const Image &img);
     bool guessPixelsParameters(

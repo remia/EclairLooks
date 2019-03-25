@@ -23,6 +23,7 @@ set(SOURCES
     gui/scope/cube.cpp
     gui/scope/neutral.cpp
     gui/scope/waveform.cpp
+    gui/scope/vectorscope.cpp
 
     gui/view/dev/operator.cpp
     gui/view/dev/operatorlist.cpp

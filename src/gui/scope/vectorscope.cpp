@@ -31,8 +31,8 @@ static std::string vertexShaderSource = R"(
         float Cr = ((col.r - Y) * 0.713) + 128;
         float Cb = ((col.b - Y) * 0.564) + 128;
 
-        Cr/= 255.0;
-        Cb/= 255.0;
+        Cr /= 255.0;
+        Cb /= 255.0;
 
         gl_Position = vec4(Cb, Cr, 0.0, 1.0);
         gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
@@ -58,8 +58,8 @@ static std::string legendVertexShaderSource = R"(
         float Cr = ((col.r - Y) * 0.713) + 128;
         float Cb = ((col.b - Y) * 0.564) + 128;
 
-        Cr/= 255.0;
-        Cb/= 255.0;
+        Cr /= 255.0;
+        Cb /= 255.0;
 
         gl_Position = vec4(Cb, Cr, 0.0, 1.0);
         gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
@@ -144,9 +144,7 @@ void VectorScopeWidget::paintGL()
     GL_CHECK(glEnable(GL_BLEND));
     GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    //for (uint8_t i = 0; i < 3; ++i){
     drawGraph(viewMatrix());
-    //}
 }
 
 void VectorScopeWidget::updateTexture(GLint tex)
@@ -280,7 +278,7 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
     GL_CHECK(m_programScope.bind());
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
-        // Turn off any filtering that could produce colors not in the original
+    // Turn off any filtering that could produce colors not in the original
     // image, this is needed because we access the texture using normalized
     // coordinates. Then restore originals parameters.
     GLint minFilter, magFilter;
@@ -288,7 +286,6 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
     GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-
 
         GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
         GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));

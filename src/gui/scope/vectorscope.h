@@ -41,14 +41,12 @@ class VectorScopeWidget : public TextureView
     GLuint m_scopeAlphaUniform;
     GLuint m_scopeMatrixUniform;
     GLuint m_scopeTextureUniform;
-    GLuint m_scopeChannelUniform;
     GLuint m_scopeResolutionWUniform;
     GLuint m_scopeResolutionHUniform;
 
     QOpenGLShaderProgram m_programLegend;
     QOpenGLVertexArrayObject m_vaoLegend;
     QOpenGLBuffer m_verticesLegend;
-    GLuint m_legendColorUniform;
     GLuint m_legendAlphaUniform;
     GLuint m_legendMatrixUniform;
 };

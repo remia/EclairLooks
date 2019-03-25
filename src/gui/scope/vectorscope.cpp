@@ -45,14 +45,14 @@ static std::string vertexShaderSource = R"(
 
 static std::string legendVertexShaderSource = R"(
     #version 410 core
-    in vec3 inputcol;
+    in vec3 colAttr;
     out vec3 color;
 
     uniform mat4 matrix;
 
     void main() {
 
-        vec3 col = 255.0 * inputcol;
+        vec3 col = 255.0 * colAttr;
 
         float Y = (col.r * 0.299) + (col.g * 0.587) + (col.b * 0.114);
         float Cr = ((col.r - Y) * 0.713) + 128;
@@ -66,7 +66,7 @@ static std::string legendVertexShaderSource = R"(
         gl_Position.y *= -1.;
         gl_Position = matrix * gl_Position;
 
-        color = vec3(1.0, 0.0, 0.0);
+        color = colAttr;
     }
 )";
 
@@ -80,18 +80,6 @@ static std::string fragmentShaderSource = R"(
     void main() {
        fragColor = vec4(color.rgb, alpha);
        fragColor.rgb = pow(fragColor.rgb, vec3(1./2.4));
-    }
-)";
-
-static std::string fragmentShaderSolidSource = R"(
-    #version 410 core
-    layout(location = 0) out vec4 fragColor;
-
-    uniform vec4 color;
-
-    void main() {
-       fragColor = color;
-       fragColor.rgb = pow(color.rgb, vec3(1./2.4));
     }
 )";
 
@@ -167,13 +155,12 @@ void VectorScopeWidget::initLegend()
 {
     m_programLegend.removeAllShaders();
     m_programLegend.addShaderFromSourceCode(QOpenGLShader::Vertex, legendVertexShaderSource.c_str());
-    m_programLegend.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSolidSource.c_str());
+    m_programLegend.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
     m_programLegend.link();
     if (!m_programLegend.isLinked())
         qWarning() << m_programLegend.log() << "\n";
 
     GL_CHECK(m_legendMatrixUniform = m_programLegend.uniformLocation("matrix"));
-    GL_CHECK(m_legendColorUniform = m_programLegend.uniformLocation("color"));
     GL_CHECK(m_legendAlphaUniform = m_programLegend.uniformLocation("alpha"));
 
     GL_CHECK(m_vaoLegend.destroy());
@@ -232,37 +219,9 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
     GL_CHECK(m_vaoLegend.bind());
     GL_CHECK(m_programLegend.bind());
 
-    GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
-
-    for (int i = 0; i < 6; i++) {
-        switch (i) {
-            case 0:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 0.f,
-                                                         0.f, 1.f));
-                break;
-            case 1:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 1.f,
-                                                         0.f, 1.f));
-                break;
-            case 2:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 0.f,
-                                                         1.f, 1.f));
-                break;
-            case 3:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f,
-                                                         0.f, 1.f));
-                break;
-            case 4:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 0.f, 1.f,
-                                                         1.f, 1.f));
-                break;
-            case 5:
-                GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 0.f,
-                                                         1.f, 1.f));
-                break;
-        }
-        GL_CHECK(glDrawArrays(GL_LINES, 2 * i, 2));
-    }
+        GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
+        GL_CHECK(m_programScope.setUniformValue(m_legendAlphaUniform, 1.0f));
+        GL_CHECK(glDrawArrays(GL_LINES, 0, 12));
 
     GL_CHECK(m_programLegend.release());
     GL_CHECK(m_vaoLegend.release());

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+
+#include <core/types.h>
 #include "../parameterwidget.h"
 
 
@@ -12,5 +15,14 @@ class ParameterMatrixWidget : public ParameterWidget
     void updateWidget(const Parameter &p) override;
 
   private:
-    // MatrixParameter *m_matrixParam;
+    Matrix4x4 getValues();
+    void setValues(const Matrix4x4 &m);
+
+    std::vector<double> extractDoubles(const QString &str);
+
+  private:
+    MatrixParameter *m_matrixParam;
+
+    QGridLayout *m_gridLayout;
+    QDoubleValidator *m_validator;
 };

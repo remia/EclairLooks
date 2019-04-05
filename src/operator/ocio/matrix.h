@@ -19,10 +19,9 @@ public:
     std::string OpName() const override;
     std::string OpLabel() const override;
     void OpApply(Image & img) override;
+    std::string OpDesc() const override;
     bool OpIsIdentity() const override;
     void OpUpdateParamCallback(const Parameter & op) override;
-
-    void SetMatrix(float * mat);
 
 private:
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;

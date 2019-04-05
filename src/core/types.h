@@ -37,3 +37,5 @@ using ColorRGBA8 = Color<uint8_t>;
 using ColorCallback = FuncT<ColorRGBA8(float x, float y)>;
 
 // ----------------------------------------------------------------------------
+
+using Matrix4x4 = std::array<float, 16>;

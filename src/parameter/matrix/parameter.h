@@ -3,14 +3,12 @@
 #include <string>
 #include <array>
 
+#include <core/types.h>
 #include "../parameter.h"
 
 
 class MatrixParameter : public Parameter
 {
-  public:
-    using Matrix4x4 = std::array<float, 16>;
-
   public:
     MatrixParameter() = default;
     MatrixParameter(const std::string &name);
@@ -34,6 +32,6 @@ class MatrixParameter : public Parameter
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f
+        0.0f, 0.0f, 0.0f, 1.0f
     };
 };

@@ -1,5 +1,7 @@
 #include "matrix.h"
 
+#include <sstream>
+
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
 
@@ -11,11 +13,16 @@ namespace OCIO = OCIO_NAMESPACE;
 
 OCIOMatrix::OCIOMatrix()
 {
-    AddParameterByCategory<MatrixParameter>("Matrix", "Matrix");
-
     m_config = OCIO::GetCurrentConfig();
     m_processor = OCIO::Processor::Create();
     m_transform = OCIO::MatrixTransform::Create();
+
+    AddParameterByCategory<MatrixParameter>("Matrix", "Matrix");
+    AddParameterByCategory<SelectParameter>("Matrix", "Direction", std::vector<std::string>{"Forward", "Inverse"}, "Forward");
+
+    // Initialize transform with default parameters
+    auto dir = GetParameter<SelectParameter>("Direction");
+    m_transform->setDirection(OCIO::TransformDirectionFromString(dir->value().c_str()));
 }
 
 ImageOperator * OCIOMatrix::OpCreate() const
@@ -31,6 +38,13 @@ std::string OCIOMatrix::OpName() const
 std::string OCIOMatrix::OpLabel() const
 {
     return "Matrix";
+}
+
+std::string OCIOMatrix::OpDesc() const
+{
+    std::ostringstream oStr;
+    oStr << "OCIO Matrix Transform\n" << *m_transform;
+    return oStr.str();
 }
 
 void OCIOMatrix::OpApply(Image & img)
@@ -55,15 +69,13 @@ void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
             auto p = static_cast<const MatrixParameter *>(&op);
             m_transform->setMatrix(p->value().data());
         }
+        else if (op.name() == "Direction") {
+            auto p = static_cast<const SelectParameter *>(&op);
+            m_transform->setDirection(OCIO::TransformDirectionFromString(p->value().c_str()));
+        }
 
         m_processor = m_config->getProcessor(m_transform);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }
-}
-
-void OCIOMatrix::SetMatrix(float * mat)
-{
-    m_transform->setMatrix(mat);
-    m_processor = m_config->getProcessor(m_transform);
 }

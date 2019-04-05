@@ -4,9 +4,12 @@
 #include <utils/pystring.h>
 
 
-MatrixParameter::MatrixParameter(const std::string &name) : Parameter(name) {}
+MatrixParameter::MatrixParameter(const std::string &name) : Parameter(name)
+{
+    m_value = m_default_value;
+}
 
-MatrixParameter::Matrix4x4 MatrixParameter::value() const { return m_value; }
+Matrix4x4 MatrixParameter::value() const { return m_value; }
 
 void MatrixParameter::setValue(const Matrix4x4 &v)
 {
@@ -14,7 +17,7 @@ void MatrixParameter::setValue(const Matrix4x4 &v)
     EmitEvent<UpdateValue>(*this);
 }
 
-MatrixParameter::Matrix4x4 MatrixParameter::defaultValue() const { return m_default_value; }
+Matrix4x4 MatrixParameter::defaultValue() const { return m_default_value; }
 
 void MatrixParameter::setDefaultValue(const Matrix4x4 &v)
 {

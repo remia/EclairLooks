@@ -67,7 +67,8 @@ void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
     try {
         if (op.name() == "Matrix") {
             auto p = static_cast<const MatrixParameter *>(&op);
-            m_transform->setMatrix(p->value().data());
+            QMatrix4x4 m (p->value().data());
+            m_transform->setMatrix(m.data());
         }
         else if (op.name() == "Direction") {
             auto p = static_cast<const SelectParameter *>(&op);

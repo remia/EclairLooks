@@ -6,11 +6,12 @@
 #include <QtWidgets/QtWidgets>
 #include <QtCore/QDebug>
 
+#include <context.h>
 #include <core/image.h>
 #include <core/imagepipeline.h>
 #include "transform.h"
 
-using namespace std::filesystem;
+namespace fs = std::filesystem;
 
 // TODO :
 // 1 - Find a way to detect all CTL arguments
@@ -28,7 +29,9 @@ CTLTransform::CTLTransform()
 
 ImageOperator *CTLTransform::OpCreate() const
 {
-    return new CTLTransform();
+    CTLTransform * op = new CTLTransform();
+    op->SetBase(Context::getInstance().settings().Get<FilePathParameter>("Default CTL Folder")->value());
+    return op;
 }
 
 std::string CTLTransform::OpName() const
@@ -38,16 +41,21 @@ std::string CTLTransform::OpName() const
 
 std::string CTLTransform::OpLabel() const
 {
-    return "CTL";
+    QFileInfo fileInfo(QString::fromStdString(m_ctlFile));
+    if (!fileInfo.absoluteFilePath().isEmpty())
+        return "CTL - " + fileInfo.fileName().toStdString();
+    else
+        return "CTL";
 }
 
 ImageOperator *CTLTransform::OpCreateFromPath(const std::string &filepath) const
 {
     QFileInfo file = QFileInfo(QString::fromStdString(filepath));
-    if (file.isDir()) {
-        CTLTransform * ct = new CTLTransform();
-        ct->SetBaseFolder(filepath);
-        return ct;
+    if (file.isFile() && file.suffix() == "ctl") {
+        CTLTransform * op = new CTLTransform();
+        op->SetBase(Context::getInstance().settings().Get<FilePathParameter>("Default CTL Folder")->value());
+        op->GetParameter<FilePathParameter>("CTL File")->setValue(filepath);
+        return op;
     }
 
     return nullptr;
@@ -55,25 +63,8 @@ ImageOperator *CTLTransform::OpCreateFromPath(const std::string &filepath) const
 
 void CTLTransform::OpApply(Image &img)
 {
-    std::string basePath = Parameters().Get<FilePathParameter>("CTL Base")->value();
-
-    path p = path(basePath);
-    directory_iterator it{p};
-    while (it != directory_iterator{}) {
-        qInfo() << QString::fromStdString((*it).path().string()) << '\n';
-        ++it;
-    }
-
-    std::vector<std::string> searchs {
-        { "/Users/remi/Desktop/color/aces-dev/transforms/ctl/rrt" },
-        { "/Users/remi/Desktop/color/aces-dev/transforms/ctl/utilities" },
-        { "/Users/remi/Desktop/color/aces-dev/transforms/ctl/lib" }};
-
     CTLOperations ops;
-    ops.push_back({"/Users/remi/Desktop/color/aces-dev/transforms/ctl/rrt/RRT.ctl"});
-    ops.push_back({"/Users/remi/Desktop/color/aces-dev/transforms/ctl/odt/rec709/ODT.Academy.Rec709_100nits_dim.ctl"});
-    ops.push_back({"/Users/remi/Desktop/color/aces-dev/transforms/ctl/odt/rec709/InvODT.Academy.Rec709_100nits_dim.ctl"});
-    ops.push_back({"/Users/remi/Desktop/color/aces-dev/transforms/ctl/rrt/InvRRT.ctl"});
+    ops.push_back({m_ctlFile});
 
     CTLParameters global;
     ctl_parameter_t alpha_param;
@@ -83,13 +74,16 @@ void CTLTransform::OpApply(Image &img)
     global.push_back(alpha_param);
 
     try {
-        transform(img, 1.0f, 1.0f, ops, global, searchs);
+        transform(img, ops, global, m_searchsPath);
     }
     catch (Iex::ArgExc & e) {
-        qWarning() << e.what() << "\n";
+        qWarning() << e.what();
     }
     catch (Iex::LogicExc & e) {
-        qWarning() << e.what() << "\n";
+        qWarning() << e.what();
+    }
+    catch(...) {
+        qWarning() << "Unknown exception";
     }
 }
 
@@ -100,10 +94,28 @@ bool CTLTransform::OpIsIdentity() const
 
 void CTLTransform::OpUpdateParamCallback(const Parameter & op)
 {
+    if (op.name() == "CTL Base") {
+        auto p = static_cast<const FilePathParameter *>(&op);
+        m_searchsPath.clear();
 
+        fs::path folder(p->value());
+        fs::directory_iterator it{folder};
+        while (it != fs::directory_iterator{}) {
+            fs::path pathItem = (*it).path();
+            if (fs::is_directory(pathItem)) {
+                qInfo() << QString::fromStdString(pathItem.string());
+                m_searchsPath.push_back(pathItem.string());
+            }
+            ++it;
+        }
+    }
+    else if (op.name() == "CTL File") {
+        auto p = static_cast<const FilePathParameter *>(&op);
+        m_ctlFile = p->value();
+    }
 }
 
-void CTLTransform::SetBaseFolder(const std::string &baseFolder)
+void CTLTransform::SetBase(const std::string &folder)
 {
-    GetParameter<FilePathParameter>("CTL Base")->setValue(baseFolder);
+    GetParameter<FilePathParameter>("CTL Base")->setValue(folder);
 }

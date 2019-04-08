@@ -21,7 +21,9 @@ class CTLTransform : public ImageOperator
     bool OpIsIdentity() const override;
     void OpUpdateParamCallback(const Parameter &op) override;
 
-    void SetBaseFolder(const std::string &baseFolder);
+    void SetBase(const std::string &configpath);
 
   private:
+    std::vector<std::string> m_searchsPath;
+    std::string m_ctlFile;
 };

@@ -18,6 +18,7 @@ void setupContext()
     // Settings
     using FP = FilePathParameter;
     ParameterSerialList& s = Context::getInstance().settings();
+    s.Add<FP>("Default CTL Folder", "", "Choose a folder", "", FP::PathType::Folder);
     s.Add<FP>("Default OCIO Config", "", "Choose an ocio config file", "");
     s.Add<FP>("Default Image", "", "Choose an image", "");
     s.Add<FP>("Image Base Folder", "", "Choose a folder", "", FP::PathType::Folder);

@@ -500,7 +500,7 @@ CTLResultPtr mkresult(const char *name, const char *alt_name, Image &image, size
 		new_result->alt_name = alt_name;
 	}
 
-	new_result->data->set(image.pixels_asfloat() + offset, sizeof(float) * image.channels(), offset, image.count());
+	new_result->data->set(image.pixels_asfloat() + offset, sizeof(float) * image.channels(), 0, image.count());
 
 	return new_result;
 }

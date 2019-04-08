@@ -547,7 +547,6 @@ void mkimage(Image &image, const CTLResults &ctl_results) //, format_t *image_fo
 	have_channel_e channel;
 	const char *channel_name;
 	uint8_t on_channel;
-	// uint8_t channel_count;
 	uint8_t c;
 	CTLResultPtr ctl_result;
 
@@ -644,21 +643,6 @@ void mkimage(Image &image, const CTLResults &ctl_results) //, format_t *image_fo
 		THROW(Iex::ArgExc, "Unable to determine what channels from the CTL script output should be saved.");
 	}
 
-	// channel_count = 0;
-	// for (c = 0; c < 24; c++)
-	// {
-	// 	if (channels_mask & (1 << c))
-	// 	{
-	// 		channel_count++;
-	// 	}
-	// }
-
-	// if (image.channels() != channel_count)
-	// {
-	// 	THROW(Iex::ArgExc, "CTL scripts channels output different from image buffer.");
-	// 	// image_buffer->init(image_buffer->width(), image_buffer->height(), channel_count);
-	// }
-
 	on_channel = 0;
 	for (c = 0; c < 24; c++)
 	{
@@ -670,11 +654,6 @@ void mkimage(Image &image, const CTLResults &ctl_results) //, format_t *image_fo
         if (on_channel >= image.channels())
             break;
 	}
-
-	// if (image_format->descriptor == 0)
-	// {
-	// 	image_format->descriptor = (channels_mask & 0xff000000) >> 24;
-	// }
 }
 
 // Currently we have no thread support. This would be nice but we will
@@ -682,40 +661,19 @@ void mkimage(Image &image, const CTLResults &ctl_results) //, format_t *image_fo
 // a pointer since there are fields in it that may be filled out by the
 // reader / writer and those will probably want to migrate back to the
 // calling function.
-void transform(Image &image, float input_scale, float output_scale,
+void transform(Image &image,
                const CTLOperations &ctl_operations,
-               const CTLParameters &global_parameters, const CTLSearchPaths &search_paths)
+               const CTLParameters &global_parameters,
+               const CTLSearchPaths &search_paths)
 {
 	CTLOperations::const_iterator operations_iter;
 	ctl_operation_t ctl_operation;
 	CTLParameters::const_iterator parameters_iter;
 	uint8_t i;
 	std::string error;
-	// ctl::dpx::fb<float> image_buffer;
 
 	if (verbosity > 1)
 	{
-		// fprintf(stdout, "       source file: %s\n", inputFile);
-		// fprintf(stdout, "  destination file: %s\n", outputFile);
-		// fprintf(stderr, "destination format: %s\n", image_format->ext);
-		fprintf(stderr, "       input scale: ");
-		if (input_scale == 0.0)
-		{
-			fprintf(stderr, "default\n");
-		}
-		else
-		{
-			fprintf(stderr, "%f\n", input_scale);
-		}
-		fprintf(stderr, "      output scale: ");
-		if (output_scale == 0.0)
-		{
-			fprintf(stderr, "default\n");
-		}
-		else
-		{
-			fprintf(stderr, "%f\n", output_scale);
-		}
 		if (verbosity > 2)
 		{
 			i = 0;
@@ -760,23 +718,6 @@ void transform(Image &image, float input_scale, float output_scale,
 		fprintf(stderr, "\n");
 	}
 
-	// if (!dpx_read(inputFile, input_scale, &image_buffer, image_format) &&
-	// 	!exr_read(inputFile, input_scale, &image_buffer, image_format) &&
-	// 	!tiff_read(inputFile, input_scale, &image_buffer, image_format))
-	// {
-	// 	fprintf(stderr, "unable to read file %s (unknown format).\n", inputFile);
-	// 	exit(1);
-	// }
-
-	if (output_scale != 0.0)
-	{
-		output_scale = output_scale / 1.0;
-	}
-	// if (image_format->bps == 0)
-	// {
-	// 	image_format->bps = image_format->src_bps;
-	// }
-
     std::cerr << "Prepare outputs..." << std::endl;
 
 	CTLResults ctl_results;
@@ -806,8 +747,7 @@ void transform(Image &image, float input_scale, float output_scale,
 		snprintf(name, sizeof(name) - 1, "c%02dIn", i);
 		ctl_results.push_back(mkresult(name, NULL, image, i));
 	}
-
-    std::cerr << "Compute..." << std::endl;
+	
 	for (operations_iter = ctl_operations.begin(); operations_iter != ctl_operations.end(); operations_iter++)
 	{
 		ctl_operation = *operations_iter;
@@ -824,44 +764,5 @@ void transform(Image &image, float input_scale, float output_scale,
 		run_ctl_transform(*operations_iter, &ctl_results, image.count(), search_paths);
 	}
 
-    std::cerr << "Write outputs..." << std::endl;
-	mkimage(image, ctl_results); //, image_format);
-
-	if (output_scale != 0.0)
-	{
-		output_scale = output_scale / 1.0;
-	}
-	// if (image_format->squish)
-	// {
-	// 	image_buffer.swizzle(0, true);
-	// }
-
-//    std::cout << image_format->ext << std::endl;
-  // if (!strncmp(image_format->ext, "aces", 3))
-  // {
-  //     aces_write(outputFile, output_scale,
-  //                image_buffer.width(), image_buffer.height(), image_buffer.depth(),
-  //                image_buffer.ptr(), image_format);
-  // }
-  // else if (!strncmp(image_format->ext, "exr", 3))
-	// {
-	// 	exr_write(outputFile, output_scale, image_buffer, image_format, compression);
-	// }
-	// else if (!strncmp(image_format->ext, "adx", 3))
-	// {
-	// 	dpx_write(outputFile, output_scale, image_buffer, image_format);
-	// }
-	// else if (!strncmp(image_format->ext, "dpx", 3))
-	// {
-	// 	dpx_write(outputFile, output_scale, image_buffer, image_format);
-	// }
-	// else if (!strncmp(image_format->ext, "tiff", 3))
-	// {
-	// 	tiff_write(outputFile, output_scale, image_buffer, image_format);
-	// }
-	// else
-	// {
-	// 	fprintf(stderr, "unable to write a %s file (unknown format).\n", image_format->ext);
-	// 	exit(1);
-	// }
+	mkimage(image, ctl_results);
 }

@@ -91,8 +91,9 @@ struct ctl_operation_t {
 
 typedef std::vector<ctl_operation_t> CTLOperations;
 
-void transform(Image &img, float input_scale, float output_scale,
-               const CTLOperations &ops, const CTLParameters &global,
+void transform(Image &img,
+               const CTLOperations &ops,
+               const CTLParameters &global,
                const CTLSearchPaths &search);
 
 #endif

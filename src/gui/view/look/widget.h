@@ -12,6 +12,7 @@ class BrowserWidget;
 class LookViewTabWidget;
 class LookDetailWidget;
 class LookSelectionWidget;
+class LookMetadataWidget;
 class ParameterSerialList;
 class QSplitter;
 
@@ -59,14 +60,16 @@ class LookWidget : public QWidget
     LookViewTabWidget *m_viewTabWidget;
     LookDetailWidget *m_detailWidget;
     LookSelectionWidget *m_selectWidget;
+    LookMetadataWidget *m_metadataWidget;
     QWidget *m_settingWidget;
 
     bool m_isFullScreen = false;
     QSplitter *m_hSplitter;
-    QSplitter *m_vSplitter;
+    QSplitter *m_vSplitterLeft;
+    QSplitter *m_vSplitterRight;
     QSplitter *m_hSplitterView;
     QByteArray m_hSplitterState;
-    QByteArray m_vSplitterState;
+    QByteArray m_vSplitterRightState;
 
     UPtr<Image> m_image;
     UPtr<Image> m_imageProxy;

@@ -4,9 +4,10 @@
 #include <gui/common/imageviewer.h>
 #include <gui/view/dev/pipeline.h>
 #include <gui/view/dev/operatorlist.h>
-#include <gui/view/look/tabview.h>
 #include <gui/view/look/detail.h>
+#include <gui/view/look/metadata.h>
 #include <gui/view/look/selection.h>
+#include <gui/view/look/tabview.h>
 #include <gui/scope/waveform.h>
 
 
@@ -41,6 +42,10 @@ QWidget *UiLoader::createWidget(const QString &className, QWidget *parent,
         return w;
     } else if (className == "LookSelectionWidget") {
         LookSelectionWidget *w = new LookSelectionWidget(parent);
+        w->setObjectName(name);
+        return w;
+    } else if (className == "LookMetadataWidget") {
+        LookMetadataWidget *w = new LookMetadataWidget(parent);
         w->setObjectName(name);
         return w;
     } else if (className == "QTabBar") {

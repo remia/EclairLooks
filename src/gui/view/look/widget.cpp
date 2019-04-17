@@ -14,6 +14,7 @@
 #include "tabview.h"
 #include "listview.h"
 #include "detail.h"
+#include "metadata.h"
 #include "selection.h"
 
 
@@ -21,6 +22,7 @@ using std::placeholders::_1;
 using BW = BrowserWidget;
 using LV = LookViewTabWidget;
 using LD = LookDetailWidget;
+using LM = LookMetadataWidget;
 using P = Parameter;
 
 // TODO : fix memory leak on m_settings, should not be that problematic because
@@ -52,13 +54,16 @@ LookWidget::LookWidget(QWidget *parent)
     m_viewTabWidget = findChild<LookViewTabWidget*>("lookViewWidget");
     m_detailWidget = findChild<LookDetailWidget*>("lookDetailWidget");
     m_selectWidget = findChild<LookSelectionWidget*>("lookSelectionWidget");
+    m_metadataWidget = findChild<LookMetadataWidget*>("lookMetadataWidget");
     m_settingWidget = findChild<QWidget*>("lookSettingWidget");
 
     // NOTE : see https://stackoverflow.com/a/43835396/4814046
-    m_vSplitter = findChild<QSplitter*>("hSplitter");
-    m_vSplitter->setSizes(QList<int>({15000, 85000}));
-    m_hSplitter = findChild<QSplitter*>("vSplitter");
-    m_hSplitter->setSizes(QList<int>({60000, 40000}));
+    m_vSplitterRight = findChild<QSplitter*>("vSplitterRight");
+    m_vSplitterRight->setSizes(QList<int>({60000, 40000}));
+    m_vSplitterLeft = findChild<QSplitter*>("vSplitterLeft");
+    m_vSplitterLeft->setSizes(QList<int>({45000, 45000, 10000}));
+    m_hSplitter = findChild<QSplitter*>("hSplitter");
+    m_hSplitter->setSizes(QList<int>({15000, 85000}));
     m_hSplitterView = findChild<QSplitter*>("hSplitterView");
     m_hSplitterView->setSizes(QList<int>({80000, 20000}));
 
@@ -106,11 +111,16 @@ LookWidget::LookWidget(QWidget *parent)
         updateViews();
     });
 
+    // Update DetailWidget
     m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::A));
     m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::A));
 
     m_selectWidget->Subscribe<LV::Reset>(std::bind(&LD::clearView, m_detailWidget, SideBySide::B));
     m_selectWidget->Subscribe<LV::Select>(std::bind(&LD::showDetail, m_detailWidget, _1, SideBySide::B));
+
+    // Update MetadataWidget
+    m_viewTabWidget->Subscribe<LV::Reset>(std::bind(&LM::clearView, m_metadataWidget));
+    m_viewTabWidget->Subscribe<LV::Select>(std::bind(&LM::updateView, m_metadataWidget, _1));
 }
 
 bool LookWidget::eventFilter(QObject *obj, QEvent *event)
@@ -151,16 +161,16 @@ void LookWidget::toggleFullScreen()
 {
     if (!m_isFullScreen) {
         m_hSplitterState = m_hSplitter->saveState();
-        m_vSplitterState = m_vSplitter->saveState();
+        m_vSplitterRightState = m_vSplitterRight->saveState();
 
-        m_vSplitter->setSizes(QList<int>({00000, 100000}));
+        m_vSplitterRight->setSizes(QList<int>({00000, 100000}));
         m_hSplitter->setSizes(QList<int>({00000, 100000}));
 
         m_isFullScreen = true;
     }
     else {
         m_hSplitter->restoreState(m_hSplitterState);
-        m_vSplitter->restoreState(m_vSplitterState);
+        m_vSplitterRight->restoreState(m_vSplitterRightState);
 
         m_isFullScreen = false;
 

@@ -19,43 +19,26 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="vLayout" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout2">
-       <property name="spacing">
-        <number>7</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTabWidget" name="tabWidget">
-         <widget class="BrowserWidget" name="lookBrowserWidget">
-          <attribute name="title">
-           <string>Looks</string>
-          </attribute>
-         </widget>
-         <widget class="BrowserWidget" name="imageBrowserWidget">
-          <attribute name="title">
-           <string>Images</string>
-          </attribute>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="lookSettingWidget" native="true"/>
-       </item>
-      </layout>
+     <widget class="QSplitter" name="vSplitterLeft">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QTabWidget" name="tabWidget">
+       <widget class="BrowserWidget" name="lookBrowserWidget">
+        <attribute name="title">
+         <string>Looks</string>
+        </attribute>
+       </widget>
+       <widget class="BrowserWidget" name="imageBrowserWidget">
+        <attribute name="title">
+         <string>Images</string>
+        </attribute>
+       </widget>
+      </widget>
+      <widget class="LookMetadataWidget" name="lookMetadataWidget" native="true"/>
+      <widget class="QWidget" name="lookSettingWidget" native="true"/>
      </widget>
-     <widget class="QSplitter" name="vSplitter">
+     <widget class="QSplitter" name="vSplitterRight">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
@@ -95,6 +78,12 @@
    <class>LookSelectionWidget</class>
    <extends>QWidget</extends>
    <header>lookselectionwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LookMetadataWidget</class>
+   <extends>QWidget</extends>
+   <header>metadatawidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

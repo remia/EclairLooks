@@ -125,6 +125,11 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
     }
 }
 
+const OCIO_NAMESPACE::Metadata &OCIOFileTransform::GetFileMetadata() const
+{
+    return m_transform->getMetadata();
+}
+
 void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
 {
     try {

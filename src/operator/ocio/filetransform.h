@@ -28,6 +28,7 @@ class OCIOFileTransform : public ImageOperator
     void OpUpdateParamCallback(const Parameter &op) override;
 
   public:
+    const OCIO_NAMESPACE::Metadata &GetFileMetadata() const;
     void SetFileTransform(const std::string &lutpath);
 
   public:

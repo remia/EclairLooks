@@ -34,6 +34,7 @@ set(SOURCES
 
     gui/view/look/detail.cpp
     gui/view/look/listview.cpp
+    gui/view/look/metadata.cpp
     gui/view/look/selection.cpp
     gui/view/look/tabview.cpp
     gui/view/look/widget.cpp

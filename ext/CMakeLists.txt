@@ -40,14 +40,14 @@ file(MAKE_DIRECTORY ${OPENEXR_INCLUDE_DIRS}) # Hack to let imported target be bu
 
 set(OPENEXR_CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
-    -DOPENEXR_NAMESPACE_VERSIONING=OFF
-    -DOPENEXR_BUILD_PYTHON_LIBS=OFF
-    -DOPENEXR_BUILD_TESTS=OFF
+    -DBUILD_TESTING=OFF
     -DOPENEXR_BUILD_UTILS=OFF
+    -DOPENEXR_VIEWERS_ENABLE=OFF
+    -DPYILMBASE_ENABLE=OFF
 )
 
 ExternalProject_Add(OPENEXR
-    URL https://github.com/openexr/openexr/archive/v2.3.0.tar.gz
+    URL https://github.com/AcademySoftwareFoundation/openexr/archive/v2.4.0.tar.gz
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/openexr"
     BUILD_BYPRODUCTS "${OPENEXR_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"

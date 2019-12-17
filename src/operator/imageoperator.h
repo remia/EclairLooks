@@ -35,7 +35,7 @@ class ImageOperator : public EventSource<IOPEvtDesc>
     virtual std::string OpLabel() const = 0;
     virtual std::string OpDesc() const { return ""; }
     virtual void OpApply(Image &img) = 0;
-    virtual bool OpIsIdentity() const { return true; }
+    virtual bool OpIsIdentity() const = 0;
     virtual void OpUpdateParamCallback(const Parameter &op) {}
 
   public:

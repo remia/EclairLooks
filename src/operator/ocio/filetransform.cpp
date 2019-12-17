@@ -18,7 +18,6 @@ OCIOFileTransform::OCIOFileTransform()
     OCIO::ClearAllCaches();
 
     m_config = OCIO::GetCurrentConfig();
-    m_processor = OCIO::Processor::Create();
     m_transform = OCIO::FileTransform::Create();
 
     QStringList exts = SupportedExtensions();
@@ -84,7 +83,7 @@ void OCIOFileTransform::OpApply(Image & img)
 
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
-        m_processor->apply(imgDesc);
+        m_cpu_processor->apply(imgDesc);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Process Error: " << exception.what() << "\n";
     }
@@ -95,7 +94,7 @@ void OCIOFileTransform::OpApply(Image & img)
 
 bool OCIOFileTransform::OpIsIdentity() const
 {
-    return m_processor->isNoOp();
+    return !m_processor || m_processor->isNoOp();
 }
 
 void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
@@ -117,10 +116,8 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
         }
 
         m_processor = m_config->getProcessor(m_transform);
+        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
     } catch (OCIO::Exception &exception) {
-        // When setup has failed, reset processor
-        m_processor = OCIO::Processor::Create();
-
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }
 }
@@ -143,6 +140,7 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
         m_transform->setInterpolation(OCIO::InterpolationFromString(interp->value().c_str()));
         m_transform->setDirection(OCIO::TransformDirectionFromString(dir->value().c_str()));
         m_processor = m_config->getProcessor(m_transform);
+        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
 
         qInfo() << "OCIOFileTransform init - (" << QString::fromStdString(lutpath)
                 << ") : " << fixed << qSetRealNumberPrecision(2)
@@ -169,5 +167,6 @@ void OCIOFileTransform::OverrideInterpolation()
     if (m_processor->hasChannelCrosstalk() && interp == "Best" && current == OCIO::INTERP_BEST) {
         m_transform->setInterpolation(OCIO::InterpolationFromString("Tetrahedral"));
         m_processor = m_config->getProcessor(m_transform);
+        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
     }
 }

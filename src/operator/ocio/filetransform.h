@@ -37,5 +37,6 @@ class OCIOFileTransform : public ImageOperator
   private:
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;
     OCIO_NAMESPACE::ConstProcessorRcPtr m_processor;
+    OCIO_NAMESPACE::ConstCPUProcessorRcPtr m_cpu_processor;
     OCIO_NAMESPACE::FileTransformRcPtr m_transform;
 };

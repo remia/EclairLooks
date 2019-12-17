@@ -38,4 +38,4 @@ using ColorCallback = FuncT<ColorRGBA8(float x, float y)>;
 
 // ----------------------------------------------------------------------------
 
-using Matrix4x4 = std::array<float, 16>;
+using Matrix4x4 = std::array<double, 16>;

@@ -26,5 +26,6 @@ public:
 private:
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;
     OCIO_NAMESPACE::ConstProcessorRcPtr m_processor;
+    OCIO_NAMESPACE::ConstCPUProcessorRcPtr m_cpu_processor;
     OCIO_NAMESPACE::MatrixTransformRcPtr m_transform;
 };

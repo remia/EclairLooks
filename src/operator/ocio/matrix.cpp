@@ -14,7 +14,6 @@ namespace OCIO = OCIO_NAMESPACE;
 OCIOMatrix::OCIOMatrix()
 {
     m_config = OCIO::GetCurrentConfig();
-    m_processor = OCIO::Processor::Create();
     m_transform = OCIO::MatrixTransform::Create();
 
     AddParameterByCategory<MatrixParameter>("Matrix", "Matrix");
@@ -51,7 +50,7 @@ void OCIOMatrix::OpApply(Image & img)
 {
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
-        m_processor->apply(imgDesc);
+        m_cpu_processor->apply(imgDesc);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Process Error: " << exception.what() << "\n";
     }
@@ -59,7 +58,7 @@ void OCIOMatrix::OpApply(Image & img)
 
 bool OCIOMatrix::OpIsIdentity() const
 {
-    return m_processor->isNoOp();
+    return !m_processor || m_processor->isNoOp();
 }
 
 void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
@@ -67,8 +66,7 @@ void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
     try {
         if (op.name() == "Matrix") {
             auto p = static_cast<const MatrixParameter *>(&op);
-            QMatrix4x4 m (p->value().data());
-            m_transform->setMatrix(m.data());
+            m_transform->setMatrix(p->value().data());
         }
         else if (op.name() == "Direction") {
             auto p = static_cast<const SelectParameter *>(&op);
@@ -76,6 +74,7 @@ void OCIOMatrix::OpUpdateParamCallback(const Parameter & op)
         }
 
         m_processor = m_config->getProcessor(m_transform);
+        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }

@@ -22,7 +22,6 @@ OCIOColorSpace::OCIOColorSpace()
     AddParameterByCategory<SelectParameter>("Color Space", "Direction", std::vector<std::string>{"Forward", "Inverse"});
 
     m_config = OCIO::GetCurrentConfig();
-    m_processor = OCIO::Processor::Create();
     m_transform = OCIO::LookTransform::Create();
 }
 
@@ -68,7 +67,7 @@ void OCIOColorSpace::OpApply(Image & img)
 {
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
-        m_processor->apply(imgDesc);
+        m_cpu_processor->apply(imgDesc);
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Process Error: " << exception.what() << "\n";
     }
@@ -76,7 +75,7 @@ void OCIOColorSpace::OpApply(Image & img)
 
 bool OCIOColorSpace::OpIsIdentity() const
 {
-    return m_processor->isNoOp();
+    return !m_processor || m_processor->isNoOp();
 }
 
 void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
@@ -104,10 +103,8 @@ void OCIOColorSpace::OpUpdateParamCallback(const Parameter & op)
         }
 
         m_processor = m_config->getProcessor(m_transform);
+        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
     } catch (OCIO::Exception &exception) {
-        // When setup has failed, reset processor
-        m_processor = OCIO::Processor::Create();
-
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
     }
 }

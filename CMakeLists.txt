@@ -36,8 +36,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -fno-omit-frame-pointer -Wno-unused-variable -Wno-
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "-L${LLVM_ROOT}/lib")
 
-set(CXX_FILESYSTEM_LIB ${LLVM_ROOT}/lib/libc++fs.a)
-
 #set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 

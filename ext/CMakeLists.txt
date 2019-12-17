@@ -111,7 +111,6 @@ file(MAKE_DIRECTORY ${OIIO_INCLUDE_DIRS}) # Hack to let imported target be built
 
 set(OIIO_CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
-    -DOPENEXR_ROOT_DIR=${INSTALL_DIR}
     -DUSE_FIELD3D=OFF
     -DOIIO_BUILD_TESTS=OFF
     -DUSE_PYTHON=OFF
@@ -122,7 +121,7 @@ set(OIIO_CMAKE_ARGS
 
 ExternalProject_Add(OIIO
     DEPENDS OPENEXR
-    URL https://github.com/OpenImageIO/oiio/archive/Release-2.0.7.tar.gz
+    URL https://github.com/OpenImageIO/oiio/archive/Release-2.1.9.0.tar.gz
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/oiio"
     BUILD_BYPRODUCTS "${OIIO_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"

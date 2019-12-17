@@ -83,11 +83,8 @@ file(MAKE_DIRECTORY ${CTL_INCLUDE_DIRS}) # Hack to let imported target be built 
 
 ExternalProject_Add(CTL
     DEPENDS OPENEXR
-    URL https://github.com/ampas/CTL/archive/ctl-1.5.2.tar.gz
+    URL https://github.com/remia/CTL/archive/feature/keep_alive.zip
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/ctl"
-    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/0001-Fix-compatibility-with-ilmbase-2.3.patch
-          COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/0002-Fix-dpx-lib-cxx-17-compilation.patch
-          COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/0003-cmake-3-macos_rpath-compliance.patch
     BUILD_BYPRODUCTS "${CTL_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"
     CMAKE_ARGS ${COMMON_CMAKE_ARGS}

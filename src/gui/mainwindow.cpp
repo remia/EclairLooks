@@ -99,7 +99,7 @@ void MainWindow::setup()
 void MainWindow::centerOnScreen()
 {
     // Move window to the center of the screen
-    QRect screenGeometry = QApplication::desktop()->screenGeometry();
+    QRect screenGeometry = QGuiApplication::screens().first()->geometry();
     int x = (screenGeometry.width() - width()) / 2;
     int y = (screenGeometry.height() - height()) / 2;
     move(x, y);

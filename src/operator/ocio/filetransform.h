@@ -32,7 +32,6 @@ class OCIOFileTransform : public ImageOperator
 
   public:
     QStringList SupportedExtensions() const;
-    void OverrideInterpolation();
 
   private:
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;

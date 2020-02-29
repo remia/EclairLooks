@@ -79,8 +79,6 @@ void OCIOFileTransform::OpApply(Image & img)
     Chrono c;
     c.start();
 
-    OverrideInterpolation();
-
     try {
         OCIO::PackedImageDesc imgDesc(img.pixels_asfloat(), img.width(), img.height(), img.channels());
         m_cpu_processor->apply(imgDesc);
@@ -156,17 +154,4 @@ QStringList OCIOFileTransform::SupportedExtensions() const
     for (size_t i = 0; i < m_transform->getNumFormats(); ++i)
         exts << m_transform->getFormatExtensionByIndex(i);
     return exts;
-}
-
-void OCIOFileTransform::OverrideInterpolation()
-{
-    // Override OCIO "Best" 3D LUT interpolation, use Tetrahedral
-    std::string interp = GetParameter<SelectParameter>("Interpolation")->value();
-    auto current = m_transform->getInterpolation();
-
-    if (m_processor->hasChannelCrosstalk() && interp == "Best" && current == OCIO::INTERP_BEST) {
-        m_transform->setInterpolation(OCIO::InterpolationFromString("Tetrahedral"));
-        m_processor = m_config->getProcessor(m_transform);
-        m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
-    }
 }

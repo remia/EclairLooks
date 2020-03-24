@@ -47,8 +47,9 @@ set(OPENEXR_CMAKE_ARGS
 )
 
 ExternalProject_Add(OPENEXR
-    URL https://github.com/AcademySoftwareFoundation/openexr/archive/v2.4.0.tar.gz
+    URL https://github.com/AcademySoftwareFoundation/openexr/archive/v2.4.1.tar.gz
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/openexr"
+    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/0001-Fix-595-and-others-issue-with-pkgconfig-generation-u.patch
     BUILD_BYPRODUCTS "${OPENEXR_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"
     CMAKE_ARGS ${OPENEXR_CMAKE_ARGS}

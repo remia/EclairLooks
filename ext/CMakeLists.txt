@@ -122,7 +122,7 @@ set(OIIO_CMAKE_ARGS
 
 ExternalProject_Add(OIIO
     DEPENDS OPENEXR
-    URL https://github.com/OpenImageIO/oiio/archive/Release-2.1.9.0.tar.gz
+    URL https://github.com/OpenImageIO/oiio/archive/Release-2.1.13.0.tar.gz
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/oiio"
     BUILD_BYPRODUCTS "${OIIO_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"

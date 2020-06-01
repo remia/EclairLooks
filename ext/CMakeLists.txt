@@ -156,7 +156,7 @@ set(OCIO_CMAKE_ARGS
 
 ExternalProject_Add(OCIO
     DEPENDS OIIO
-    URL https://github.com/imageworks/OpenColorIO/archive/2f87cca2e129471f57df0c3a8a3adc0c73a4811c.zip
+    URL https://github.com/imageworks/OpenColorIO/archive/42dbc966df9cab91662e766287852b322cf567a3.zip
     BINARY_DIR "${CMAKE_BINARY_DIR}/ext/build/ocio"
     BUILD_BYPRODUCTS "${OCIO_LIBRARY}"
     INSTALL_DIR "${INSTALL_DIR}"

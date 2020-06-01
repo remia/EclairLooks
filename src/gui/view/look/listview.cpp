@@ -17,7 +17,7 @@ LookViewWidget::LookViewWidget(QWidget *parent)
 {
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
-    setSelectionMode(QAbstractItemView::ContiguousSelection);
+    setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 void LookViewWidget::mousePressEvent(QMouseEvent *event)
@@ -93,9 +93,9 @@ uint16_t LookViewWidget::countLook() const
 
 QString LookViewWidget::currentLook() const
 {
-    QListWidgetItem * item = currentItem();
-    if (item)
-        return item->data(Qt::UserRole).toString();
+    QList<QListWidgetItem *> items = selectedItems();
+    if (not items.isEmpty())
+        return items.front()->data(Qt::UserRole).toString();
 
     return "";
 }

@@ -69,7 +69,7 @@ void LookDetailWidget::clearView(SideBySide c)
 
 void LookDetailWidget::updateView(SideBySide c)
 {
-    if (m_cmap[c].isEmpty())
+    if (not m_lookWidget)
         return;
 
     showDetail(m_cmap[c], c);

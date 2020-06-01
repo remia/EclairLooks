@@ -34,6 +34,12 @@ class OCIOFileTransform : public ImageOperator
     QStringList SupportedExtensions() const;
 
   private:
+    // NOTE: this may be migrated to parent class if we find this
+    // behavior to be wanted by multiples ops, ie. do nothing
+    // if the transform is currently invalid instead of potentially
+    // applying the last known working transform.
+    bool m_valid;
+
     OCIO_NAMESPACE::ConstConfigRcPtr m_config;
     OCIO_NAMESPACE::ConstProcessorRcPtr m_processor;
     OCIO_NAMESPACE::ConstCPUProcessorRcPtr m_cpu_processor;

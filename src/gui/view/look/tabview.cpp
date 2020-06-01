@@ -84,10 +84,8 @@ void LookViewTabWidget::selectionChanged()
     LookViewWidget *widget = static_cast<LookViewWidget*>(currentWidget());
     if (widget) {
         QString path = widget->currentLook();
-        if (!path.isEmpty()) {
-            EmitEvent<Select>(path);
-            return;
-        }
+        EmitEvent<Select>(path);
+        return;
     }
 
     EmitEvent<Reset>();

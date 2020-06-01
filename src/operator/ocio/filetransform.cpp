@@ -14,6 +14,7 @@ namespace OCIO = OCIO_NAMESPACE;
 
 
 OCIOFileTransform::OCIOFileTransform()
+: m_valid(false)
 {
     OCIO::ClearAllCaches();
 
@@ -76,6 +77,9 @@ std::string OCIOFileTransform::OpDesc() const
 
 void OCIOFileTransform::OpApply(Image & img)
 {
+    if (not m_valid)
+        return;
+
     Chrono c;
     c.start();
 
@@ -115,8 +119,10 @@ void OCIOFileTransform::OpUpdateParamCallback(const Parameter & op)
 
         m_processor = m_config->getProcessor(m_transform);
         m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
+        m_valid = true;
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+        m_valid = false;
     }
 }
 
@@ -139,12 +145,14 @@ void OCIOFileTransform::SetFileTransform(const std::string &lutpath)
         m_transform->setDirection(OCIO::TransformDirectionFromString(dir->value().c_str()));
         m_processor = m_config->getProcessor(m_transform);
         m_cpu_processor = m_processor->getOptimizedCPUProcessor(OCIO::OPTIMIZATION_LOSSLESS);
+        m_valid = true;
 
         qInfo() << "OCIOFileTransform init - (" << QString::fromStdString(lutpath)
                 << ") : " << fixed << qSetRealNumberPrecision(2)
                 << c.ellapsed(Chrono::MILLISECONDS) << "msec.\n";
     } catch (OCIO::Exception &exception) {
         qWarning() << "OpenColorIO Setup Error: " << exception.what() << "\n";
+        m_valid = false;
     }
 }
 

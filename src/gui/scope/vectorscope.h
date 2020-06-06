@@ -8,6 +8,8 @@
 
 #include <gui/common/textureview.h>
 
+#include <map>
+
 
 class Image;
 
@@ -31,22 +33,28 @@ class VectorScopeWidget : public TextureView
     void drawGraph(const QMatrix4x4 &m);
 
   private:
+    typedef std::map<std::string, GLuint> UniformMap;
+
+  private:
+    const uint16_t m_circleLines = 360;
+    const uint16_t m_tickLines = 360 / 5;
+    bool m_rasterScan;
     float m_alpha;
 
     GLint m_textureId = -1;
     QSize m_textureSize;
 
-    QOpenGLShaderProgram m_programScope;
-    QOpenGLVertexArrayObject m_vaoScope;
-    GLuint m_scopeAlphaUniform;
-    GLuint m_scopeMatrixUniform;
-    GLuint m_scopeTextureUniform;
-    GLuint m_scopeResolutionWUniform;
-    GLuint m_scopeResolutionHUniform;
+    QOpenGLVertexArrayObject m_emptyVao;
 
-    QOpenGLShaderProgram m_programLegend;
-    QOpenGLVertexArrayObject m_vaoLegend;
-    QOpenGLBuffer m_verticesLegend;
-    GLuint m_legendAlphaUniform;
-    GLuint m_legendMatrixUniform;
+    QOpenGLShaderProgram m_programScope;
+    UniformMap m_scopeUniforms;
+
+    QOpenGLShaderProgram m_programRasterScope;
+    UniformMap m_rasterScopeUniforms;
+
+    QOpenGLShaderProgram m_programCircle;
+    UniformMap m_circleUniforms;
+
+    QOpenGLShaderProgram m_programTick;
+    UniformMap m_tickUniforms;
 };

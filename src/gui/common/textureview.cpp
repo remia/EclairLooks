@@ -27,7 +27,8 @@ void TextureView::mousePressEvent(QMouseEvent *event)
     if (QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
         m_imagePosition = -widgetToWorld(event->localPos());
     }
-    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier) {
+    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier
+            || event->buttons() & Qt::MiddleButton) {
         setMouseTracking(true);
         m_clickPosition = widgetToNorm(event->localPos());
     }
@@ -39,7 +40,8 @@ void TextureView::mouseMoveEvent(QMouseEvent *event)
 {
     if (QGuiApplication::keyboardModifiers() == Qt::AltModifier)
         return;
-    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier)
+    else if (QGuiApplication::keyboardModifiers() == Qt::ControlModifier
+            || event->buttons() & Qt::MiddleButton)
         m_moveDelta = widgetToNorm(event->localPos()) - m_clickPosition;
 
     update();

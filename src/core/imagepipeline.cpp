@@ -140,7 +140,7 @@ void ImagePipeline::ComputeImage(Image & img)
         if (!t->IsIdentity())
             t->Apply(img);
 
-    qInfo() << "Compute (" << QString::fromStdString(m_name)
+    qDebug() << "Compute (" << QString::fromStdString(m_name)
             << ") Pipeline in : " << fixed << qSetRealNumberPrecision(2)
             << c.ellapsed(Chrono::MILLISECONDS) << "msec.\n";
 }

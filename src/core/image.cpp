@@ -282,7 +282,7 @@ Image Image::Lattice(uint16_t size, uint16_t maxwidth, LUTOrder order)
     uint64_t elem_count = size * size * size;
     uint16_t width = elem_count > maxwidth ? maxwidth : elem_count;
     uint16_t height = std::ceil(1.f * elem_count / width);
-    qInfo() << "Lattice image for size" << size << ":" << width << "x" << height;
+    qDebug() << "Lattice image for size" << size << ":" << width << "x" << height;
 
     ImageSpec spec;
     spec.width = width;

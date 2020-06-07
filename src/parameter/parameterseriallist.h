@@ -19,6 +19,8 @@ class ParameterSerialList
     template <typename T> T* const Get(const std::string &name) const;
 
   private:
+    void LoadParameter(Parameter* p);
+
     void LoadParameters();
     void SaveParameters();
 
@@ -34,7 +36,8 @@ T* ParameterSerialList::Add(P&&... p)
 
     T* param = m_paramList.Add<T>(std::forward<P>(p)...);
     param->template Subscribe<Parameter::UpdateValue>(std::bind(&Parameter::save, param, m_settings.get()));
-    param->load(m_settings.get());
+
+    LoadParameter(param);
 
     return param;
 }

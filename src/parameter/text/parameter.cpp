@@ -2,10 +2,7 @@
 #include "widget.h"
 
 
-TextParameter::TextParameter(const std::string &name) : Parameter(name)
-{
-
-}
+TextParameter::TextParameter(const std::string &name) : Parameter(name) {}
 
 std::string TextParameter::value() const { return m_value; }
 
@@ -35,5 +32,5 @@ void TextParameter::load(const QSettings *setting)
 
 void TextParameter::save(QSettings *setting) const
 {
-        setting->setValue(QString::fromStdString(name()), QString::fromStdString(value()));
+    setting->setValue(QString::fromStdString(name()), QString::fromStdString(value()));
 }

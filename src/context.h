@@ -21,13 +21,17 @@ class Context
     void operator=(Context const &) = delete;
 
     ParameterSerialList& settings();
+    ParameterSerialList& shortcuts();
     ImagePipeline& pipeline();
     ImageOperatorList& operators();
+
+    QKeySequence shortcut(const QString& name);
 
     QStringList supportedLookExtensions();
 
   private:
     UPtr<ParameterSerialList> m_settings;
+    UPtr<ParameterSerialList> m_shortcuts;
     UPtr<ImagePipeline> m_pipeline;
     UPtr<ImageOperatorList> m_operators;
 };

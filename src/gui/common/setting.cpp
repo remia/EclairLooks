@@ -6,21 +6,24 @@
 #include <parameter/parameterwidget.h>
 
 
-SettingWidget::SettingWidget(ParameterSerialList *settings, const QString &header, QWidget *parent)
-    : QWidget(parent), m_settings(settings), m_headerName(header)
+SettingWidget::SettingWidget(QWidget *parent)
+    : QWidget(parent)
 {
-    QFormLayout *fLayout = new QFormLayout(this);
-    fLayout->setContentsMargins(4, 4, 4, 4);
-    fLayout->setLabelAlignment(Qt::AlignLeft);
-    fLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+    m_layout = new QFormLayout(this);
+    m_layout->setContentsMargins(4, 4, 4, 4);
+    m_layout->setLabelAlignment(Qt::AlignLeft);
+    m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+}
 
-    if (!m_headerName.isEmpty())
-        fLayout->addRow("<b>" + m_headerName + "</b>", new QWidget());
+void SettingWidget::addParameters(ParameterSerialList &settings, const QString &header)
+{
+    if (not header.isEmpty())
+        m_layout->addRow("<b>" + header + "</b>", new QWidget());
 
-    for (auto & p : m_settings->Parameters()) {
+    for (auto & p : settings.Parameters()) {
         QLabel * label = new QLabel(QString::fromStdString(p->displayName()));
         ParameterWidget *paramWidget = p->createWidget(this);
         paramWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
-        fLayout->addRow(label, paramWidget);
+        m_layout->addRow(label, paramWidget);
     }
 }

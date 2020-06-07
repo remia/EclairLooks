@@ -24,6 +24,7 @@ class Parameter : public EventSource<PEvtDesc>
   public:
     Parameter() = default;
     Parameter(const std::string &name);
+    Parameter(const std::string &name, const std::string &display_name);
     virtual ~Parameter() = default;
 
   public:
@@ -55,3 +56,4 @@ class Parameter : public EventSource<PEvtDesc>
 #include "select/parameter.h"
 #include "slider/parameter.h"
 #include "text/parameter.h"
+#include "shortcut/parameter.h"

@@ -11,17 +11,27 @@ Context& Context::getInstance()
 
 Context::Context() :
     m_settings(new ParameterSerialList()),
+    m_shortcuts(new ParameterSerialList()),
     m_pipeline(new ImagePipeline()),
     m_operators(new ImageOperatorList())
 {
-
 }
 
 ParameterSerialList& Context::settings() { return *m_settings; }
 
+ParameterSerialList& Context::shortcuts() { return *m_shortcuts; }
+
 ImagePipeline& Context::pipeline() { return *m_pipeline; }
 
 ImageOperatorList& Context::operators() { return *m_operators; }
+
+QKeySequence Context::shortcut(const QString& name)
+{
+    if (auto p = m_shortcuts->Get<ShortcutParameter>(name.toStdString()))
+        return p->value();
+
+    return QKeySequence();
+}
 
 QStringList Context::supportedLookExtensions()
 {

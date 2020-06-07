@@ -263,7 +263,9 @@ void LookWidget::setupSetting()
 
     QVBoxLayout *layout = new QVBoxLayout(m_settingWidget);
     layout->setContentsMargins(0, 0, 0, 0);
-    SettingWidget *sw = new SettingWidget(m_settings);
+
+    SettingWidget *sw = new SettingWidget();
+    sw->addParameters(*m_settings);
     layout->addWidget(sw);
 }
 

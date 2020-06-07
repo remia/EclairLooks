@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QFormLayout>
 
 
 class ParameterSerialList;
@@ -8,9 +9,11 @@ class ParameterSerialList;
 class SettingWidget : public QWidget
 {
   public:
-    SettingWidget(ParameterSerialList *settings, const QString &header = "", QWidget *parent = nullptr);
+    SettingWidget(QWidget *parent = nullptr);
+
+  public:
+    void addParameters(ParameterSerialList &settings, const QString &header = "");
 
   private:
-    ParameterSerialList *m_settings;
-    QString m_headerName;
+    QFormLayout* m_layout;
 };

@@ -25,6 +25,16 @@ void setupContext()
     s.Add<FP>("Look Base Folder", "", "Choose a folder", "", FP::PathType::Folder);
     s.Add<FP>("Look Tonemap LUT", "", "Choose a LUT", "");
 
+    // Shortcuts
+    using SP = ShortcutParameter;
+    ParameterSerialList& st = Context::getInstance().shortcuts();
+    st.Add<SP>("TextureView_Reset", "Viewer / Reset", QKeySequence("Backspace"));
+    st.Add<SP>("Scope_AlphaUp", "Scopes / Increase Opacity", QKeySequence("Shift+Num+Up"));
+    st.Add<SP>("Scope_AlphaDown", "Scopes / Decrease Opacity", QKeySequence("Shift+Num+Down"));
+    st.Add<SP>("Scope_FilteringToggle", "Scopes / Filtering Toggle", QKeySequence("F"));
+    st.Add<SP>("VectorScope_TraceToggle", "VectorScope / Trace Toggle", QKeySequence("T"));
+    st.Add<SP>("Quit", "Exit application", QKeySequence("Esc"));
+
     // Pipeline
     ImagePipeline& p = Context::getInstance().pipeline();
     p.SetName("main");

@@ -39,13 +39,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-  switch (event->key()) {
-      case Qt::Key_Escape:
+    auto& ctx = Context::getInstance();
+    auto keySeq = QKeySequence(event->key() | event->modifiers());
+
+    if (keySeq == ctx.shortcut("Quit"))
         close();
-        break;
-      default:
+    else
         QMainWindow::keyPressEvent(event);
-  }
 }
 
 QSize MainWindow::sizeHint() const
@@ -62,8 +62,10 @@ void MainWindow::setup()
     m_logWidget = new LogWidget();
     m_devWidget = new DevWidget();
     m_lookWidget = new LookWidget(this);
-    m_settingWidget = new SettingWidget(
-        &Context::getInstance().settings(), "General");
+
+    m_settingWidget = new SettingWidget();
+    m_settingWidget->addParameters(Context::getInstance().settings(), "General");
+    m_settingWidget->addParameters(Context::getInstance().shortcuts(), "Shortcuts");
 
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_lookWidget, "Look");

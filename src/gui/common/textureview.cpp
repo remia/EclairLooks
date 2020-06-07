@@ -11,6 +11,7 @@
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QScreen>
 
+#include <context.h>
 #include <utils/generic.h>
 #include <utils/gl.h>
 
@@ -84,13 +85,13 @@ void TextureView::wheelEvent(QWheelEvent *event)
 
 void TextureView::keyPressEvent(QKeyEvent *event)
 {
-  switch (event->key()) {
-      case Qt::Key_Backspace:
+    auto& ctx = Context::getInstance();
+    auto keySeq = QKeySequence(event->key() | event->modifiers());
+
+    if (keySeq == ctx.shortcut("TextureView_Reset"))
         resetView();
-        break;
-      default:
+    else
         QWidget::keyPressEvent(event);
-  }
 }
 
 void TextureView::initializeGL()

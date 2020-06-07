@@ -6,6 +6,11 @@ using std::placeholders::_1;
 
 Parameter::Parameter(const std::string &name) : m_name(name), m_display_name(name) {}
 
+Parameter::Parameter(const std::string &name, const std::string &display_name)
+: m_name(name)
+, m_display_name(display_name)
+{}
+
 Parameter::operator bool() const { return m_name != ""; }
 
 std::string Parameter::name() const { return m_name; }

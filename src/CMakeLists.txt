@@ -66,6 +66,8 @@ set(SOURCES
     parameter/matrix/widget.cpp
     parameter/select/parameter.cpp
     parameter/select/widget.cpp
+    parameter/shortcut/parameter.cpp
+    parameter/shortcut/widget.cpp
     parameter/slider/parameter.cpp
     parameter/slider/widget.cpp
     parameter/text/parameter.cpp

@@ -6,6 +6,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/QKeyEvent>
 
+#include <context.h>
 #include <core/image.h>
 #include <utils/generic.h>
 #include <utils/gl.h>
@@ -46,7 +47,6 @@ static std::string fragmentShaderSource = R"(
 
     void main() {
        fragColor = vec4(color.rgb, alpha);
-       fragColor.rgb = pow(fragColor.rgb, vec3(1./2.4));
     }
 )";
 
@@ -58,90 +58,25 @@ static std::string fragmentShaderSolidSource = R"(
 
     void main() {
        fragColor = color;
-       fragColor.rgb = pow(color.rgb, vec3(1./2.4));
     }
 )";
 
 WaveformWidget::WaveformWidget(QWidget *parent)
-    : TextureView(parent), m_alpha(0.1f), m_scopeType("Waveform")
+    : GLScopeWidget(parent), m_scopeType("Waveform")
 {
 
-}
-
-void WaveformWidget::keyPressEvent(QKeyEvent *event)
-{
-  switch (event->key()) {
-      case Qt::Key_Plus:
-        m_alpha *= 1.2f;
-        m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
-        update();
-        break;
-      case Qt::Key_Minus:
-        m_alpha *= 0.8f;
-        m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
-        update();
-        break;
-      default:
-        QWidget::keyPressEvent(event);
-  }
-
-  TextureView::keyPressEvent(event);
-}
-
-void WaveformWidget::initializeGL()
-{
-    initializeOpenGLFunctions();
-
-    initLegend();
-    initScope();
-}
-
-void WaveformWidget::paintGL()
-{
-    GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
-
-    GL_CHECK(glEnable(GL_BLEND));
-    GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    if (m_scopeType == "Waveform") {
-        for (uint8_t i = 0; i < 3; ++i)
-            drawGraph(viewMatrix(), i);
-    }
-    else if (m_scopeType == "Parade") {
-        QMatrix4x4 m = viewMatrix();
-        for (uint8_t i = 0; i < 3; ++i) {
-            QMatrix4x4 subm = m;
-            subm.translate(-1. + i * 2./3., 0.0);
-            subm.scale(1./3., 1.f);
-            subm.translate(1., 0.);
-            drawGraph(subm, i);
-        }
-    }
-}
-
-void WaveformWidget::updateTexture(GLint tex)
-{
-    makeCurrent();
-    if (!context())
-        return;
-
-    m_textureId = tex;
-
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
-    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_textureSize.rwidth()));
-    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_textureSize.rheight()));
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-
-    doneCurrent();
-
-    update();
 }
 
 void WaveformWidget::setScopeType(const std::string &type)
 {
     m_scopeType = type;
     update();
+}
+
+void WaveformWidget::initScopeGL()
+{
+    initLegend();
+    initScope();
 }
 
 void WaveformWidget::initLegend()
@@ -153,9 +88,9 @@ void WaveformWidget::initLegend()
     if (!m_programLegend.isLinked())
         qWarning() << m_programLegend.log() << "\n";
 
-    GL_CHECK(m_legendMatrixUniform = m_programLegend.uniformLocation("matrix"));
-    GL_CHECK(m_legendColorUniform = m_programLegend.uniformLocation("color"));
-    GL_CHECK(m_legendAlphaUniform = m_programLegend.uniformLocation("alpha"));
+    GL_CHECK(m_legendUniforms["matrix"] = m_programLegend.uniformLocation("matrix"));
+    GL_CHECK(m_legendUniforms["color"] = m_programLegend.uniformLocation("color"));
+    GL_CHECK(m_legendUniforms["alpha"] = m_programLegend.uniformLocation("alpha"));
 
     GL_CHECK(m_vaoLegend.destroy());
     GL_CHECK(m_vaoLegend.create());
@@ -205,25 +140,43 @@ void WaveformWidget::initScope()
     if (!m_programScope.isLinked())
         qWarning() << m_programScope.log() << "\n";
 
-    GL_CHECK(m_scopeTextureUniform = m_programScope.uniformLocation("v_tex"));
-    GL_CHECK(m_scopeAlphaUniform = m_programScope.uniformLocation("alpha"));
-    GL_CHECK(m_scopeMatrixUniform = m_programScope.uniformLocation("matrix"));
-    GL_CHECK(m_scopeResolutionWUniform = m_programScope.uniformLocation("width"));
-    GL_CHECK(m_scopeResolutionHUniform = m_programScope.uniformLocation("height"));
-    GL_CHECK(m_scopeChannelUniform = m_programScope.uniformLocation("channel"));
+    GL_CHECK(m_scopeUniforms["v_tex"] = m_programScope.uniformLocation("v_tex"));
+    GL_CHECK(m_scopeUniforms["alpha"] = m_programScope.uniformLocation("alpha"));
+    GL_CHECK(m_scopeUniforms["matrix"] = m_programScope.uniformLocation("matrix"));
+    GL_CHECK(m_scopeUniforms["width"] = m_programScope.uniformLocation("width"));
+    GL_CHECK(m_scopeUniforms["height"] = m_programScope.uniformLocation("height"));
+    GL_CHECK(m_scopeUniforms["channel"] = m_programScope.uniformLocation("channel"));
 
     GL_CHECK(m_vaoScope.destroy());
     GL_CHECK(m_vaoScope.create());
 }
 
-void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
+void WaveformWidget::paintScopeGL(const QMatrix4x4 &m)
+{
+    if (m_scopeType == "Waveform") {
+        for (uint8_t i = 0; i < 3; ++i)
+            paintScope(m, i);
+    }
+    else if (m_scopeType == "Parade") {
+        QMatrix4x4 mat = m;
+        for (uint8_t i = 0; i < 3; ++i) {
+            QMatrix4x4 subm = mat;
+            subm.translate(-1. + i * 2./3., 0.0);
+            subm.scale(1./3., 1.f);
+            subm.translate(1., 0.);
+            paintScope(subm, i);
+        }
+    }
+}
+
+void WaveformWidget::paintScope(const QMatrix4x4 &m, uint8_t mode)
 {
     // Draw legend
     GL_CHECK(m_vaoLegend.bind());
     GL_CHECK(m_programLegend.bind());
 
-        GL_CHECK(m_programLegend.setUniformValue(m_legendColorUniform, 1.f, 1.f, 0.6f, 1.f));
-        GL_CHECK(m_programLegend.setUniformValue(m_legendMatrixUniform, m));
+        GL_CHECK(m_programLegend.setUniformValue(m_legendUniforms["color"], 1.f, 1.f, 0.6f, 1.f));
+        GL_CHECK(m_programLegend.setUniformValue(m_legendUniforms["matrix"], m));
         GL_CHECK(glDrawArrays(GL_LINES, 0, 0.5 * m_verticesLegend.size() / sizeof(GLfloat)));
 
     GL_CHECK(m_programLegend.release());
@@ -233,31 +186,20 @@ void WaveformWidget::drawGraph(const QMatrix4x4 &m, uint8_t mode)
     if (m_textureId == -1)
         return;
 
-    float alpha = m_alpha;
-    alpha /= 3.f;
-
     GL_CHECK(m_vaoScope.bind());
     GL_CHECK(m_programScope.bind());
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
-    // Turn off any filtering that could produce colors not in the original
-    // image, this is needed because we access the texture using normalized
-    // coordinates. Then restore originals parameters.
-    GLint minFilter, magFilter;
-    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter));
-    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    {
+        GLAutoFilterMode autoFilter(m_filtering);
 
-        GL_CHECK(m_programScope.setUniformValue(m_scopeAlphaUniform, alpha));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeMatrixUniform, m));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeChannelUniform, mode));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionWUniform, m_textureSize.width()));
-        GL_CHECK(m_programScope.setUniformValue(m_scopeResolutionHUniform, m_textureSize.height()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["alpha"], m_alpha * 5));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["matrix"], m));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["channel"], mode));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["width"], m_textureSize.width()));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["height"], m_textureSize.height()));
         GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));
-
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
+    }
 
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CHECK(m_programScope.release());

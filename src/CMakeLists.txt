@@ -21,6 +21,7 @@ set(SOURCES
     gui/common/textureview.cpp
 
     gui/scope/cube.cpp
+    gui/scope/glscope.cpp
     gui/scope/neutral.cpp
     gui/scope/waveform.cpp
     gui/scope/vectorscope.cpp

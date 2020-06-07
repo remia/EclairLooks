@@ -6,6 +6,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/QKeyEvent>
 
+#include <context.h>
 #include <core/image.h>
 #include <utils/generic.h>
 #include <utils/gl.h>
@@ -13,7 +14,7 @@
 static std::string commonFunctions = R"(
     // RGB to Y'PbPr (BT.601)
     // See Digital Video and HD 2nd, Poynton, Eq 29.2
-    vec3 RGBtoYUV_601(vec3 rgb)
+    vec3 RGBtoYPbPr_601(vec3 rgb)
     {
         vec3 yuv;
         yuv.x = (rgb.x * 0.299) + (rgb.y * 0.587) + (rgb.z * 0.114);
@@ -23,8 +24,8 @@ static std::string commonFunctions = R"(
     }
 
     // RGB to Y'PbPr (BT.709)
-    // See Digital Video and HD 2nd, Poynton, Eq 30.1
-    vec3 RGBtoYUV_709(vec3 rgb)
+    // See Digital Video and HD 2nd, Poynton, Eq 30.2
+    vec3 RGBtoYPbPr_709(vec3 rgb)
     {
         vec3 yuv;
         yuv.x = (rgb.x * 0.2126) + (rgb.y * 0.7152) + (rgb.z * 0.0722);
@@ -32,69 +33,16 @@ static std::string commonFunctions = R"(
         yuv.z = ((rgb.x - yuv.x) * 0.6350) + 0.5;
         return yuv;
     }
-)";
 
-static std::string vertexShaderRasterSource = R"(
-    #version 410 core
-    out vec4 vertexColor;
-    out vec2 prevPos;
-    out vec4 prevColor;
-
-    uniform mat4 matrix;
-    uniform sampler2D v_tex;
-    uniform int width;
-    uniform int height;
-
-{{functions}}
-
-    void main() {
-        int x = gl_VertexID % width;
-        int y = gl_VertexID / width;
-        vec2 pix = vec2(x, y) / vec2(width, height);
-
-        vec4 rgb = texture(v_tex, vec2(pix.x, 1.0f - pix.y));
-        vec3 yuv = RGBtoYUV_709(rgb.xyz);
-        gl_Position = vec4(yuv.yz, 0.0, 1.0);
-        gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
-        gl_Position.y *= -1.;
-        gl_Position = matrix * gl_Position;
-        vertexColor = rgb;
-
-        rgb = texture(v_tex, vec2((x - 1.0) / width, 1.0f - pix.y));
-        yuv = RGBtoYUV_709(rgb.xyz);
-        vec4 pos = vec4(yuv.yz, 0.0, 1.0);
-        pos.xy = (pos.xy * 2.0) - 1.;
-        pos.y *= -1.;
-        pos = matrix * pos;
-        prevColor = rgb;
-        prevPos = pos.xy;
-    }
-)";
-
-static std::string geometryShaderRasterSource = R"(
-    #version 410 core
-
-    layout(points) in;
-    layout(line_strip, max_vertices = 2) out;
-
-    in vec4 vertexColor[];
-    in vec2 prevPos[];
-    in vec4 prevColor[];
-    out vec4 color;
-
-    void main()
+    // RGB to Y'(B-Y)'(R-Y)' (BT.709)
+    // See Digital Video and HD 2nd, Poynton, Eq 30.1
+    vec3 RGBtoYUV_709(vec3 rgb)
     {
-        color = prevColor[0];
-        color.a = 0.2;
-        gl_Position = vec4(prevPos[0], 0.0, 1.0);
-        EmitVertex();
-
-        color = vertexColor[0];
-        color.a = 0.2;
-        gl_Position = gl_in[0].gl_Position;
-        EmitVertex();
-
-        EndPrimitive();
+        mat3 m = mat3(
+            0.2126,  0.7152,  0.0722,
+           -0.2126, -0.7152,  0.9278,
+            0.7874, -0.7152, -0.0722);
+        return rgb * m;
     }
 )";
 
@@ -107,7 +55,7 @@ static std::string vertexShaderSource = R"(
     uniform int width;
     uniform int height;
 
-{{functions}}
+    {{functions}}
 
     void main() {
         int x = gl_VertexID % width;
@@ -118,7 +66,6 @@ static std::string vertexShaderSource = R"(
         vec3 yuv = RGBtoYUV_709(rgb.xyz);
 
         gl_Position = vec4(yuv.yz, 0.0, 1.0);
-        gl_Position.xy = (gl_Position.xy * 2.0) - 1.;
         gl_Position.y *= -1.;
         gl_Position = matrix * gl_Position;
 
@@ -136,12 +83,12 @@ static std::string circleVertexShaderSource = R"(
     #define M_PI 3.1415926535897932384626433832795
 
     void main() {
-        float angle = 2.0 * M_PI * gl_VertexID / (length - 1);
+        float angle = 2.0 * M_PI * gl_VertexID / length;
 
         gl_Position = vec4(cos(angle), sin(angle), 0.0, 1.0);
         gl_Position = matrix * gl_Position;
 
-        color = vec4(0.3,0.2, 0.05, 1.0);
+        color = vec4(0.3, 0.2, 0.05, 1.0);
     }
 )";
 
@@ -160,7 +107,7 @@ static std::string tickVertexShaderSource = R"(
 
         gl_Position = vec4(cos(angle), sin(angle), 0.0, 1.0);
 
-        if (gl_VertexID % 2 == 0 && id % (length / 4) == 0)
+        if (gl_VertexID % (length * 2 / 4) == 0)
             gl_Position.xy = vec2(0.0, 0.0);
         else if (gl_VertexID % 4 == 0)
             gl_Position.xy *= 0.9;
@@ -169,7 +116,37 @@ static std::string tickVertexShaderSource = R"(
 
         gl_Position = matrix * gl_Position;
 
-        color = vec4(0.3,0.2, 0.05, 1.0);
+        color = vec4(0.3, 0.2, 0.05, 1.0);
+    }
+)";
+
+static std::string targetVertexShaderSource = R"(
+    #version 410 core
+    out vec4 color;
+
+    uniform mat4 matrix;
+    uniform vec3 tColor;
+    uniform float tScale;
+
+    {{functions}}
+
+    vec2 points[4] = vec2[4](
+        vec2(-1.0, -1.0),
+        vec2(-1.0,  1.0),
+        vec2( 1.0,  1.0),
+        vec2( 1.0, -1.0)
+    );
+
+    void main() {
+        vec3 yuv = RGBtoYUV_709(tColor);
+
+        gl_Position = vec4(points[gl_VertexID] * tScale, 0.0, 1.0);
+        gl_Position.xy += yuv.yz;
+        gl_Position.y *= -1.;
+        gl_Position = matrix * gl_Position;
+
+        color = vec4(tColor, 0.45);
+        color.rgb += vec3(0.3, 0.2, 0.05);
     }
 )";
 
@@ -188,79 +165,41 @@ static std::string fragmentShaderSource = R"(
 )";
 
 VectorScopeWidget::VectorScopeWidget(QWidget *parent)
-    : TextureView(parent), m_rasterScan(false), m_alpha(0.1f)
+    : GLScopeWidget(parent), m_rasterScan(false)
 {
 
-}
-
-void VectorScopeWidget::resizeGL(int w, int h)
-{
-    setAspectRatio(1.0f);
-
-    TextureView::resizeGL(w, h);
 }
 
 void VectorScopeWidget::keyPressEvent(QKeyEvent *event)
 {
-  switch (event->key()) {
-      case Qt::Key_Plus:
-        m_alpha *= 1.2f;
-        m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
-        update();
-        break;
-      case Qt::Key_Minus:
-        m_alpha *= 0.8f;
-        m_alpha = std::clamp(m_alpha, 0.001f, 1.0f);
-        update();
-        break;
-      case Qt::Key_T:
+    auto& ctx = Context::getInstance();
+    auto keySeq = QKeySequence(event->key() | event->modifiers());
+
+    if (keySeq == ctx.shortcut("VectorScope_TraceToggle")) {
         m_rasterScan = not m_rasterScan;
         update();
-        break;
-      default:
+    }
+    else {
         QWidget::keyPressEvent(event);
-  }
+    }
 
-  TextureView::keyPressEvent(event);
+    GLScopeWidget::keyPressEvent(event);
 }
 
-void VectorScopeWidget::initializeGL()
+void VectorScopeWidget::initScopeGL()
 {
-    initializeOpenGLFunctions();
-
     initLegend();
     initScope();
 }
 
-void VectorScopeWidget::paintGL()
+void VectorScopeWidget::resizeScopeGL(int w, int h)
 {
-    GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
-
-    GL_CHECK(glEnable(GL_BLEND));
-    GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    drawGraph(viewMatrix());
-}
-
-void VectorScopeWidget::updateTexture(GLint tex)
-{
-    makeCurrent();
-
-    m_textureId = tex;
-
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
-    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_textureSize.rwidth()));
-    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_textureSize.rheight()));
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-
-    doneCurrent();
-
-    update();
+    setAspectRatio(1.0f);
 }
 
 void VectorScopeWidget::initLegend()
 {
+    // Circle
     m_programCircle.removeAllShaders();
     m_programCircle.addShaderFromSourceCode(QOpenGLShader::Vertex, circleVertexShaderSource.c_str());
     m_programCircle.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
@@ -272,6 +211,7 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_circleUniforms["alpha"] = m_programCircle.uniformLocation("alpha"));
     GL_CHECK(m_circleUniforms["matrix"] = m_programCircle.uniformLocation("matrix"));
 
+    // Ticks
     m_programTick.removeAllShaders();
     m_programTick.addShaderFromSourceCode(QOpenGLShader::Vertex, tickVertexShaderSource.c_str());
     m_programTick.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
@@ -282,6 +222,21 @@ void VectorScopeWidget::initLegend()
     GL_CHECK(m_tickUniforms["length"] = m_programTick.uniformLocation("length"));
     GL_CHECK(m_tickUniforms["alpha"] = m_programTick.uniformLocation("alpha"));
     GL_CHECK(m_tickUniforms["matrix"] = m_programTick.uniformLocation("matrix"));
+
+    // Target
+    m_programTarget.removeAllShaders();
+    QString vertexSource = QString::fromStdString(targetVertexShaderSource)
+        .replace(QRegExp("\\{\\{functions\\}\\}"), QString::fromStdString(commonFunctions));
+    m_programTarget.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexSource);
+    m_programTarget.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
+    m_programTarget.link();
+    if (!m_programTarget.isLinked())
+        qWarning() << m_programTarget.log() << "\n";
+
+    GL_CHECK(m_targetUniforms["tColor"] = m_programTarget.uniformLocation("tColor"));
+    GL_CHECK(m_targetUniforms["tScale"] = m_programTarget.uniformLocation("tScale"));
+    GL_CHECK(m_targetUniforms["alpha"] = m_programTarget.uniformLocation("alpha"));
+    GL_CHECK(m_targetUniforms["matrix"] = m_programTarget.uniformLocation("matrix"));
 }
 
 void VectorScopeWidget::initScope()
@@ -301,27 +256,11 @@ void VectorScopeWidget::initScope()
     GL_CHECK(m_scopeUniforms["width"] = m_programScope.uniformLocation("width"));
     GL_CHECK(m_scopeUniforms["height"] = m_programScope.uniformLocation("height"));
 
-    m_programRasterScope.removeAllShaders();
-    QString vertexSourceRaster = QString::fromStdString(vertexShaderRasterSource)
-        .replace(QRegExp("\\{\\{functions\\}\\}"), QString::fromStdString(commonFunctions));
-    m_programRasterScope.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexSourceRaster);
-    m_programRasterScope.addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShaderRasterSource.c_str());
-    m_programRasterScope.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource.c_str());
-    m_programRasterScope.link();
-    if (!m_programRasterScope.isLinked())
-        qWarning() << m_programRasterScope.log() << "\n";
-
-    GL_CHECK(m_rasterScopeUniforms["v_tex"] = m_programRasterScope.uniformLocation("v_tex"));
-    GL_CHECK(m_rasterScopeUniforms["alpha"] = m_programRasterScope.uniformLocation("alpha"));
-    GL_CHECK(m_rasterScopeUniforms["matrix"] = m_programRasterScope.uniformLocation("matrix"));
-    GL_CHECK(m_rasterScopeUniforms["width"] = m_programRasterScope.uniformLocation("width"));
-    GL_CHECK(m_rasterScopeUniforms["height"] = m_programRasterScope.uniformLocation("height"));
-
     GL_CHECK(m_emptyVao.destroy());
     GL_CHECK(m_emptyVao.create());
 }
 
-void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
+void VectorScopeWidget::paintScopeGL(const QMatrix4x4 &m)
 {
     // Draw legend
     GL_CHECK(m_emptyVao.bind());
@@ -332,7 +271,7 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
             GL_CHECK(m_programCircle.setUniformValue(m_circleUniforms["length"], m_circleLines));
             GL_CHECK(m_programCircle.setUniformValue(m_circleUniforms["matrix"], m));
             GL_CHECK(m_programCircle.setUniformValue(m_circleUniforms["alpha"], 1.0f));
-            GL_CHECK(glDrawArrays(GL_LINE_STRIP, 0, m_circleLines));
+            GL_CHECK(glDrawArrays(GL_LINE_LOOP, 0, m_circleLines));
 
         GL_CHECK(m_programCircle.release());
 
@@ -346,46 +285,58 @@ void VectorScopeWidget::drawGraph(const QMatrix4x4 &m)
 
         GL_CHECK(m_programTick.release());
 
+        // Draw targets
+        QVector3D targets[6] = {
+            QVector3D(1.0, 0.0, 0.0),
+            QVector3D(0.0, 1.0, 0.0),
+            QVector3D(0.0, 0.0, 1.0),
+            QVector3D(1.0, 1.0, 0.0),
+            QVector3D(1.0, 0.0, 1.0),
+            QVector3D(0.0, 1.0, 1.0),
+        };
+
+        GL_CHECK(m_programTarget.bind());
+
+            GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["matrix"], m));
+            GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["alpha"], 1.0f));
+
+            for (auto& t : targets) {
+                GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["tColor"], t));
+                GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["tScale"], 0.05f));
+                GL_CHECK(glDrawArrays(GL_LINE_LOOP, 0, 4));
+
+                GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["tColor"], t * 0.75f));
+                GL_CHECK(m_programTarget.setUniformValue(m_targetUniforms["tScale"], 0.025f));
+                GL_CHECK(glDrawArrays(GL_LINE_LOOP, 0, 4));
+            }
+
+        GL_CHECK(m_programTarget.release());
+
     GL_CHECK(m_emptyVao.release());
 
     // Draw image
     if (m_textureId == -1)
         return;
 
-    QOpenGLShaderProgram* program;
-    UniformMap* uniforms;
-    if (m_rasterScan) {
-        program = &m_programRasterScope;
-        uniforms = &m_rasterScopeUniforms;
-    }
-    else {
-        program = &m_programScope;
-        uniforms = &m_scopeUniforms;
-    }
-
     GL_CHECK(m_emptyVao.bind());
-    GL_CHECK(program->bind());
+    GL_CHECK(m_programScope.bind());
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_textureId));
 
-    // Turn off any filtering that could produce colors not in the original
-    // image, this is needed because we access the texture using normalized
-    // coordinates. Then restore originals parameters.
-    GLint minFilter, magFilter;
-    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter));
-    GL_CHECK(glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    {
+        GLAutoFilterMode autoFilter(m_filtering);
 
-        GL_CHECK(program->setUniformValue((*uniforms)["alpha"], m_alpha));
-        GL_CHECK(program->setUniformValue((*uniforms)["matrix"], m));
-        GL_CHECK(program->setUniformValue((*uniforms)["width"], m_textureSize.width()));
-        GL_CHECK(program->setUniformValue((*uniforms)["height"], m_textureSize.height()));
-        GL_CHECK(glDrawArrays(GL_POINTS, 0, m_textureSize.width() * m_textureSize.height()));
+        uint16_t fixed_width = std::min(1920, m_textureSize.width());
+        uint16_t fixed_height = std::min(1080, m_textureSize.height());
+        float alpha_scale = (1920. * 1080.) / (fixed_width * fixed_height);
 
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["alpha"], m_alpha * alpha_scale));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["matrix"], m));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["width"], fixed_width));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["height"], fixed_height));
+        GL_CHECK(glDrawArrays(m_rasterScan ? GL_LINE_STRIP : GL_POINTS, 0, fixed_width * fixed_height));
+    }
 
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-    GL_CHECK(program->release());
+    GL_CHECK(m_programScope.release());
     GL_CHECK(m_emptyVao.release());
 }

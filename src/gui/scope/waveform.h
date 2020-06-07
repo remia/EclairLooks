@@ -7,50 +7,34 @@
 #include <QtGui/QOpenGLBuffer>
 
 #include <gui/common/textureview.h>
+#include <gui/scope/glscope.h>
 
 
-class Image;
-
-class WaveformWidget : public TextureView
+class WaveformWidget : public GLScopeWidget
 {
   public:
     WaveformWidget(QWidget *parent = nullptr);
 
   public:
-    void keyPressEvent(QKeyEvent *event) override;
-    void initializeGL() override;
-    void paintGL() override;
-
-    void updateTexture(GLint tex);
+    void initScopeGL() override;
+    void paintScopeGL(const QMatrix4x4 &m) override;
 
     void setScopeType(const std::string &type);
 
   private:
     void initLegend();
     void initScope();
-
-    void drawGraph(const QMatrix4x4 &m, uint8_t mode);
+    void paintScope(const QMatrix4x4 &m, uint8_t mode);
 
   private:
-    float m_alpha;
     std::string m_scopeType;
-
-    GLint m_textureId = -1;
-    QSize m_textureSize;
 
     QOpenGLShaderProgram m_programScope;
     QOpenGLVertexArrayObject m_vaoScope;
-    GLuint m_scopeAlphaUniform;
-    GLuint m_scopeMatrixUniform;
-    GLuint m_scopeTextureUniform;
-    GLuint m_scopeChannelUniform;
-    GLuint m_scopeResolutionWUniform;
-    GLuint m_scopeResolutionHUniform;
+    UniformMap m_scopeUniforms;
 
     QOpenGLShaderProgram m_programLegend;
     QOpenGLVertexArrayObject m_vaoLegend;
     QOpenGLBuffer m_verticesLegend;
-    GLuint m_legendColorUniform;
-    GLuint m_legendAlphaUniform;
-    GLuint m_legendMatrixUniform;
+    UniformMap m_legendUniforms;
 };

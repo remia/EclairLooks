@@ -13,7 +13,7 @@
 
 
 GLScopeWidget::GLScopeWidget(QWidget *parent)
-    : TextureView(parent), m_filtering(true), m_alpha(0.01f)
+    : TextureView(parent), m_init(false), m_filtering(true), m_alpha(0.01f)
 {
 
 }
@@ -52,6 +52,8 @@ void GLScopeWidget::keyPressEvent(QKeyEvent *event)
 
 void GLScopeWidget::initializeGL()
 {
+    m_init = true;
+
     initializeOpenGLFunctions();
     initScopeGL();
 }
@@ -69,6 +71,9 @@ void GLScopeWidget::paintGL()
 
 void GLScopeWidget::updateTexture(GLint tex)
 {
+    if (not m_init)
+        return;
+
     makeCurrent();
 
     m_textureId = tex;

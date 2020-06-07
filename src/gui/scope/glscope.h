@@ -29,6 +29,7 @@ class GLScopeWidget : public TextureView
     void updateTexture(GLint tex);
 
   protected:
+    bool m_init;
     bool m_filtering;
     float m_alpha;
 

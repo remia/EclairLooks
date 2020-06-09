@@ -227,12 +227,10 @@ void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)
     tex.destroy();
     tex.setSize(img.width(), img.height());
     tex.setFormat(textureFormat);
-    tex.setSwizzleMask(sw[0], sw[1], sw[2], sw[3]);
     tex.setMinificationFilter(QOpenGLTexture::Linear);
     tex.setMagnificationFilter(QOpenGLTexture::Linear);
-    tex.allocateStorage();
-    tex.setData(pixelFormat, pixelType, img.pixels());
 
+#ifdef __APPLE__
     // Because swizzle mask are disabled on Qt macOS (do not know why.)
     // http://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/opengl/qopengltexture.cpp?h=dev#n4009
     switch (img.format())
@@ -248,6 +246,12 @@ void ImageWidget::createTexture(QOpenGLTexture &tex, const Image &img)
             break;
         }
     }
+#else
+    tex.setSwizzleMask(sw[0], sw[1], sw[2], sw[3]);
+#endif
+
+    tex.allocateStorage();
+    tex.setData(pixelFormat, pixelType, img.pixels());
 }
 
 bool ImageWidget::guessPixelsParameters(const Image &img, QOpenGLTexture::PixelType &pt,

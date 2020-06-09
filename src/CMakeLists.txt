@@ -88,7 +88,7 @@ set_source_files_properties(${ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resource
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${RESOURCES} ${ICON})
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND plutil -insert NSPrincipalClass -string NSApplication ${PROJECT_NAME}.app/Contents/Info.plist)
+    COMMAND plutil -replace NSPrincipalClass -string NSApplication ${PROJECT_NAME}.app/Contents/Info.plist)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 

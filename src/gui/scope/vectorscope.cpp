@@ -325,11 +325,11 @@ void VectorScopeWidget::paintScopeGL(const QMatrix4x4 &m)
     {
         GLAutoFilterMode autoFilter(m_filtering);
 
+        // Limit sampling to 1920 * 1080
         uint16_t fixed_width = std::min(1920, m_textureSize.width());
         uint16_t fixed_height = std::min(1080, m_textureSize.height());
-        float alpha_scale = (1920. * 1080.) / (fixed_width * fixed_height);
 
-        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["alpha"], m_alpha * alpha_scale));
+        GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["alpha"], m_alpha * 5));
         GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["matrix"], m));
         GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["width"], fixed_width));
         GL_CHECK(m_programScope.setUniformValue(m_scopeUniforms["height"], fixed_height));
